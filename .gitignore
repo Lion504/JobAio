@@ -32,7 +32,7 @@ yarn-error.log*
 
 # TypeScript
 *.tsbuildinfo
-next-env.d.ts
+next-env.d.js
 
 # IDE
 .vscode/
@@ -79,5 +79,5 @@ temp/
 Instruction.md
 
 #example files
-packages/shared/src/index.ts.example
+packages/shared/src/index.js.example
 packages/db/prisma/schema.prisma.example

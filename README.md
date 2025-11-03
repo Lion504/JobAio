@@ -66,8 +66,6 @@ pnpm install
 # Copy environment template
 cp .env.example .env.local
 
-# Start development
-pnpm dev
 ```
 
 ## Project Structure
@@ -92,18 +90,6 @@ JobAio/
 ```bash
 # Install dependencies
 pnpm install
-
-# Start all services
-pnpm dev
-
-# Run linting
-pnpm lint
-
-# Run type checking
-pnpm typecheck
-
-# Run tests
-pnpm test
 
 # Build all packages
 pnpm build
@@ -132,7 +118,7 @@ See [Instruction.md](./Instruction.md) for detailed development guidelines.
 - **Database**:
 - **AI/ML**:
 - **Scraping**: 
-- **Monorepo**: pnpm workspaces, Turborepo
+- **Monorepo**: pnpm workspaces
 - **Deployment**: Docker, cloud platforms
 
 ## License
