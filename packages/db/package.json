@@ -1,0 +1,24 @@
+{
+  "name": "@jobaio/db",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/client.ts",
+  "types": "src/client.ts",
+  "scripts": {
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "lint": "eslint src prisma --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.0.0",
+    "@jobaio/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "prisma": "^5.0.0",
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0"
+  }
+}

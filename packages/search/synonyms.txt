@@ -1,0 +1,6 @@
+# Job search synonyms for query expansion
+# Format: term => synonym1, synonym2, synonym3
+
+senior => experienced, lead, principal
+junior => entry level, beginner, graduate
+
