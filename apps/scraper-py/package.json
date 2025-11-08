@@ -1,0 +1,10 @@
+{
+  "name": "@jobaio/scraper-py",
+  "private": true,
+  "scripts": {
+    "postinstall": "python -m venv venv && venv\\Scripts\\python -m pip install --upgrade pip && venv\\Scripts\\python -m pip install --only-binary=all -r requirements.txt",
+    "install-deps": "python -m venv venv && venv\\Scripts\\python -m pip install --upgrade pip && venv\\Scripts\\python -m pip install --only-binary=all -r requirements.txt",
+    "activate": "venv\\Scripts\\activate.bat",
+    "run": "venv\\Scripts\\python src/jobly_scraper.py"
+  }
+}
