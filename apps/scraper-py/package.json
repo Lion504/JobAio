@@ -1,5 +1,6 @@
 {
   "name": "@jobaio/scraper-py",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "postinstall": "python -m venv venv && venv\\Scripts\\python -m pip install --upgrade pip && venv\\Scripts\\python -m pip install --only-binary=all -r requirements.txt",
