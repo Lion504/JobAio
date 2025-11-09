@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "postinstall": "python -m venv venv && venv\\Scripts\\python -m pip install --upgrade pip && venv\\Scripts\\python -m pip install --only-binary=all -r requirements.txt",
-    "install-deps": "python -m venv venv && venv\\Scripts\\python -m pip install --upgrade pip && venv\\Scripts\\python -m pip install --only-binary=all -r requirements.txt",
-    "activate": "venv\\Scripts\\activate.bat",
-    "run": "venv\\Scripts\\python src/jobly_scraper.py",
-    "lint": "venv\\Scripts\\python -m flake8 src/ && venv\\Scripts\\python -m black --check src/ && venv\\Scripts\\python -m isort --check-only src/",
-    "lint:fix": "venv\\Scripts\\python -m black src/ && venv\\Scripts\\python -m isort src/"
+    "postinstall": "node -e \"const {execSync} = require('child_process'); const isWindows = process.platform === 'win32' || process.env.OS === 'Windows_NT'; const cmd = isWindows ? 'python -m venv venv && venv\\\\Scripts\\\\python -m pip install --upgrade pip && venv\\\\Scripts\\\\python -m pip install --only-binary=all -r requirements.txt' : 'python3 -m venv venv && venv/bin/python3 -m pip install --upgrade pip && venv/bin/python3 -m pip install --only-binary=all -r requirements.txt'; console.log('Running:', cmd); execSync(cmd, {stdio: 'inherit'})\"",
+    "install-deps": "node -e \"const {execSync} = require('child_process'); const isWindows = process.platform === 'win32' || process.env.OS === 'Windows_NT'; const cmd = isWindows ? 'python -m venv venv && venv\\\\Scripts\\\\python -m pip install --upgrade pip && venv\\\\Scripts\\\\python -m pip install --only-binary=all -r requirements.txt' : 'python3 -m venv venv && venv/bin/python3 -m pip install --upgrade pip && venv/bin/python3 -m pip install --only-binary=all -r requirements.txt'; execSync(cmd, {stdio: 'inherit'})\"",
+    "activate": "node -e \"const {execSync} = require('child_process'); const isWindows = process.platform === 'win32' || process.env.OS === 'Windows_NT'; const cmd = isWindows ? 'venv\\\\Scripts\\\\activate.bat' : 'source venv/bin/activate'; execSync(cmd, {stdio: 'inherit'})\"",
+    "run": "node -e \"const {execSync} = require('child_process'); const isWindows = process.platform === 'win32' || process.env.OS === 'Windows_NT'; const cmd = isWindows ? 'venv\\\\Scripts\\\\python src/jobly_scraper.py' : 'venv/bin/python3 src/jobly_scraper.py'; execSync(cmd, {stdio: 'inherit'})\"",
+    "lint": "node -e \"const {execSync} = require('child_process'); const isWindows = process.platform === 'win32' || process.env.OS === 'Windows_NT'; const cmd = isWindows ? 'venv\\\\Scripts\\\\python -m flake8 src/ && venv\\\\Scripts\\\\python -m black --check src/ && venv\\\\Scripts\\\\python -m isort --check-only src/' : 'venv/bin/python3 -m flake8 src/ && venv/bin/python3 -m black --check src/ && venv/bin/python3 -m isort --check-only src/'; execSync(cmd, {stdio: 'inherit'})\"",
+    "lint:fix": "node -e \"const {execSync} = require('child_process'); const isWindows = process.platform === 'win32' || process.env.OS === 'Windows_NT'; const cmd = isWindows ? 'venv\\\\Scripts\\\\python -m black src/ && venv\\\\Scripts\\\\python -m isort src/' : 'venv/bin/python3 -m black src/ && venv/bin/python3 -m isort src/'; execSync(cmd, {stdio: 'inherit'})\""
   }
 }
