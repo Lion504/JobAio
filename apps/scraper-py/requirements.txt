@@ -8,3 +8,6 @@ tenacity==9.0.0
 selenium==4.15.0
 pandas
 brotli
+black
+flake8
+isort
