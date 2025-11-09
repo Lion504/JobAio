@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "postinstall": "python -m venv venv && venv\\Scripts\\python -m pip install --upgrade pip && venv\\Scripts\\python -m pip install --only-binary=all -r requirements.txt",
-    "install-deps": "python -m venv venv && venv\\Scripts\\python -m pip install --upgrade pip && venv\\Scripts\\python -m pip install --only-binary=all -r requirements.txt",
-    "activate": "venv\\Scripts\\activate.bat",
-    "run": "venv\\Scripts\\python src/jobly_scraper.py",
-    "lint": "venv\\Scripts\\python -m flake8 src/ && venv\\Scripts\\python -m black --check src/ && venv\\Scripts\\python -m isort --check-only src/",
-    "lint:fix": "venv\\Scripts\\python -m black src/ && venv\\Scripts\\python -m isort src/"
+    "postinstall": "node -e \"require('child_process').execSync(process.platform === 'win32' ? 'python -m venv venv && venv\\\\Scripts\\\\python -m pip install --upgrade pip && venv\\\\Scripts\\\\python -m pip install --only-binary=all -r requirements.txt' : 'python -m venv venv && venv/Scripts/python -m pip install --upgrade pip && venv/Scripts/python -m pip install --only-binary=all -r requirements.txt')\"",
+    "install-deps": "python -m venv venv && if [ \"$OS\" = \"Windows_NT\" ]; then venv\\\\Scripts\\\\python -m pip install --upgrade pip && venv\\\\Scripts\\\\python -m pip install --only-binary=all -r requirements.txt; else venv/Scripts/python -m pip install --upgrade pip && venv/Scripts/python -m pip install --only-binary=all -r requirements.txt; fi",
+    "activate": "node -e \"require('child_process').execSync(process.platform === 'win32' ? 'venv\\\\Scripts\\\\activate.bat' : 'source venv/bin/activate')\"",
+    "run": "node -e \"require('child_process').execSync(process.platform === 'win32' ? 'venv\\\\Scripts\\\\python src/jobly_scraper.py' : 'venv/bin/python src/jobly_scraper.py')\"",
+    "lint": "node -e \"require('child_process').execSync(process.platform === 'win32' ? 'venv\\\\Scripts\\\\python -m flake8 src/ && venv\\\\Scripts\\\\python -m black --check src/ && venv\\\\Scripts\\\\python -m isort --check-only src/' : 'venv/bin/python -m flake8 src/ && venv/bin/python -m black --check src/ && venv/bin/python -m isort --check-only src/')\"",
+    "lint:fix": "node -e \"require('child_process').execSync(process.platform === 'win32' ? 'venv\\\\Scripts\\\\python -m black src/ && venv\\\\Scripts\\\\python -m isort src/' : 'venv/bin/python -m black src/ && venv/bin/python -m isort src/')\""
   }
 }
