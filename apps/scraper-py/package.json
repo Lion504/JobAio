@@ -1,0 +1,9 @@
+{
+  "name": "@jobaio/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "lint": "flake8 src/ && black --check src/ && isort --check-only src/",
+    "lint:fix": "black src/ && isort src/"
+  }
+}
