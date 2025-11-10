@@ -8,7 +8,12 @@
     "dev:api": "pnpm --filter @jobaio/api dev",
     "build": "echo 'Add build script later'",
     "test": "echo 'No testing configured'",
-    "lint": "echo 'No linting configured'",
+    "lint:web": "pnpm --filter @jobaio/web lint",
+    "lint:api": "pnpm --filter @jobaio/api lint",
+    "lint": "pnpm --parallel lint",
+    "lint:fix": "pnpm --parallel lint:fix",
+    "format": "pnpm --parallel format",
+    "format:check": "pnpm --parallel format:check",
     "clean": "npx del-cli \"apps/*/node_modules\" \"packages/*/node_modules\" node_modules dist .next"
   }
 }
