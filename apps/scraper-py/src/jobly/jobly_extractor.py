@@ -59,6 +59,7 @@ class JoblyExtractor:
 
             job["description"] = self.scraper.scrape_job(job["url"])
 
+            job["source"] = "jobly.fi"
             return job
 
         except Exception as e:
