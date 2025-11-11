@@ -53,9 +53,9 @@ class JoblyExtractor:
             # Extract Posted Date
             date_elem = job_card.find("span", class_="date")
             if date_elem:
-                job["date"] = date_elem.get_text(strip=True)
+                job["publish_date"] = date_elem.get_text(strip=True)
             else:
-                job["date"] = "N/A"
+                job["publish_date"] = "N/A"
 
             job["description"] = self.scraper.scrape_job(job["url"])
 
