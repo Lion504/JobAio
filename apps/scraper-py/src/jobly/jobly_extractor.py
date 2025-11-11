@@ -53,7 +53,7 @@ class JoblyExtractor:
             # Extract Posted Date
             date_elem = job_card.find("span", class_="date")
             if date_elem:
-                job["publish_date"] = date_elem.get_text(strip=True)
+                job["publish_date"] = date_elem.get_text(strip=True).rstrip(",")
             else:
                 job["publish_date"] = "N/A"
 
@@ -64,12 +64,20 @@ class JoblyExtractor:
 
         except Exception as e:
             print(f"Error extracting job data: {e}")
-            return job
+            return {
+                "title": "N/A",
+                "url": "N/A", 
+                "company": "N/A",
+                "location": "N/A",
+                "publish_date": "N/A",
+                "description": "N/A",
+                "source": "jobly.fi"
+            }
 
     def save_jobs(self, output_file):
         # get path
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.abspath(os.path.join(script_dir, ".."))
+        project_root = os.path.abspath(os.path.join(script_dir, "../.."))
         logs_dir = os.path.join(project_root, "logs")  # apps/scraper-py/logs/
 
         # Ensure logs directory exists
@@ -77,7 +85,7 @@ class JoblyExtractor:
 
         if not output_file:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_file = f"jobs_{timestamp}.json"
+            output_file = f"jobs_jobly_{timestamp}.json"
 
         output_file = os.path.join(logs_dir, output_file)
 
