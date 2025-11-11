@@ -76,11 +76,7 @@ class JoblyScraper:
                         break
             job_description = "".join(job_description.split())
 
-            print(
-                f"Extracted job description length: {
-                    len(job_description)
-                    } characters from {job_url}"
-            )
+            print(f"Job detail: {len(job_description)} chars from {job_url}")
             return job_description
 
         except requests.RequestException as e:
