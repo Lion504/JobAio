@@ -38,8 +38,6 @@ importers:
 
   apps/scraper-py: {}
 
-  apps/scraper-py: {}
-
   apps/web:
     dependencies:
       '@jobaio/shared':
