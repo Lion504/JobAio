@@ -43,8 +43,9 @@ class JoblyScraper:
             text = re.sub(pattern, "", text)
 
         # Remove email addresses
-        text = re.sub(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+"
-                      r"\.[A-Za-z]{2,}\b", "", text)
+        text = re.sub(
+            r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+" r"\.[A-Za-z]{2,}\b", "", text
+        )
 
         # Remove URLs in descriptions
         text = re.sub(r"https?://[^\s]+", "", text)

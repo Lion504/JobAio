@@ -66,12 +66,12 @@ class JoblyExtractor:
             print(f"Error extracting job data: {e}")
             return {
                 "title": "N/A",
-                "url": "N/A", 
+                "url": "N/A",
                 "company": "N/A",
                 "location": "N/A",
                 "publish_date": "N/A",
                 "description": "N/A",
-                "source": "jobly.fi"
+                "source": "jobly.fi",
             }
 
     def save_jobs(self, output_file):
