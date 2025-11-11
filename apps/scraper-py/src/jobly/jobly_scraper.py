@@ -88,7 +88,6 @@ class JoblyScraper:
             raise ValueError("Job URL must be provided")
 
         try:
-            # TODO: do I need this timeout?
             response = requests.get(job_url, headers=HEADERS, timeout=10)
             response.raise_for_status()
 
@@ -99,7 +98,6 @@ class JoblyScraper:
 
             # Use article elements as job containers
             job_cards = soup.find_all("article")
-            # print(f"Found {len(job_cards)} article elements (potential job cards)")
 
             return job_cards
 
