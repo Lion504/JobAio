@@ -1,3 +1,5 @@
+import re
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -23,9 +25,66 @@ HEADERS = {
 
 
 class JoblyScraper:
+    MIN_JOB_DESCRIPTION_WORDS = 50
+
+    def clean_personal_data(self, text):
+        """Remove personal information like phone numbers, emails, and person names."""
+        if not text:
+            return text
+
+        # More specific phone number patterns (avoid matching dates)
+        phone_patterns = [
+            r"\+\d{1,3}[\s\-]\d{1,2}[\s\-]\d{1,3}[\s\-]?\d{0,4}",  # +358 50 339 2228
+            r"\d{2,3}[\s\-]\d{1,3}[\s\-]\d{1,4}[\s\-]?\d{0,4}",  # 050 339 2228
+            r"\d{3}[\s\-]\d{3}[\s\-]\d{4}",  # 050-339-2228
+        ]
+
+        for pattern in phone_patterns:
+            text = re.sub(pattern, "", text)
+
+        # Remove email addresses
+        text = re.sub(
+            r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+" r"\.[A-Z|a-z]{2,}\b", "", text
+        )
+
+        # Remove URLs in descriptions
+        text = re.sub(r"https?://[^\s]+", "", text)
+
+        # Remove person names in contact sections
+        contact_keywords = [
+            "yhteydenotto",
+            "yhteystiedot",
+            "contact",
+            "lisätietoja",
+            "additional information",
+            "ota yhteyttä",
+            "call",
+            "email",
+        ]
+        for keyword in contact_keywords:
+            if keyword in text.lower():
+                pattern = (
+                    r"\b" + re.escape(keyword) + r"\b.*?([A-Z][a-z]+\s[A-Z][a-z]+)"
+                )
+                text = re.sub(pattern, keyword, text, flags=re.IGNORECASE)
+
+        # Remove names that appear with phone numbers or emails in same sentence
+        sentences = re.split(r"[.!?]+", text)
+        cleaned_sentences = []
+
+        for sentence in sentences:
+            # If sentence contains phone/email, remove all names from it
+            if re.search(r"[\+\d{2,}]", sentence):
+                sentence = re.sub(r"\b[A-Z][a-z]+\s[A-Z][a-z]+\b", "", sentence)
+            cleaned_sentences.append(sentence.strip())
+
+        # Clean up extra whitespace
+        text = re.sub(r"\s+", " ", text).strip()
+
+        return text
 
     def scrape_job(self, job_url):
-        if not job_url or job_url is None:
+        if not job_url or job_url == "N/A":
             return "N/A"
 
         def make_request(job_url):
@@ -37,9 +96,11 @@ class JoblyScraper:
                 print(f"Error fetching the job URL: {e}")
                 return "N/A"
 
-        try:
-            response = make_request(job_url)
+        response = make_request(job_url)
+        if response == "N/A":
+            return "N/A"
 
+        try:
             soup = BeautifulSoup(response.text, "html.parser")
 
             job_selectors = [
@@ -69,22 +130,25 @@ class JoblyScraper:
                 if desc_elem:
                     for elem in desc_elem:
                         text = elem.get_text(separator=" ", strip=True)
-                        if len(text.split()) > 50:
+                        if len(text.split()) > self.MIN_JOB_DESCRIPTION_WORDS:
                             job_description = text
                             break
                     if job_description:
                         break
-            job_description = "".join(job_description.split())
+
+            # Clean personal data from the description
+            if job_description:
+                job_description = self.clean_personal_data(job_description)
 
             print(f"Job detail: {len(job_description)} chars from {job_url}")
             return job_description
 
-        except requests.RequestException as e:
-            print(f"Error fetching the job URL: {e}")
+        except Exception as e:
+            print(f"Error processing job page: {e}")
             return "N/A"
 
     def scrape_jobs_list(self, job_url):
-        if not job_url or job_url is None:
+        if not job_url:
             raise ValueError("Job URL must be provided")
 
         try:
