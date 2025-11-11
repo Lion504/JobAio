@@ -43,9 +43,8 @@ class JoblyScraper:
             text = re.sub(pattern, "", text)
 
         # Remove email addresses
-        text = re.sub(
-            r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+" r"\.[A-Z|a-z]{2,}\b", "", text
-        )
+        text = re.sub(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+"
+                      r"\.[A-Za-z]{2,}\b", "", text)
 
         # Remove URLs in descriptions
         text = re.sub(r"https?://[^\s]+", "", text)
@@ -67,16 +66,6 @@ class JoblyScraper:
                     r"\b" + re.escape(keyword) + r"\b.*?([A-Z][a-z]+\s[A-Z][a-z]+)"
                 )
                 text = re.sub(pattern, keyword, text, flags=re.IGNORECASE)
-
-        # Remove names that appear with phone numbers or emails in same sentence
-        sentences = re.split(r"[.!?]+", text)
-        cleaned_sentences = []
-
-        for sentence in sentences:
-            # If sentence contains phone/email, remove all names from it
-            if re.search(r"[\+\d{2,}]", sentence):
-                sentence = re.sub(r"\b[A-Z][a-z]+\s[A-Z][a-z]+\b", "", sentence)
-            cleaned_sentences.append(sentence.strip())
 
         # Clean up extra whitespace
         text = re.sub(r"\s+", " ", text).strip()
@@ -141,6 +130,10 @@ class JoblyScraper:
                 job_description = self.clean_personal_data(job_description)
 
             print(f"Job detail: {len(job_description)} chars from {job_url}")
+
+            if not job_description:
+                job_description = "N/A"
+
             return job_description
 
         except Exception as e:
