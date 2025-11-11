@@ -36,18 +36,16 @@ def main():
                 break
 
             print(f"Found {len(job_cards)} job postings on this page.")
-            jobs_on_page = 0
 
             for job_card in job_cards:
                 job_data = extractor.extract_job_data(job_card)
 
                 if job_data and job_data.get("title") and job_data["title"] != "N/A":
                     extractor.jobs.append(job_data)
-                    jobs_on_page += 1
 
             print(f"Total jobs collected so far: {len(extractor.jobs)}")
             page_num += 1
-            if delay:
+            if delay > 0:
                 time.sleep(delay)
 
         except Exception as e:
