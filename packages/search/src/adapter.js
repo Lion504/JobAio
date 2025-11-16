@@ -2,94 +2,19 @@
 //const mongoose = require("mongoose");
 const Job = require("../db/src/models/jobModel");
 
-
-async function stringFinder (field, value) {
+async function findJobsByField (field, value) {
     const expression = new RegExp(value, "i");
     const query = {[field]: expression}
     const jobs = await Job.find(query).lean();
     return jobs;
 }
 
-//GET /api/jobs
-const getAllJobs = async (req, res, next) => {
-  try{
-    const jobs = await Job.find().sort({createdAt: -1}).lean();
-    res.status(200).json(jobs);
-  } catch (error) {
-    next(error);
-  }
-};
-
-//GET /api/jobs/:jobTitle
-const getJobByTitle = async (req, res, next) => {
-  const {jobTitle} = req.params;
-
-  if(!jobTitle || typeof jobTitle !== "string" || jobTitle.trim().length < 2) {
-    return res.status(400).json({message: "Invalid title parameter"});
-  }
-
-  try {
-    const jobs = await stringFinder ("title", jobTitle);
-
-    if (!jobs || jobs.length === 0) {
-      return res.status(404).json({message: "No jobs found with given parameters"});
-    }
-
-  return res.status(200).json(jobs);
-  } catch (error) {
-    next(error);
-  }
-};
-
-
-//GET /api/jobs/:jobCompany
-const getJobByCompany = async (req, res, next) => {
-  const {jobCompany} = req.params;
-
-  if(!jobCompany || typeof jobCompany !== "string" || jobCompany.trim().length < 2) {
-    return res.status(400).json({message: "Invalid Company name parameter"});
-  }
-
-  try {
-    const jobs = await stringFinder ("company", jobCompany);
-
-    if (!jobs || jobs.length === 0) {
-      return res.status(404).json({message: "No jobs found with given parameters"});
-    }
-
-  return res.status(200).json(jobs);
-  } catch (error) {
-    next(error);
-  }
-};
-
-
-//GET /api/jobs/:jobLocation
-const getJobByLocation = async (req, res, next) => {
-  const {jobLocation} = req.params;
-
-  if(!jobLocation || typeof jobLocation !== "string" || jobLocation.trim().length < 2) {
-    return res.status(400).json({message: "Invalid location parameter"});
-  }
-
-  try {
-    const jobs = await stringFinder ("location", jobLocation);
-
-    if (!jobs || jobs.length === 0) {
-      return res.status(404).json({message: "No jobs found with given parameters"});
-    }
-
-  return res.status(200).json(jobs);
-  } catch (error) {
-    next(error);
-  }
-};
-
-
+async function findAllJobs () {
+  const jobs = await Job.find().sort({createdAt: -1}).lean();
+  res.status(200).json(jobs);
+}
 
 module.exports = {
-  getAllJobs,
-  getJobByTitle,
-  getJobByCompany,
-  getJobByLocation
+  findJobsByField,
+  findAllJobs
 };
