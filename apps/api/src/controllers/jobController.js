@@ -1,7 +1,7 @@
 const {
   findAllJobs,
   findJobsByField,
-} = require("../../../packages/search/src/adapter");
+} = require("../../../../packages/search/src/adapter");
 
 //GET /api/jobs
 const getAllJobs = async (req, res, next) => {
