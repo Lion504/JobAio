@@ -21,7 +21,7 @@ const getJobByTitle = async (req, res, next) => {
     }
 
     try {
-      const jobs = await stringFinder ("title", jobTitle);
+      const jobs = await findJobsByField ("title", jobTitle);
 
       if (!jobs || jobs.length === 0) {
         return res.status(404).json({message: "No jobs found with given parameters"});
@@ -43,7 +43,7 @@ const getJobByCompany = async (req, res, next) => {
     }
 
     try {
-      const jobs = await stringFinder ("company", jobCompany);
+      const jobs = await findJobsByField ("company", jobCompany);
 
       if (!jobs || jobs.length === 0) {
         return res.status(404).json({message: "No jobs found with given parameters"});
@@ -65,7 +65,7 @@ const getJobByLocation = async (req, res, next) => {
     }
 
     try {
-      const jobs = await stringFinder ("location", jobLocation);
+      const jobs = await findJobsByField ("location", jobLocation);
 
       if (!jobs || jobs.length === 0) {
         return res.status(404).json({message: "No jobs found with given parameters"});
