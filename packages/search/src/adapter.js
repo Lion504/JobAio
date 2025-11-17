@@ -1,6 +1,5 @@
 // Search adapter/controller for job queries
-//const mongoose = require("mongoose");
-const Job = require("../db/src/models/jobModel");
+const Job = require("../../db/src/models/jobModel").default;
 
 async function findJobsByField (field, value) {
     const expression = new RegExp(value, "i");
@@ -11,7 +10,7 @@ async function findJobsByField (field, value) {
 
 async function findAllJobs () {
   const jobs = await Job.find().sort({createdAt: -1}).lean();
-  res.status(200).json(jobs);
+  return jobs;
 }
 
 module.exports = {
