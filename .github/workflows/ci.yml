@@ -1,7 +1,7 @@
 name: CI
 
 on:
-    # try to run on all branches
+  # try to run on all branches
   push:
     # branches: [ main, master, feature/ci-cd-setup ]
   pull_request:
@@ -18,15 +18,14 @@ jobs:
           version: 8.15.0
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
+          node-version: "20"
+          cache: "pnpm"
       # python setup
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.11'  # or your preferred version
+          python-version: "3.11" # or your preferred version
       - run: pip install flake8 black isort
-      
+
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm format:check
-      

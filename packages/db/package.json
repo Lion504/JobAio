@@ -10,8 +10,9 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@jobaio/shared": "workspace:*",
     "@prisma/client": "^5.0.0",
-    "@jobaio/shared": "workspace:*"
+    "mongoose": "^7.6.0"
   },
   "devDependencies": {
     "prisma": "^5.0.0"
