@@ -4,8 +4,9 @@
   "private": true,
   "main": "src/index.js",
   "dependencies": {
-    "@google/genai": "^1.30.0",
+    "@google/generative-ai": "^0.24.1",
     "@huggingface/inference": "^2.6.0",
+    "dotenv": "^16.4.5",
     "openai": "^4.0.0",
     "@jobaio/shared": "workspace:*"
   }
