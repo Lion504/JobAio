@@ -4,6 +4,7 @@
   "private": true,
   "main": "src/index.js",
   "dependencies": {
+    "@google/genai": "^1.30.0",
     "@huggingface/inference": "^2.6.0",
     "openai": "^4.0.0",
     "@jobaio/shared": "workspace:*"

@@ -1,7 +1,7 @@
 {
   "name": "jobaio",
   "private": true,
-  "packageManager": "pnpm@8.15.0",
+  "packageManager": "pnpm@10.22.0",
   "scripts": {
     "dev": "pnpm --filter @jobaio/web dev",
     "dev:web": "pnpm --filter @jobaio/web dev",
