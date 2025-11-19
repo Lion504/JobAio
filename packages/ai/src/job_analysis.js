@@ -205,7 +205,8 @@ Return format: {"technical": ["skill1", "skill2"], "certifications": [...], "sof
 
     // Try to parse JSON response
     try {
-      const skills = JSON.parse(skillsText);
+      const cleanedText = cleanJsonResponse(skillsText);
+      const skills = JSON.parse(cleanedText);
       return { skills };
     } catch (parseError) {
       // Fallback: extract skills from text response
@@ -250,7 +251,9 @@ Limit to 10 most important responsibilities.
     const respText = await callGemini(prompt, TOKEN_LIMITS.responsibilities);
 
     try {
-      const responsibilities = JSON.parse(respText);
+      // Clean markdown code blocks before parsing
+      const cleanedText = cleanJsonResponse(respText);
+      const responsibilities = JSON.parse(cleanedText);
       if (Array.isArray(responsibilities)) {
         return { responsibilities: responsibilities.slice(0, 10) };
       }
@@ -261,7 +264,7 @@ Limit to 10 most important responsibilities.
         .filter((line) => line.trim().length > 10)
         .map((line) => line.replace(/^[•\-\d\.\s]+/, "").trim())
         .slice(0, 10);
-      return { responsibilities: fallbackResp, raw_response: respText };
+      return { responsibilities: fallbackResp };
     }
 
     return { responsibilities: [] };
