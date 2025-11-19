@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 
-export const TARGET_LANGUAGES = ["en", "es", "fr", "pt", "de, fi"];
+export const TARGET_LANGUAGES = ["en", "es", "fr", "pt", "de", "ur", "ta", "zh", "fi"];
 
 // hardcoded API key used temporarily
 const GEMINI_API_KEY = "Api key";
@@ -76,7 +76,7 @@ export async function coreTranslate(
       );
     }
 
-    await new Promise((r) => setTimeout(r, 5000)); // delay to avoid rate limiting
+    await new Promise((r) => setTimeout(r, 4000)); // delay to avoid rate limiting
     return reply;
   } catch (err) {
     // retry on typical rate limit issues

@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
-import { translateJobs } from "../../../../packages/ai/src/translate.js"; // import translator
+import { translateJobs } from "../../../../packages/ai/src/geminiTranslate.js"; // import translator
 
 const SERVICE_DIR = path.dirname(fileURLToPath(import.meta.url)); // current folder path
 const SEED_PATH = path.join(SERVICE_DIR, "..", "seedJobs.json"); // input jobs file
