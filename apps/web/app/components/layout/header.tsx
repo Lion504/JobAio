@@ -27,11 +27,66 @@ import {
 } from '@/components/ui/popover'
 import { MapPin } from 'lucide-react'
 
+type SearchSuggestion = {
+  id: string
+  title: string
+  company?: string
+  location?: string
+}
+
 export function Header() {
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const { filters, updateFilter } = useFilters()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!open || searchQuery.trim().length < 2) {
+      setSuggestions([])
+      return
+    }
+
+    const controller = new AbortController()
+    const timeout = setTimeout(async () => {
+      try {
+        setIsLoadingSuggestions(true)
+        const res = await fetch(
+          `http://localhost:5001/api/jobs?search=${encodeURIComponent(searchQuery)}`,
+          { signal: controller.signal }
+        )
+        if (!res.ok) {
+          throw new Error('Failed to fetch job suggestions')
+        }
+
+        const data = await res.json()
+        const mapped: SearchSuggestion[] = data
+          .slice(0, 8)
+          .map((job: any, index: number) => ({
+            id: String(job._id ?? job.id ?? `${job.title ?? 'job'}-${index}`),
+            title: job.title ?? 'Untitled role',
+            company: job.company ?? 'Unknown company',
+            location: job.location ?? 'Remote',
+          }))
+
+        setSuggestions(mapped)
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return
+        }
+        console.error('Failed to fetch job suggestions:', error)
+        setSuggestions([])
+      } finally {
+        setIsLoadingSuggestions(false)
+      }
+    }, 250)
+
+    return () => {
+      controller.abort()
+      clearTimeout(timeout)
+    }
+  }, [open, searchQuery])
 
   const handleSearch = (term?: string) => {
     setOpen(false)
@@ -151,29 +206,36 @@ export function Header() {
                   }}
                 />
                 <CommandList>
-                  <CommandEmpty>No results found.</CommandEmpty>
-                  <CommandGroup heading="Suggestions">
-                    <CommandItem
-                      onSelect={() => handleSearch('Software Engineer')}
-                    >
-                      Software Engineer
-                    </CommandItem>
-                    <CommandItem
-                      onSelect={() => handleSearch('Product Designer')}
-                    >
-                      Product Designer
-                    </CommandItem>
-                    <CommandItem
-                      onSelect={() => handleSearch('Data Scientist')}
-                    >
-                      Data Scientist
-                    </CommandItem>
-                    <CommandItem
-                      onSelect={() => handleSearch('Frontend Developer')}
-                    >
-                      Frontend Developer
-                    </CommandItem>
-                  </CommandGroup>
+                  <CommandEmpty>
+                    {searchQuery.trim().length < 2
+                      ? 'Type at least 2 characters to search.'
+                      : isLoadingSuggestions
+                        ? 'Searching...'
+                        : 'No results found.'}
+                  </CommandEmpty>
+                  {suggestions.length > 0 && (
+                    <CommandGroup heading="Suggestions">
+                      {suggestions.map((suggestion) => (
+                        <CommandItem
+                          key={suggestion.id}
+                          value={suggestion.title}
+                          onSelect={() => handleSearch(suggestion.title)}
+                        >
+                          <div className="flex flex-col">
+                            <span className="font-medium">
+                              {suggestion.title}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {suggestion.company}
+                              {suggestion.location
+                                ? ` • ${suggestion.location}`
+                                : ''}
+                            </span>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
                 </CommandList>
               </Command>
             </div>
