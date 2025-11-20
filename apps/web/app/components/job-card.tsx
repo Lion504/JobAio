@@ -34,7 +34,7 @@ interface JobCardProps {
 export function JobCard({ job, isSelected, onClick }: JobCardProps) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleCardClick = () => {
     if (onClick) onClick()
     setIsOpen(!isOpen)
   }

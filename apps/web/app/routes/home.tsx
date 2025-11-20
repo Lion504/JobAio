@@ -17,6 +17,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     if (!res.ok) throw new Error('Failed to fetch jobs')
     const data = await res.json()
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const jobs: Job[] = data.map((job: any) => ({
       id: job._id,
       title: job.title,

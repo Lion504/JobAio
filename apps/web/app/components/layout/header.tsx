@@ -63,6 +63,7 @@ export function Header() {
         const data = await res.json()
         const mapped: SearchSuggestion[] = data
           .slice(0, 8)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .map((job: any, index: number) => ({
             id: String(job._id ?? job.id ?? `${job.title ?? 'job'}-${index}`),
             title: job.title ?? 'Untitled role',

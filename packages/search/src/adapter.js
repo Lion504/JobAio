@@ -1,5 +1,5 @@
 // Search adapter/controller for job queries
-const Job = require("../../db/src/models/jobModel").default;
+import Job from "../../db/src/models/jobModel";
 
 async function findJobsByField (field, value) {
     const expression = new RegExp(value, "i");

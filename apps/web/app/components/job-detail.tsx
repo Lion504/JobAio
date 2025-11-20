@@ -1,21 +1,20 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
-  MapPin,
   DollarSign,
   Clock,
   Briefcase,
   Globe,
   Share2,
   Bookmark,
-} from "lucide-react";
-import type { Job } from "./job-card";
+} from 'lucide-react'
+import type { Job } from './job-card'
 
 interface JobDetailProps {
-  job: Job | null;
+  job: Job | null
 }
 
 export function JobDetail({ job }: JobDetailProps) {
@@ -24,7 +23,7 @@ export function JobDetail({ job }: JobDetailProps) {
       <div className="flex h-full items-center justify-center text-muted-foreground">
         Select a job to view details
       </div>
-    );
+    )
   }
 
   return (
@@ -95,7 +94,9 @@ export function JobDetail({ job }: JobDetailProps) {
 
           {/* Tags */}
           <div className="mb-8">
-            <h3 className="mb-3 text-sm font-semibold">Skills & Requirements</h3>
+            <h3 className="mb-3 text-sm font-semibold">
+              Skills & Requirements
+            </h3>
             <div className="flex flex-wrap gap-2">
               {job.tags.map((tag) => (
                 <Badge key={tag} variant="secondary">
@@ -124,5 +125,5 @@ export function JobDetail({ job }: JobDetailProps) {
         </Button>
       </div>
     </div>
-  );
+  )
 }

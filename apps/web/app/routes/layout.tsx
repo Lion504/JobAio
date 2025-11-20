@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { Outlet } from "react-router";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
-import { ThemeProvider } from "@/components/theme-provider";
-import { AuthProvider } from "@/context/auth-context";
+import { useState } from 'react'
+import { Outlet } from 'react-router'
+import { Sidebar } from '@/components/layout/sidebar'
+import { Header } from '@/components/layout/header'
+import { ThemeProvider } from '@/components/theme-provider'
+import { AuthProvider } from '@/context/auth-context'
 
-import { FilterProvider } from "@/context/filter-context";
+import { FilterProvider } from '@/context/filter-context'
 
 export default function Layout() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   return (
     <AuthProvider>
@@ -29,5 +29,5 @@ export default function Layout() {
         </ThemeProvider>
       </FilterProvider>
     </AuthProvider>
-  );
+  )
 }

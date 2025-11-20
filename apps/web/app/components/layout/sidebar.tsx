@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router'
 import {
-  LayoutDashboard,
   Settings,
   Bookmark,
   User,
