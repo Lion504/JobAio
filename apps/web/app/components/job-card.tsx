@@ -22,6 +22,7 @@ export interface Job {
   postedAt: string
   description: string
   tags: string[]
+  link?: string
 }
 
 interface JobCardProps {
@@ -141,7 +142,17 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
             </div>
 
             <div className="flex justify-end pt-2">
-              <Button className="w-full sm:w-auto">Apply Now</Button>
+              {job.link ? (
+                <Button className="w-full sm:w-auto" asChild>
+                  <a href={job.link} target="_blank" rel="noopener noreferrer">
+                    View Listing
+                  </a>
+                </Button>
+              ) : (
+                <Button className="w-full sm:w-auto" disabled>
+                  Link unavailable
+                </Button>
+              )}
             </div>
           </CollapsibleContent>
         </CardContent>

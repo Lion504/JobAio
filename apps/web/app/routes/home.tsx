@@ -22,6 +22,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       title: job.title,
       company: job.company || 'Unknown Company',
       location: job.location || 'Remote',
+      link: job.link || '',
       salary: 'Competitive',
       type: 'Full-time',
       postedAt: new Date(job.createdAt).toLocaleDateString(),
