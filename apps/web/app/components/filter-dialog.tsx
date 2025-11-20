@@ -21,24 +21,11 @@ import { SlidersHorizontal } from "lucide-react";
 
 import { useFilters } from "@/context/filter-context";
 
-export function FilterDialog() {
+export function FilterContent({ className }: { className?: string }) {
   const { filters, updateFilter, resetFilters } = useFilters();
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-9">
-          <SlidersHorizontal className="mr-2 h-3 w-3" />
-          Filters
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Filter Jobs</DialogTitle>
-          <DialogDescription>
-            Refine your job search with specific criteria.
-          </DialogDescription>
-        </DialogHeader>
+    <div className={className}>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="location">Location</Label>
@@ -100,9 +87,32 @@ export function FilterDialog() {
               </SelectContent>
             </Select>
           </div>
+          <div className="flex items-center gap-2 mt-2">
+             <Button variant="outline" onClick={resetFilters} className="flex-1">Reset</Button>
+          </div>
         </div>
+    </div>
+  );
+}
+
+export function FilterDialog() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="h-9">
+          <SlidersHorizontal className="mr-2 h-3 w-3" />
+          Filters
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Filter Jobs</DialogTitle>
+          <DialogDescription>
+            Refine your job search with specific criteria.
+          </DialogDescription>
+        </DialogHeader>
+        <FilterContent />
         <DialogFooter>
-          <Button variant="outline" onClick={resetFilters}>Reset</Button>
           <Button type="submit">Apply Filters</Button>
         </DialogFooter>
       </DialogContent>

@@ -1,53 +1,88 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
-import { MultiSelect } from "@/components/ui/multi-select";
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
+import { useState } from 'react'
+import { MultiSelect } from '@/components/ui/multi-select'
 
 export default function Preferences() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false)
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
 
   const languageOptions = [
-    { label: "🇺🇸 English", value: "en" },
-    { label: "🇪🇸 Spanish", value: "es" },
-    { label: "🇫🇷 French", value: "fr" },
-    { label: "🇩🇪 German", value: "de" },
-    { label: "🇨🇳 Chinese", value: "zh" },
-    { label: "🇯🇵 Japanese", value: "ja" },
-    { label: "🇰🇷 Korean", value: "ko" },
-    { label: "🇵🇹 Portuguese", value: "pt" },
-    { label: "🇷🇺 Russian", value: "ru" },
-    { label: "🇮🇹 Italian", value: "it" },
-    { label: "🇳🇱 Dutch", value: "nl" },
-    { label: "🇫🇮 Finnish", value: "fi" },
-    { label: "🇸🇪 Swedish", value: "sv" },
-  ];
+    {
+      label: 'English',
+      value: 'en',
+      icon: <span className="text-lg">🇺🇸</span>,
+    },
+    {
+      label: 'Spanish',
+      value: 'es',
+      icon: <span className="text-lg">🇪🇸</span>,
+    },
+    { label: 'French', value: 'fr', icon: <span className="text-lg">🇫🇷</span> },
+    { label: 'German', value: 'de', icon: <span className="text-lg">🇩🇪</span> },
+    {
+      label: 'Chinese',
+      value: 'zh',
+      icon: <span className="text-lg">🇨🇳</span>,
+    },
+    {
+      label: 'Japanese',
+      value: 'ja',
+      icon: <span className="text-lg">🇯🇵</span>,
+    },
+    { label: 'Korean', value: 'ko', icon: <span className="text-lg">🇰🇷</span> },
+    {
+      label: 'Portuguese',
+      value: 'pt',
+      icon: <span className="text-lg">🇵🇹</span>,
+    },
+    {
+      label: 'Russian',
+      value: 'ru',
+      icon: <span className="text-lg">🇷🇺</span>,
+    },
+    {
+      label: 'Italian',
+      value: 'it',
+      icon: <span className="text-lg">🇮🇹</span>,
+    },
+    { label: 'Dutch', value: 'nl', icon: <span className="text-lg">🇳🇱</span> },
+    {
+      label: 'Finnish',
+      value: 'fi',
+      icon: <span className="text-lg">🇫🇮</span>,
+    },
+    {
+      label: 'Swedish',
+      value: 'sv',
+      icon: <span className="text-lg">🇸🇪</span>,
+    },
+  ]
 
   const handleSave = () => {
-    setIsLoading(true);
-    // Simulate API call
+    setIsLoading(true)
     setTimeout(() => {
-      setIsLoading(false);
-      alert("Preferences saved!");
-    }, 1000);
-  };
+      setIsLoading(false)
+      alert('Preferences saved!')
+    }, 1000)
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-muted/50">
@@ -129,11 +164,11 @@ export default function Preferences() {
 
           <div className="flex justify-end">
             <Button onClick={handleSave} disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save Changes"}
+              {isLoading ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

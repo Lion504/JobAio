@@ -1,18 +1,19 @@
-import { useAuth } from "@/context/auth-context";
-import { Button } from "@/components/ui/button";
+import { useAuth } from '@/context/auth-context'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Link } from 'react-router'
 
 export default function Account() {
-  const { user, login, logout } = useAuth();
+  const { user, login, logout } = useAuth()
 
   if (user) {
     return (
@@ -35,7 +36,7 @@ export default function Account() {
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   return (
@@ -65,9 +66,15 @@ export default function Account() {
             <Button className="w-full" onClick={login}>
               Login
             </Button>
+            <div className="text-center text-sm">
+              Don&apos;t have an account?{' '}
+              <Link to="/signup" className="underline">
+                Sign up
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

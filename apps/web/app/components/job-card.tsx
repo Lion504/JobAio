@@ -1,50 +1,49 @@
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, DollarSign, Clock, ChevronDown, ChevronUp } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { MapPin, DollarSign, Clock, ChevronDown, ChevronUp } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/collapsible'
+import { Button } from '@/components/ui/button'
 
 export interface Job {
-  id: string;
-  title: string;
-  company: string;
-  logo?: string;
-  location: string;
-  salary: string;
-  type: string;
-  postedAt: string;
-  description: string;
-  tags: string[];
+  id: string
+  title: string
+  company: string
+  logo?: string
+  location: string
+  salary: string
+  type: string
+  postedAt: string
+  description: string
+  tags: string[]
 }
 
 interface JobCardProps {
-  job: Job;
-  isSelected?: boolean;
-  onClick?: () => void;
+  job: Job
+  isSelected?: boolean
+  onClick?: () => void
 }
 
 export function JobCard({ job, isSelected, onClick }: JobCardProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false)
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Prevent expansion if clicking specific buttons if needed, but here we want both
-    if (onClick) onClick();
-    setIsOpen(!isOpen);
-  };
+    if (onClick) onClick()
+    setIsOpen(!isOpen)
+  }
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
       <Card
         className={cn(
-          "cursor-pointer transition-all hover:shadow-md",
-          isSelected ? "border-primary bg-primary/5" : "bg-card"
+          'cursor-pointer transition-all hover:shadow-md',
+          isSelected ? 'border-primary bg-primary/5' : 'bg-card'
         )}
         onClick={handleCardClick}
       >
@@ -60,7 +59,9 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
               <CardTitle className="text-base font-semibold">
                 {job.title}
               </CardTitle>
-              <span className="text-xs text-muted-foreground">{job.postedAt}</span>
+              <span className="text-xs text-muted-foreground">
+                {job.postedAt}
+              </span>
             </div>
             <p className="text-sm font-medium text-muted-foreground">
               {job.company}
@@ -94,7 +95,11 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
           </div>
           <div className="flex flex-wrap gap-2">
             {job.tags.slice(0, 3).map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs font-normal">
+              <Badge
+                key={tag}
+                variant="secondary"
+                className="text-xs font-normal"
+              >
                 {tag}
               </Badge>
             ))}
@@ -103,7 +108,7 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
             <div className="text-sm leading-relaxed text-muted-foreground">
               {job.description}
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <div className="rounded-lg border p-2">
                 <div className="text-xs text-muted-foreground">Job Type</div>
@@ -125,7 +130,11 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
 
             <div className="flex flex-wrap gap-2">
               {job.tags.slice(3).map((tag) => (
-                <Badge key={tag} variant="outline" className="text-xs font-normal">
+                <Badge
+                  key={tag}
+                  variant="outline"
+                  className="text-xs font-normal"
+                >
                   {tag}
                 </Badge>
               ))}
@@ -138,5 +147,5 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
         </CardContent>
       </Card>
     </Collapsible>
-  );
+  )
 }
