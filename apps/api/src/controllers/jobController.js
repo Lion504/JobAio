@@ -16,7 +16,7 @@ const getAllJobs = async (req, res, next) => {
     } else {
       jobs = await findAllJobs();
     }
-    
+
     return res.status(200).json(jobs);
   } catch (error) {
     next(error);
