@@ -23,7 +23,7 @@ const getAllJobs = async (req, res, next) => {
   }
 };
 
-//GET /api/jobs/:jobTitle
+//GET /api/jobs/title/:jobTitle
 const getJobByTitle = async (req, res, next) => {
   const { jobTitle } = req.params;
 
@@ -46,7 +46,7 @@ const getJobByTitle = async (req, res, next) => {
   }
 };
 
-//GET /api/jobs/:jobCompany
+//GET /api/jobs/company/:jobCompany
 const getJobByCompany = async (req, res, next) => {
   const { jobCompany } = req.params;
 
@@ -73,7 +73,7 @@ const getJobByCompany = async (req, res, next) => {
   }
 };
 
-//GET /api/jobs/:jobLocation
+//GET /api/jobs/location/:jobLocation
 const getJobByLocation = async (req, res, next) => {
   const { jobLocation } = req.params;
 
