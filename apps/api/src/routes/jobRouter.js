@@ -9,8 +9,8 @@ const {
 const router = express.Router();
 
 router.get("/", getAllJobs);
-router.get("/:jobTitle", getJobByTitle);
-router.get("/:jobCompany", getJobByCompany);
-router.get("/:jobLocation", getJobByLocation);
+router.get("/title/:jobTitle", getJobByTitle);
+router.get("/company/:jobCompany", getJobByCompany);
+router.get("/location/:jobLocation", getJobByLocation);
 
 module.exports = router;
