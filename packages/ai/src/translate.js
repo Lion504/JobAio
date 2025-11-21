@@ -2,8 +2,8 @@ import fetch from "node-fetch";
 
 export const TARGET_LANGUAGES = ["en", "es", "fr", "pt", "de", "ur", "ta", "zh", "fi"];
 
-// hardcoded API key used temporarily
-const GEMINI_API_KEY = "Api key";
+// Use environment variable for API key
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 if (!GEMINI_API_KEY) {
   console.warn("Warning: GEMINI_API_KEY not set. Translation will fail.");
