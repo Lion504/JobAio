@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useAuth } from '@/context/auth-context'
 import { Button } from '@/components/ui/button'
 import {
@@ -8,12 +9,25 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Link } from 'react-router'
 
 export default function Account() {
   const { user, login, logout } = useAuth()
+  const [syncEnabled, setSyncEnabled] = useState(false)
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null)
+
+  const toggleSync = (nextEnabled: boolean) => {
+    setSyncEnabled(nextEnabled)
+    setLastSyncedAt(nextEnabled ? new Date() : null)
+  }
+
+  const handleMockSync = () => {
+    if (!syncEnabled) return
+    setLastSyncedAt(new Date())
+  }
 
   if (user) {
     return (
@@ -29,10 +43,50 @@ export default function Account() {
               <CardDescription>{user.email}</CardDescription>
             </div>
           </CardHeader>
-          <CardContent className="flex justify-center">
-            <Button variant="destructive" onClick={logout}>
-              Log Out
-            </Button>
+          <CardContent className="space-y-6">
+            <div className="rounded-lg border p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <p className="font-semibold">Sync across devices</p>
+                  <p className="text-sm text-muted-foreground">
+                    Keep preferences and saved filters aligned across every
+                    device.
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {syncEnabled && lastSyncedAt
+                      ? `Last sync ${lastSyncedAt.toLocaleTimeString()}`
+                      : 'Syncing is currently disabled for this account.'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="sync-settings"
+                    checked={syncEnabled}
+                    onCheckedChange={(checked) => toggleSync(checked === true)}
+                  />
+                  <Label
+                    htmlFor="sync-settings"
+                    className="text-sm font-medium"
+                  >
+                    {syncEnabled ? 'On' : 'Off'}
+                  </Label>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                disabled={!syncEnabled}
+                onClick={handleMockSync}
+              >
+                Mock sync now
+              </Button>
+            </div>
+            <div className="flex justify-center">
+              <Button variant="destructive" onClick={logout}>
+                Log Out
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
