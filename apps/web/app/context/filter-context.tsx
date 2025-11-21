@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 
 interface FilterState {
-  location: string
+  location: string[]
   type: string
   experience: string
   salary: string
@@ -10,12 +10,15 @@ interface FilterState {
 interface FilterContextType {
   filters: FilterState
   setFilters: (filters: FilterState) => void
-  updateFilter: (key: keyof FilterState, value: string) => void
+  updateFilter: <K extends keyof FilterState>(
+    key: K,
+    value: FilterState[K]
+  ) => void
   resetFilters: () => void
 }
 
 const defaultFilters: FilterState = {
-  location: '',
+  location: [],
   type: '',
   experience: '',
   salary: '',
@@ -26,7 +29,10 @@ const FilterContext = createContext<FilterContextType | undefined>(undefined)
 export function FilterProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState<FilterState>(defaultFilters)
 
-  const updateFilter = (key: keyof FilterState, value: string) => {
+  const updateFilter = <K extends keyof FilterState>(
+    key: K,
+    value: FilterState[K]
+  ) => {
     setFilters((prev) => ({ ...prev, [key]: value }))
   }
 
