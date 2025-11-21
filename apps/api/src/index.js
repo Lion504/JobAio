@@ -4,6 +4,7 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 const app = require("./app");
+const path = require("path");
 
 const PORT = process.env.PORT || 5001;
 const MONGODB_URI =
@@ -14,6 +15,12 @@ async function start() {
     console.log("Connecting to MongoDB...");
     await mongoose.connect(MONGODB_URI);
     console.log("Connected to MongoDB");
+
+    const seedPath = path.join(__dirname, "../../../packages/db/src/seed.js");
+    const { seedDatabase } = await import(`file://${seedPath}`);
+
+    console.log("Checking database...");
+    await seedDatabase();
 
     app.listen(PORT, () => {
       console.log(`API server running on http://localhost:${PORT}`);
