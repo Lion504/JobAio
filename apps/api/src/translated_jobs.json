@@ -1,0 +1,302 @@
+{
+  "generated_at": "2025-11-18T19:51:37.074Z",
+  "count": 4,
+  "jobs": [
+    {
+      "original_job": {
+        "jobtitle": "Software Engineer",
+        "jobdescription": "We are looking for a backend-focused software engineer familiar with Node.js and Prisma ORM. Responsibilities include building APIs, integrating with databases, and collaborating with product teams.",
+        "industry": "Information Technology",
+        "experience": "3+ years",
+        "job_original_language": "en"
+      },
+      "translations": [
+        {
+          "translation_language": "es",
+          "jobtitle": "Ingeniero de Software",
+          "jobdescription": "Estamos buscando un ingeniero de software con enfoque en backend, familiarizado con Node.js y Prisma ORM. Las responsabilidades incluyen la creación de APIs, la integración con bases de datos y la colaboración con equipos de producto.",
+          "industry": "Information Technology",
+          "original_job": {
+            "jobtitle": "Software Engineer",
+            "jobdescription": "We are looking for a backend-focused software engineer familiar with Node.js and Prisma ORM. Responsibilities include building APIs, integrating with databases, and collaborating with product teams.",
+            "industry": "Information Technology",
+            "experience": "3+ years",
+            "job_original_language": "en"
+          },
+          "warnings": []
+        },
+        {
+          "translation_language": "fr",
+          "jobtitle": "Ingénieur Logiciel",
+          "jobdescription": "Nous recherchons un ingénieur logiciel spécialisé dans le backend, familier avec Node.js et Prisma ORM. Ses responsabilités incluent le développement d'API, l'intégration avec des bases de données et la collaboration avec les équipes produit.",
+          "industry": "Information Technology",
+          "original_job": {
+            "jobtitle": "Software Engineer",
+            "jobdescription": "We are looking for a backend-focused software engineer familiar with Node.js and Prisma ORM. Responsibilities include building APIs, integrating with databases, and collaborating with product teams.",
+            "industry": "Information Technology",
+            "experience": "3+ years",
+            "job_original_language": "en"
+          },
+          "warnings": []
+        },
+        {
+          "translation_language": "pt",
+          "jobtitle": "Engenheiro de Software",
+          "jobdescription": "Procuramos um(a) engenheiro(a) de software com foco em backend, familiarizado(a) com Node.js e Prisma ORM. As responsabilidades incluem desenvolver APIs, integrar com bancos de dados e colaborar com as equipes de produto.",
+          "industry": "Information Technology",
+          "original_job": {
+            "jobtitle": "Software Engineer",
+            "jobdescription": "We are looking for a backend-focused software engineer familiar with Node.js and Prisma ORM. Responsibilities include building APIs, integrating with databases, and collaborating with product teams.",
+            "industry": "Information Technology",
+            "experience": "3+ years",
+            "job_original_language": "en"
+          },
+          "warnings": []
+        },
+        {
+          "translation_language": "de, fi",
+          "jobtitle": "**en:** Software Engineer\n\n**de:** Softwareentwickler\n\n**fi:** Ohjelmistosuunnittelija",
+          "jobdescription": "**German (de):**\nWir suchen einen Backend-fokussierten Softwareentwickler, der mit Node.js und Prisma ORM vertraut ist. Zu den Aufgaben gehören die Entwicklung von APIs, die Integration mit Datenbanken und die Zusammenarbeit mit Produktteams.\n\n**Finnish (fi):**\nEtsimme backend-painotteista ohjelmistokehittäjää, joka tuntee Node.js:n ja Prisma ORM:n. Tehtäviin kuuluu rajapintojen (API) rakentaminen, integrointi tietokantojen kanssa ja yhteistyö tuotetiimien kanssa.",
+          "industry": "Information Technology",
+          "original_job": {
+            "jobtitle": "Software Engineer",
+            "jobdescription": "We are looking for a backend-focused software engineer familiar with Node.js and Prisma ORM. Responsibilities include building APIs, integrating with databases, and collaborating with product teams.",
+            "industry": "Information Technology",
+            "experience": "3+ years",
+            "job_original_language": "en"
+          },
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "original_job": {
+        "jobtitle": "Ohjelmistokehittäjä",
+        "jobdescription": "Etsimme kokeneita ohjelmistokehittäjiä, jotka hallitsevat Node.js:ää ja Prisma ORM:ää. Tehtäviin kuuluu API:en kehitys ja tietokantaintegraatiot.",
+        "industry": "Tietotekniikka",
+        "experience": "2+ vuotta",
+        "job_original_language": "fi"
+      },
+      "translations": [
+        {
+          "translation_language": "en",
+          "jobtitle": "Software developer",
+          "jobdescription": "We are looking for experienced software developers who are proficient in Node.js and Prisma ORM. Responsibilities include API development and database integrations.",
+          "industry": "Tietotekniikka",
+          "original_job": {
+            "jobtitle": "Ohjelmistokehittäjä",
+            "jobdescription": "Etsimme kokeneita ohjelmistokehittäjiä, jotka hallitsevat Node.js:ää ja Prisma ORM:ää. Tehtäviin kuuluu API:en kehitys ja tietokantaintegraatiot.",
+            "industry": "Tietotekniikka",
+            "experience": "2+ vuotta",
+            "job_original_language": "fi"
+          },
+          "warnings": []
+        },
+        {
+          "translation_language": "es",
+          "jobtitle": "Desarrollador de software",
+          "jobdescription": "Buscamos desarrolladores de software experimentados que dominen Node.js y Prisma ORM. Las responsabilidades incluyen el desarrollo de APIs y las integraciones de bases de datos.",
+          "industry": "Tietotekniikka",
+          "original_job": {
+            "jobtitle": "Ohjelmistokehittäjä",
+            "jobdescription": "Etsimme kokeneita ohjelmistokehittäjiä, jotka hallitsevat Node.js:ää ja Prisma ORM:ää. Tehtäviin kuuluu API:en kehitys ja tietokantaintegraatiot.",
+            "industry": "Tietotekniikka",
+            "experience": "2+ vuotta",
+            "job_original_language": "fi"
+          },
+          "warnings": []
+        },
+        {
+          "translation_language": "fr",
+          "jobtitle": "Développeur logiciel",
+          "jobdescription": "Nous recherchons des développeurs de logiciels expérimentés qui maîtrisent Node.js et Prisma ORM. Les tâches comprennent le développement d'API et les intégrations de bases de données.",
+          "industry": "Tietotekniikka",
+          "original_job": {
+            "jobtitle": "Ohjelmistokehittäjä",
+            "jobdescription": "Etsimme kokeneita ohjelmistokehittäjiä, jotka hallitsevat Node.js:ää ja Prisma ORM:ää. Tehtäviin kuuluu API:en kehitys ja tietokantaintegraatiot.",
+            "industry": "Tietotekniikka",
+            "experience": "2+ vuotta",
+            "job_original_language": "fi"
+          },
+          "warnings": []
+        },
+        {
+          "translation_language": "pt",
+          "jobtitle": "Desenvolvedor de Software",
+          "jobdescription": "Procuramos desenvolvedores de software experientes que dominam Node.js e Prisma ORM. As tarefas incluem o desenvolvimento de APIs e integrações de banco de dados.",
+          "industry": "Tietotekniikka",
+          "original_job": {
+            "jobtitle": "Ohjelmistokehittäjä",
+            "jobdescription": "Etsimme kokeneita ohjelmistokehittäjiä, jotka hallitsevat Node.js:ää ja Prisma ORM:ää. Tehtäviin kuuluu API:en kehitys ja tietokantaintegraatiot.",
+            "industry": "Tietotekniikka",
+            "experience": "2+ vuotta",
+            "job_original_language": "fi"
+          },
+          "warnings": []
+        },
+        {
+          "translation_language": "de, fi",
+          "jobtitle": "Softwareentwickler",
+          "jobdescription": "Wir suchen erfahrene Softwareentwickler, die Node.js und Prisma ORM beherrschen. Zu den Aufgaben gehören die Entwicklung von APIs und Datenbankintegrationen.",
+          "industry": "Tietotekniikka",
+          "original_job": {
+            "jobtitle": "Ohjelmistokehittäjä",
+            "jobdescription": "Etsimme kokeneita ohjelmistokehittäjiä, jotka hallitsevat Node.js:ää ja Prisma ORM:ää. Tehtäviin kuuluu API:en kehitys ja tietokantaintegraatiot.",
+            "industry": "Tietotekniikka",
+            "experience": "2+ vuotta",
+            "job_original_language": "fi"
+          },
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "original_job": {
+        "jobtitle": "Desarrollador Backend",
+        "jobdescription": "Buscamos un desarrollador backend con experiencia en Node.js y bases de datos. Deberá diseñar y mantener API REST y colaborar con equipos multifuncionales.",
+        "industry": "Tecnología",
+        "experience": "4+ años",
+        "job_original_language": "es"
+      },
+      "translations": [
+        {
+          "translation_language": "en",
+          "jobtitle": "Backend Developer",
+          "jobdescription": "We are looking for a backend developer with experience in Node.js and databases. They will be responsible for designing and maintaining REST APIs and collaborating with cross-functional teams.",
+          "industry": "Tecnología",
+          "original_job": {
+            "jobtitle": "Desarrollador Backend",
+            "jobdescription": "Buscamos un desarrollador backend con experiencia en Node.js y bases de datos. Deberá diseñar y mantener API REST y colaborar con equipos multifuncionales.",
+            "industry": "Tecnología",
+            "experience": "4+ años",
+            "job_original_language": "es"
+          },
+          "warnings": []
+        },
+        {
+          "translation_language": "fr",
+          "jobtitle": "Développeur Backend",
+          "jobdescription": "Nous recherchons un développeur backend avec de l'expérience en Node.js et bases de données. Il/Elle devra concevoir et maintenir des API REST et collaborer avec des équipes multifonctionnelles.",
+          "industry": "Tecnología",
+          "original_job": {
+            "jobtitle": "Desarrollador Backend",
+            "jobdescription": "Buscamos un desarrollador backend con experiencia en Node.js y bases de datos. Deberá diseñar y mantener API REST y colaborar con equipos multifuncionales.",
+            "industry": "Tecnología",
+            "experience": "4+ años",
+            "job_original_language": "es"
+          },
+          "warnings": []
+        },
+        {
+          "translation_language": "pt",
+          "jobtitle": "Desenvolvedor Backend",
+          "jobdescription": "Procuramos um desenvolvedor backend com experiência em Node.js e bancos de dados. Deverá projetar e manter APIs REST e colaborar com equipes multifuncionais.",
+          "industry": "Tecnología",
+          "original_job": {
+            "jobtitle": "Desarrollador Backend",
+            "jobdescription": "Buscamos un desarrollador backend con experiencia en Node.js y bases de datos. Deberá diseñar y mantener API REST y colaborar con equipos multifuncionales.",
+            "industry": "Tecnología",
+            "experience": "4+ años",
+            "job_original_language": "es"
+          },
+          "warnings": []
+        },
+        {
+          "translation_language": "de, fi",
+          "jobtitle": "**de:** Backend-Entwickler\n**fi:** Backend-kehittäjä",
+          "jobdescription": "**Deutsch (de):**\nWir suchen einen Backend-Entwickler mit Erfahrung in Node.js und Datenbanken. Er/Sie wird REST-APIs entwerfen und pflegen und mit funktionsübergreifenden Teams zusammenarbeiten.\n\n**Finnisch (fi):**\nHaemme backend-kehittäjää, jolla on kokemusta Node.js:stä ja tietokannoista. Hän suunnittelee ja ylläpitää REST-rajapintoja ja tekee yhteistyötä monialaisten tiimien kanssa.",
+          "industry": "Tecnología",
+          "original_job": {
+            "jobtitle": "Desarrollador Backend",
+            "jobdescription": "Buscamos un desarrollador backend con experiencia en Node.js y bases de datos. Deberá diseñar y mantener API REST y colaborar con equipos multifuncionales.",
+            "industry": "Tecnología",
+            "experience": "4+ años",
+            "job_original_language": "es"
+          },
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "original_job": {
+        "jobtitle": "Backend-Entwickler",
+        "jobdescription": "Wir suchen einen Backend-Entwickler mit Node.js-Erfahrung. Aufgaben umfassen API-Entwicklung, Datenbankdesign und -optimierung.",
+        "industry": "IT",
+        "experience": "3+ Jahre",
+        "job_original_language": "de"
+      },
+      "translations": [
+        {
+          "translation_language": "en",
+          "jobtitle": "Backend Developer",
+          "jobdescription": "We are looking for a Backend Developer with Node.js experience. Tasks include API development, database design, and optimization.",
+          "industry": "IT",
+          "original_job": {
+            "jobtitle": "Backend-Entwickler",
+            "jobdescription": "Wir suchen einen Backend-Entwickler mit Node.js-Erfahrung. Aufgaben umfassen API-Entwicklung, Datenbankdesign und -optimierung.",
+            "industry": "IT",
+            "experience": "3+ Jahre",
+            "job_original_language": "de"
+          },
+          "warnings": []
+        },
+        {
+          "translation_language": "es",
+          "jobtitle": "Desarrollador backend",
+          "jobdescription": "Buscamos un desarrollador backend con experiencia en Node.js. Las tareas incluyen el desarrollo de API, diseño y optimización de bases de datos.",
+          "industry": "IT",
+          "original_job": {
+            "jobtitle": "Backend-Entwickler",
+            "jobdescription": "Wir suchen einen Backend-Entwickler mit Node.js-Erfahrung. Aufgaben umfassen API-Entwicklung, Datenbankdesign und -optimierung.",
+            "industry": "IT",
+            "experience": "3+ Jahre",
+            "job_original_language": "de"
+          },
+          "warnings": []
+        },
+        {
+          "translation_language": "fr",
+          "jobtitle": "Développeur backend",
+          "jobdescription": "Nous recherchons un développeur backend avec expérience Node.js. Les tâches comprennent le développement d'API, la conception et l'optimisation de bases de données.",
+          "industry": "IT",
+          "original_job": {
+            "jobtitle": "Backend-Entwickler",
+            "jobdescription": "Wir suchen einen Backend-Entwickler mit Node.js-Erfahrung. Aufgaben umfassen API-Entwicklung, Datenbankdesign und -optimierung.",
+            "industry": "IT",
+            "experience": "3+ Jahre",
+            "job_original_language": "de"
+          },
+          "warnings": []
+        },
+        {
+          "translation_language": "pt",
+          "jobtitle": "Desenvolvedor Backend",
+          "jobdescription": "Procuramos um desenvolvedor backend com experiência em Node.js. As tarefas incluem desenvolvimento de API, design e otimização de banco de dados.",
+          "industry": "IT",
+          "original_job": {
+            "jobtitle": "Backend-Entwickler",
+            "jobdescription": "Wir suchen einen Backend-Entwickler mit Node.js-Erfahrung. Aufgaben umfassen API-Entwicklung, Datenbankdesign und -optimierung.",
+            "industry": "IT",
+            "experience": "3+ Jahre",
+            "job_original_language": "de"
+          },
+          "warnings": []
+        },
+        {
+          "translation_language": "de, fi",
+          "jobtitle": "**de:** Backend-Entwickler\n**fi:** Backend-kehittäjä",
+          "jobdescription": "Here are the translations:\n\n**Original German:**\nWir suchen einen Backend-Entwickler mit Node.js-Erfahrung. Aufgaben umfassen API-Entwicklung, Datenbankdesign und -optimierung.\n\n---\n\n**English Translation:**\nWe are looking for a Backend Developer with Node.js experience. Responsibilities include API development, database design, and optimization.\n\n---\n\n**Finnish Translation:**\nEtsimme backend-kehittäjää, jolla on Node.js-kokemusta. Tehtäviin kuuluvat API-kehitys, tietokantojen suunnittelu ja optimointi.",
+          "industry": "IT",
+          "original_job": {
+            "jobtitle": "Backend-Entwickler",
+            "jobdescription": "Wir suchen einen Backend-Entwickler mit Node.js-Erfahrung. Aufgaben umfassen API-Entwicklung, Datenbankdesign und -optimierung.",
+            "industry": "IT",
+            "experience": "3+ Jahre",
+            "job_original_language": "de"
+          },
+          "warnings": []
+        }
+      ]
+    }
+  ]
+}
