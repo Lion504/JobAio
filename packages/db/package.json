@@ -1,6 +1,7 @@
 {
   "name": "@jobaio/db",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "main": "src/client.js",
   "scripts": {
@@ -12,7 +13,7 @@
   "dependencies": {
     "@jobaio/shared": "workspace:*",
     "@prisma/client": "^5.0.0",
-    "mongoose": "^7.6.0"
+    "mongoose": "^8.19.4"
   },
   "devDependencies": {
     "prisma": "^5.0.0"

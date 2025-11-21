@@ -12,11 +12,14 @@
     "format:check": "prettier --check src/"
   },
   "dependencies": {
+    "@jobaio/ai": "workspace:*",
+    "@jobaio/db": "workspace:*",
+    "@jobaio/search": "workspace:*",
+    "@jobaio/shared": "workspace:*",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^4.18.0",
-    "@jobaio/ai": "file:../../packages/ai",
-    "@jobaio/db": "file:../../packages/db",
-    "@jobaio/search": "file:../../packages/search",
-    "@jobaio/shared": "file:../../packages/shared"
+    "mongoose": "^8.19.4"
   },
   "devDependencies": {
     "eslint": "^8.57.1",
