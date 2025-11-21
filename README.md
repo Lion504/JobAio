@@ -7,6 +7,7 @@ A comprehensive job search platform.
 ### Prerequisites
 
 **Required Software:**
+
 - **Node.js 20+** (LTS recommended)
 - **pnpm** (monorepo package manager)
 - **Git** (version control)
@@ -15,6 +16,7 @@ A comprehensive job search platform.
 ### Installation guide
 
 **Windows:**
+
 ```powershell
 # Node.js via Chocolatey
 
@@ -28,6 +30,7 @@ winget install Python.Python.3.11
 ```
 
 **macOS:**
+
 ```bash
 # Node.js via Homebrew
 brew install node
@@ -40,6 +43,7 @@ brew install python
 ```
 
 **Linux (Ubuntu/Debian):**
+
 ```bash
 # Node.js
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
@@ -57,6 +61,7 @@ sudo apt install python3 python3-pip
 ```bash
 git clone https://github.com/Lion504/JobAio
 ```
+
 ```bash
 cd JobAio
 
@@ -99,8 +104,8 @@ pnpm build
 
 Copy `.env.example` to `.env.local` and configure:
 
-- **Database**: 
-- **AI Services**: 
+- **Database**:
+- **AI Services**:
 
 ## Contributing
 
@@ -117,7 +122,7 @@ See [Instruction.md](./Instruction.md) for detailed development guidelines.
 - **Backend**:
 - **Database**:
 - **AI/ML**:
-- **Scraping**: 
+- **Scraping**:
 - **Monorepo**: pnpm workspaces
 - **Deployment**: Docker, cloud platforms
 

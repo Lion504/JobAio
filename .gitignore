@@ -82,3 +82,6 @@ Instruction.md
 #example files
 packages/shared/src/index.js.example
 packages/db/prisma/schema.prisma.example
+
+#test files
+packages/ai/test_job_analysis.js
