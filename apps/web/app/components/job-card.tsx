@@ -10,6 +10,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { Button } from '@/components/ui/button'
+import { Bookmark } from 'lucide-react'
+import { useBookmarks } from '@/context/bookmarks-context'
 
 export interface Job {
   id: string
@@ -33,51 +35,75 @@ interface JobCardProps {
 
 export function JobCard({ job, isSelected, onClick }: JobCardProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const { isBookmarked, addBookmark, removeBookmark } = useBookmarks()
+  const bookmarked = isBookmarked(job.id)
 
   const handleCardClick = () => {
     if (onClick) onClick()
     setIsOpen(!isOpen)
   }
 
+  const handleBookmark = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (bookmarked) {
+      removeBookmark(job.id)
+    } else {
+      addBookmark(job)
+    }
+  }
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
       <Card
         className={cn(
-          'cursor-pointer transition-all hover:shadow-md',
+          'w-full cursor-pointer transition-all hover:shadow-md',
           isSelected ? 'border-primary bg-primary/5' : 'bg-card'
         )}
         onClick={handleCardClick}
       >
-        <CardHeader className="flex flex-row items-start gap-4 space-y-0 p-4">
+        <CardHeader className="flex flex-wrap items-start gap-4 space-y-0 p-4 sm:flex-nowrap">
           <Avatar className="h-12 w-12 rounded-lg border">
             <AvatarImage src={job.logo} alt={job.company} />
             <AvatarFallback className="rounded-lg">
               {job.company.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 space-y-1">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle className="min-w-0 flex-1 break-words text-base font-semibold leading-tight">
                 {job.title}
               </CardTitle>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {job.postedAt}
               </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={handleBookmark}
+                >
+                  <Bookmark
+                    className={cn('h-4 w-4', bookmarked && 'fill-current')}
+                  />
+                  <span className="sr-only">Bookmark</span>
+                </Button>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    {isOpen ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                    <span className="sr-only">Toggle</span>
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
             </div>
             <p className="text-sm font-medium text-muted-foreground">
               {job.company}
             </p>
           </div>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              {isOpen ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-              <span className="sr-only">Toggle</span>
-            </Button>
-          </CollapsibleTrigger>
         </CardHeader>
         <CardContent className="p-4 pt-0">
           <div className="mb-4 grid grid-cols-2 gap-2 text-xs text-muted-foreground">

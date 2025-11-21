@@ -3,6 +3,16 @@ import { useLoaderData, type LoaderFunctionArgs } from 'react-router'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { JobCard, type Job } from '@/components/job-card'
 
+interface ApiJob {
+  _id: string
+  title: string
+  company?: string
+  location?: string
+  link?: string
+  description?: string
+  createdAt: string
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const search = url.searchParams.get('search')
@@ -15,10 +25,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   try {
     const res = await fetch(apiUrl)
     if (!res.ok) throw new Error('Failed to fetch jobs')
-    const data = await res.json()
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const jobs: Job[] = data.map((job: any) => ({
+    const data = (await res.json()) as ApiJob[]
+
+    const jobs: Job[] = data.map((job) => ({
       id: job._id,
       title: job.title,
       company: job.company || 'Unknown Company',
