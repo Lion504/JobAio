@@ -2,8 +2,7 @@
 import OpenAI from "openai";
 
 const client = new OpenAI({
-  apiKey:
-    "Your-OpenAI-API-Key", // Replace with your actual OpenAI API key
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 async function testOpenAI() {

@@ -19,10 +19,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^4.18.0",
-    "mongoose": "^8.19.4",
-    "franc": "^6.2.0",
-    "node-cron": "^4.2.1",
-    "node-fetch": "^3.3.2"
+    "mongoose": "^8.19.4"
   },
   "devDependencies": {
     "eslint": "^8.57.1",

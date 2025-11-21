@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 import { translateJobs } from "../../../../packages/ai/src/geminiTranslate.js"; // import translator
 
 const SERVICE_DIR = path.dirname(fileURLToPath(import.meta.url)); // current folder path
-const SEED_PATH = path.join(SERVICE_DIR, "..", "seedJobs.json"); // input jobs file
+const SEED_PATH = path.join(SERVICE_DIR, "..", "seedJobs2.json"); // input jobs file
 const OUT_PATH = path.join(SERVICE_DIR, "..", "translated_jobs.json"); // output file path
 
 async function readSeedJobs() {
