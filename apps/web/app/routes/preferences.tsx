@@ -16,12 +16,53 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MultiSelect } from '@/components/ui/multi-select'
+import { LocationSelector } from '@/components/location-selector'
+
+type PreferencesState = {
+  jobTags: string
+  skills: string
+  languages: string[]
+  location: string[]
+  interfaceLanguage: string
+}
+
+const defaultPreferences: PreferencesState = {
+  jobTags: '',
+  skills: '',
+  languages: [],
+  location: [],
+  interfaceLanguage: 'en',
+}
+
+const STORAGE_KEY = 'jobaio-preferences'
+
+function normalizeLocationPreference(
+  value: string[] | string | undefined,
+  fallback: string[] = []
+) {
+  if (Array.isArray(value)) {
+    const sanitized = value.filter(
+      (item): item is string =>
+        typeof item === 'string' && item.trim().length > 0
+    )
+    return sanitized.length > 0 ? sanitized : fallback
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    return trimmed ? [trimmed] : fallback
+  }
+
+  return fallback
+}
 
 export default function Preferences() {
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
+  const [preferences, setPreferences] =
+    useState<PreferencesState>(defaultPreferences)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const languageOptions = [
     {
@@ -75,6 +116,36 @@ export default function Preferences() {
     },
   ]
 
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored) as Partial<PreferencesState> & {
+          location?: string | string[]
+        }
+        const { location: storedLocation, ...rest } = parsed
+        setPreferences((prev) => ({
+          ...prev,
+          ...rest,
+          location: normalizeLocationPreference(storedLocation, prev.location),
+        }))
+      }
+    } catch (error) {
+      console.error('Failed to load preferences from localStorage', error)
+    } finally {
+      setIsInitialized(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isInitialized) return
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences))
+  }, [preferences, isInitialized])
+
+  const updatePreferences = (updates: Partial<PreferencesState>) => {
+    setPreferences((prev) => ({ ...prev, ...updates }))
+  }
+
   const handleSave = () => {
     setIsLoading(true)
     setTimeout(() => {
@@ -106,6 +177,10 @@ export default function Preferences() {
                 <Label htmlFor="tags">Job Tags</Label>
                 <Input
                   id="tags"
+                  value={preferences.jobTags}
+                  onChange={(event) =>
+                    updatePreferences({ jobTags: event.target.value })
+                  }
                   placeholder="e.g. React, Startup, Fintech (comma separated)"
                 />
                 <p className="text-xs text-muted-foreground">
@@ -116,6 +191,10 @@ export default function Preferences() {
                 <Label htmlFor="skills">Skills</Label>
                 <Textarea
                   id="skills"
+                  value={preferences.skills}
+                  onChange={(event) =>
+                    updatePreferences({ skills: event.target.value })
+                  }
                   placeholder="e.g. JavaScript, Python, Project Management"
                 />
               </div>
@@ -124,14 +203,24 @@ export default function Preferences() {
                   <Label htmlFor="job-language">Job Language</Label>
                   <MultiSelect
                     options={languageOptions}
-                    selected={selectedLanguages}
-                    onChange={setSelectedLanguages}
+                    selected={preferences.languages}
+                    onChange={(languages) => updatePreferences({ languages })}
                     placeholder="Select languages"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="location">Preferred Location</Label>
-                  <Input id="location" placeholder="e.g. Remote, New York" />
+                  <Label htmlFor="preferred-location">
+                    Preferred Locations
+                  </Label>
+                  <LocationSelector
+                    multiple
+                    id="preferred-location"
+                    value={preferences.location}
+                    onChange={(value) => updatePreferences({ location: value })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Choose one or more cities to personalize job suggestions.
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -147,7 +236,12 @@ export default function Preferences() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="interface-language">Interface Language</Label>
-                <Select defaultValue="en">
+                <Select
+                  value={preferences.interfaceLanguage}
+                  onValueChange={(value) =>
+                    updatePreferences({ interfaceLanguage: value })
+                  }
+                >
                   <SelectTrigger id="interface-language">
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>

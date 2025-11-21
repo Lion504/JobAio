@@ -8,7 +8,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -20,6 +19,7 @@ import {
 import { SlidersHorizontal } from 'lucide-react'
 
 import { useFilters } from '@/context/filter-context'
+import { LocationSelector } from '@/components/location-selector'
 
 export function FilterContent({ className }: { className?: string }) {
   const { filters, updateFilter, resetFilters } = useFilters()
@@ -28,13 +28,17 @@ export function FilterContent({ className }: { className?: string }) {
     <div className={className}>
       <div className="grid gap-4 py-4">
         <div className="grid gap-2">
-          <Label htmlFor="location">Location</Label>
-          <Input
-            id="location"
-            placeholder="e.g. New York, Remote"
+          <Label htmlFor="filters-location">Location</Label>
+          <LocationSelector
+            multiple
+            id="filters-location"
             value={filters.location}
-            onChange={(e) => updateFilter('location', e.target.value)}
+            onChange={(value) => updateFilter('location', value)}
+            placeholder="Search cities or Remote work"
           />
+          <p className="text-xs text-muted-foreground">
+            Pick one or more Finnish cities, including Remote work.
+          </p>
         </div>
         <div className="grid gap-2">
           <Label htmlFor="type">Job Type</Label>

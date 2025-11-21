@@ -20,12 +20,8 @@ import {
 } from '@/components/ui/select'
 import { FilterContent } from '@/components/filter-dialog'
 import { useFilters } from '@/context/filter-context'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import { MapPin } from 'lucide-react'
+import { LocationSelector } from '@/components/location-selector'
 
 type SearchSuggestion = {
   id: string
@@ -34,7 +30,7 @@ type SearchSuggestion = {
   location?: string
 }
 
-export function Header() {
+export function Header({ children }: { children?: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
@@ -99,6 +95,7 @@ export function Header() {
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-6">
+      {children}
       <div className="flex flex-1 items-center gap-4">
         <Button
           variant="outline"
@@ -113,63 +110,18 @@ export function Header() {
         </Button>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="h-9 w-[180px] justify-start overflow-hidden"
-              >
-                <MapPin className="h-4 w-4 flex-shrink-0" />
-                <span className="truncate">
-                  {filters.location || 'Location'}
-                </span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Search location..." />
-                <CommandList>
-                  <CommandEmpty>No location found.</CommandEmpty>
-                  <CommandGroup>
-                    <CommandItem
-                      onSelect={() => updateFilter('location', 'Remote')}
-                    >
-                      Remote
-                    </CommandItem>
-                    <CommandItem
-                      onSelect={() =>
-                        updateFilter('location', 'Helsinki, Finland')
-                      }
-                    >
-                      Helsinki, Finland
-                    </CommandItem>
-                    <CommandItem
-                      onSelect={() =>
-                        updateFilter('location', 'Espoo, Finland')
-                      }
-                    >
-                      Espoo, Finland
-                    </CommandItem>
-                    <CommandItem
-                      onSelect={() =>
-                        updateFilter('location', 'Tampere, Finland')
-                      }
-                    >
-                      Tampere, Finland
-                    </CommandItem>
-                    <CommandItem
-                      onSelect={() =>
-                        updateFilter('location', 'Turku, Finland')
-                      }
-                    >
-                      Turku, Finland
-                    </CommandItem>
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-
+          <div className="w-[200px]">
+            <LocationSelector
+              multiple
+              value={filters.location}
+              onChange={(value) => updateFilter('location', value)}
+              placeholder="Search cities or Remote work"
+              buttonClassName="h-9 justify-between overflow-hidden"
+              prefixIcon={
+                <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+              }
+            />
+          </div>
           <Select
             value={filters.type || 'all'}
             onValueChange={(value) =>
