@@ -122,10 +122,10 @@ class AIAnalyzer:
 
         # Map JS skill categories to Python categories
         skill_type = {
-            "programming": raw_skills.get("technical", []),
-            "soft_skills": raw_skills.get("soft_skills", []),
+            "technical": raw_skills.get("technical", []),
             "domain_specific": raw_skills.get("domain_specific", []),
-            "certificate": raw_skills.get("certifications", []),
+            "certifications": raw_skills.get("certifications", []),
+            "soft_skills": raw_skills.get("soft_skills", []),
             "other": raw_skills.get("other", []),
         }
 
