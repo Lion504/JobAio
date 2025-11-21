@@ -1,6 +1,5 @@
 export const cities = [
   'Remote work',
-  'Remote',
   'Akaa',
   'Alajärvi',
   'Alavus',
