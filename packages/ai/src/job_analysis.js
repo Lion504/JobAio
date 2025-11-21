@@ -11,7 +11,7 @@ import path from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-console.log(`Loading .env from: ${path.join(__dirname, "../../../.env")}`);
+//console.log(`Loading .env from: ${path.join(__dirname, "../../../.env")}`);
 // Initialize AI clients
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const TOKEN_LIMITS = {
@@ -88,31 +88,38 @@ Job Type:`;
 async function analyzeLanguage(description) {
   try {
     const prompt = `
-Analyze this job description and extract ALL required languages.
-Return as a JSON array of language names, e.g., ["English", "Finnish"] or ["English"] or [] if not specified.
-Consider both explicit requirements and implied languages from the job location/description.
+Extract required and advantage languages from this job description.
+
+- "required": Languages that are explicitly mandatory or essential for the role
+- "advantage": Languages that would be beneficial but are not strictly required
+
+Consider both explicit requirements and implied languages from job location/description.
 
 Job Description:
 ${description.substring(0, 2000)}
 
-Return format: ["language1", "language2", ...]
+Return as JSON: {"required": ["language1"], "advantage": ["language2"]}
 Languages:`;
 
-    // Try to parse JSON array
     const languagesText = await callGemini(
       prompt,
       TOKEN_LIMITS.language_extraction,
     );
 
     const cleanedText = cleanJsonResponse(languagesText);
-    const languages = JSON.parse(cleanedText);
-    if (Array.isArray(languages) && languages.length > 0) {
-      return { languages };
+    const languageData = JSON.parse(cleanedText);
+    if (
+      languageData &&
+      typeof languageData === "object" &&
+      Array.isArray(languageData.required) &&
+      Array.isArray(languageData.advantage)
+    ) {
+      return { languages: languageData };
     }
   } catch (error) {
     console.error("Language parsing failed:", error);
   }
-  return { languages: [] };
+  return { languages: { required: [], advantage: [] } };
 }
 /**
  * Analyze experience level from job description
