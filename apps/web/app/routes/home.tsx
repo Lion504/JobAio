@@ -51,7 +51,7 @@ export default function Home() {
           </span>
         </div>
         <ScrollArea className="h-full w-full">
-          <div className="mx-auto max-w-3xl space-y-4 p-6 pt-12">
+          <div className="mx-auto max-w-3xl space-y-4 p-6 pt-12 md:p-6">
             {jobs.length > 0 ? (
               jobs.map((job) => (
                 <JobCard

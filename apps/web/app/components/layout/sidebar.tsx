@@ -20,9 +20,18 @@ import { ModeToggle } from '@/components/mode-toggle'
 interface SidebarProps {
   isCollapsed?: boolean
   toggleCollapse?: () => void
+  className?: string
+  mobile?: boolean
+  onClose?: () => void
 }
 
-export function Sidebar({ isCollapsed = false, toggleCollapse }: SidebarProps) {
+export function Sidebar({
+  isCollapsed = false,
+  toggleCollapse,
+  className,
+  mobile = false,
+  onClose,
+}: SidebarProps) {
   const location = useLocation()
 
   const navItems = [
@@ -32,7 +41,13 @@ export function Sidebar({ isCollapsed = false, toggleCollapse }: SidebarProps) {
   ]
 
   return (
-    <div className="flex h-full flex-col border-r bg-card/20 relative overflow-hidden">
+    <div
+      className={cn(
+        'flex h-full flex-col bg-card/20 relative overflow-hidden',
+        !mobile && 'border-r',
+        className
+      )}
+    >
       <div
         className={cn(
           'flex h-14 items-center border-b px-3 z-10',
@@ -45,18 +60,32 @@ export function Sidebar({ isCollapsed = false, toggleCollapse }: SidebarProps) {
           </Link>
         )}
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={toggleCollapse}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
+        {!mobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={toggleCollapse}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
+        )}
+
+        {mobile && onClose && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 ml-auto"
+            onClick={onClose}
+          >
             <ChevronLeft className="h-4 w-4" />
-          )}
-        </Button>
+            <span className="sr-only">Close sidebar</span>
+          </Button>
+        )}
       </div>
 
       <div className="flex-1 py-4 z-10">
@@ -67,6 +96,7 @@ export function Sidebar({ isCollapsed = false, toggleCollapse }: SidebarProps) {
                 <TooltipTrigger asChild>
                   <Link
                     to={item.href}
+                    onClick={mobile ? onClose : undefined}
                     className={cn(
                       'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
                       location.pathname === item.href
