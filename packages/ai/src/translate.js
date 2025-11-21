@@ -129,7 +129,7 @@ export async function translateJob(job) {
         jobtitle: titleTranslated,
         jobdescription: descTranslated,
         industry: job.industry,
-        experience: job.expperience,
+        experience: job.experience,
         original_job: job,
         warnings: [],
       });
