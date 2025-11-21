@@ -129,14 +129,15 @@ async function analyzeExperienceLevel(description) {
   try {
     const prompt = `
 Analyze this job description and determine the experience level required.
-Return only one of: 'entry', 'junior', 'senior', or 'unknown'
+Return only one of: 'student', 'entry', 'junior', 'senior', or 'unknown'
 for example '0-2 years' = entry, '3-5 years' = junior, '5+ years' = senior
 Job Description:
-${description.substring(0, 2000)} // Limit input size
+${description.substring(0, 2000)} 
 
 Consider:
 - Years of experience mentioned
-- Keywords like "junior", "senior", "experienced", "expert"
+- Keywords like "student", "junior", "senior", "experienced", "expert"
+- student = (intern, trainee, currently study, no experience etc.)
 - Complexity of responsibilities
 - Leadership requirements
 
@@ -147,7 +148,7 @@ Experience Level:`;
       .toLowerCase();
 
     // Validate response
-    if (["entry", "mid", "senior", "unknown"].includes(level)) {
+    if (["student", "entry", "junior", "senior", "unknown"].includes(level)) {
       return { level };
     }
 
@@ -165,7 +166,7 @@ async function analyzeEducationLevel(description) {
   try {
     const prompt = `
   Analyze this job description and determine the required education level.
-  Return only one of: 'high-school', 'bachelor', 'master', 'phd', or 'unknown'
+  Return only one of: 'vocational', 'bachelor', 'master', 'phd', or 'unknown'
 
   Job Description:
   ${description.substring(0, 2000)} // Limit input size
@@ -180,7 +181,7 @@ async function analyzeEducationLevel(description) {
 
     // Validate response
     if (
-      ["high-school", "bachelor", "master", "phd", "unknown"].includes(
+      ["vocational", "bachelor", "master", "phd", "unknown"].includes(
         educationLevel,
       )
     ) {
@@ -207,7 +208,7 @@ Return as JSON with categories: technical, certifications, soft_skills, domain_s
 Job Description:
 ${description.substring(0, 2000)}
 
-Return format: {"technical": ["skill1", "skill2"], "certifications": [...], "soft_skills": [...], "domain_specific": [...], "other": [...]}
+Return format: {"technical": ["skill1", "skill2"], "domain_specific": [...], "certifications": [...], "soft_skills": [...], "other": [...]}
 `;
 
     const skillsText = await callGemini(prompt, TOKEN_LIMITS.skills_extraction);
@@ -220,9 +221,10 @@ Return format: {"technical": ["skill1", "skill2"], "certifications": [...], "sof
     } catch (parseError) {
       // Fallback: extract skills from text response
       const fallbackSkills = {
-        programming: [],
-        soft_skills: [],
+        technical: [],
         domain_specific: [],
+        certifications: [],
+        soft_skills: [],
         other: [],
       };
       return { skills: fallbackSkills, raw_response: skillsText };
@@ -231,9 +233,10 @@ Return format: {"technical": ["skill1", "skill2"], "certifications": [...], "sof
     console.error("Skills analysis failed:", error);
     return {
       skills: {
-        programming: [],
-        soft_skills: [],
+        technical: [],
         domain_specific: [],
+        certifications: [],
+        soft_skills: [],
         other: [],
       },
       error: error.message,
