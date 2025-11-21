@@ -1,0 +1,30 @@
+[
+  {
+    "jobtitle": "Software Engineer",
+    "jobdescription": "We are looking for a backend-focused software engineer familiar with Node.js and Prisma ORM. Responsibilities include building APIs, integrating with databases, and collaborating with product teams.",
+    "industry": "Information Technology",
+    "experience": "3+ years",
+    "job_original_language": "en"
+  },
+  {
+    "jobtitle": "Ohjelmistokehittäjä",
+    "jobdescription": "Etsimme kokeneita ohjelmistokehittäjiä, jotka hallitsevat Node.js:ää ja Prisma ORM:ää. Tehtäviin kuuluu API:en kehitys ja tietokantaintegraatiot.",
+    "industry": "Tietotekniikka",
+    "experience": "2+ vuotta",
+    "job_original_language": "fi"
+  },
+  {
+    "jobtitle": "Desarrollador Backend",
+    "jobdescription": "Buscamos un desarrollador backend con experiencia en Node.js y bases de datos. Deberá diseñar y mantener API REST y colaborar con equipos multifuncionales.",
+    "industry": "Tecnología",
+    "experience": "4+ años",
+    "job_original_language": "es"
+  },
+  {
+    "jobtitle": "Backend-Entwickler",
+    "jobdescription": "Wir suchen einen Backend-Entwickler mit Node.js-Erfahrung. Aufgaben umfassen API-Entwicklung, Datenbankdesign und -optimierung.",
+    "industry": "IT",
+    "experience": "3+ Jahre",
+    "job_original_language": "de"
+  }
+]

@@ -2,12 +2,13 @@
   "name": "@jobaio/ai",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "main": "src/index.js",
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "@huggingface/inference": "^2.6.0",
-    "dotenv": "^16.4.5",
+    "@google-ai/generativelanguage": "^3.5.0",
+    "@huggingface/inference": "^4.13.3",
+    "@jobaio/shared": "workspace:*",
     "openai": "^4.0.0",
-    "@jobaio/shared": "workspace:*"
+    "dotenv": "^16.4.5"
   }
 }
