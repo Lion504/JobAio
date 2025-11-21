@@ -3,15 +3,17 @@
  *
  */
 // Load environment variables from project root
-require("dotenv").config({
-  path: require("path").resolve(__dirname, "../../.env"),
-});
 
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-
+import dotenv from "dotenv";
+import { GoogleGenAI } from "@google/genai";
+import { fileURLToPath } from "url";
+import path from "path";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+console.log(`Loading .env from: ${path.join(__dirname, "../../../.env")}`);
 // Initialize AI clients
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const TOKEN_LIMITS = {
   simple_extraction: 10, // job_type, experience_level, education_level
   language_extraction: 50, // language (can be multiple)
@@ -25,15 +27,15 @@ const TOKEN_LIMITS = {
  * @returns {Promise<string>} The generated text.
  */
 async function callGemini(prompt, max_tokens) {
-  const result = await model.generateContent(prompt, {
+  const result = await genAI.models.generateContent({
+    model: process.env.MODEL_NAME,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: {
       maxOutputTokens: max_tokens,
       temperature: 0.1,
     },
   });
-  const response = await result.response;
-  return response.text();
+  return result.text;
 }
 
 /**
@@ -297,7 +299,7 @@ async function analyzeJob(functionName, description) {
 }
 
 // CLI interface for testing
-if (require.main === module) {
+if (process.argv[1] === __filename) {
   const args = process.argv.slice(2);
   if (args.length < 2) {
     console.error("Usage: node job_analysis.js <function> <description>");
@@ -316,7 +318,7 @@ if (require.main === module) {
     });
 }
 
-module.exports = {
+export {
   analyzeJob,
   analyzeJobType,
   analyzeLanguage,
