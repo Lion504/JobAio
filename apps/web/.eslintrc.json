@@ -1,8 +1,31 @@
-// apps/web/.eslintrc.json
 {
-  "extends": ["next/core-web-vitals", "prettier"],
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2024": true,
+    "node": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "tsconfigRootDir": ".",
+    "project": "./tsconfig.json"
+  },
+  "plugins": ["@typescript-eslint", "react", "react-hooks", "prettier"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "prettier"
+  ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
   "rules": {
-    "react/no-unescaped-entities": "off",
-    "@next/next/no-page-custom-font": "off"
+    "prettier/prettier": "warn",
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-uses-react": "off"
   }
 }
