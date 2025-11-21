@@ -10,6 +10,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { Button } from '@/components/ui/button'
+import { Bookmark } from 'lucide-react'
+import { useBookmarks } from '@/context/bookmarks-context'
 
 export interface Job {
   id: string
@@ -33,10 +35,21 @@ interface JobCardProps {
 
 export function JobCard({ job, isSelected, onClick }: JobCardProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const { isBookmarked, addBookmark, removeBookmark } = useBookmarks()
+  const bookmarked = isBookmarked(job.id)
 
   const handleCardClick = () => {
     if (onClick) onClick()
     setIsOpen(!isOpen)
+  }
+
+  const handleBookmark = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (bookmarked) {
+      removeBookmark(job.id)
+    } else {
+      addBookmark(job)
+    }
   }
 
   return (
@@ -68,16 +81,29 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
               {job.company}
             </p>
           </div>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              {isOpen ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-              <span className="sr-only">Toggle</span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={handleBookmark}
+            >
+              <Bookmark
+                className={cn('h-4 w-4', bookmarked && 'fill-current')}
+              />
+              <span className="sr-only">Bookmark</span>
             </Button>
-          </CollapsibleTrigger>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                {isOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+                <span className="sr-only">Toggle</span>
+              </Button>
+            </CollapsibleTrigger>
+          </div>
         </CardHeader>
         <CardContent className="p-4 pt-0">
           <div className="mb-4 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
