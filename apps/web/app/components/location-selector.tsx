@@ -1,5 +1,3 @@
-'use client'
-
 import * as React from 'react'
 import { Check, ChevronsUpDown } from 'lucide-react'
 
@@ -92,8 +90,8 @@ export function LocationSelector(props: LocationSelectorProps) {
   }, [isMulti, props.value])
 
   let displayValue = placeholder
-  let isSelected = (city: string) => false
-  let handleSelect = (_city: string) => undefined
+  let isSelected: (city: string) => boolean = () => false
+  let handleSelect: (city: string) => void = () => undefined
 
   if (isMulti) {
     const selections = props.value

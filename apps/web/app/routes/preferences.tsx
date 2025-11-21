@@ -44,7 +44,8 @@ function normalizeLocationPreference(
 ) {
   if (Array.isArray(value)) {
     const sanitized = value.filter(
-      (item): item is string => typeof item === 'string' && item.trim().length > 0
+      (item): item is string =>
+        typeof item === 'string' && item.trim().length > 0
     )
     return sanitized.length > 0 ? sanitized : fallback
   }
@@ -208,14 +209,14 @@ export default function Preferences() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="preferred-location">Preferred Locations</Label>
+                  <Label htmlFor="preferred-location">
+                    Preferred Locations
+                  </Label>
                   <LocationSelector
                     multiple
                     id="preferred-location"
                     value={preferences.location}
-                    onChange={(value) =>
-                      updatePreferences({ location: value })
-                    }
+                    onChange={(value) => updatePreferences({ location: value })}
                   />
                   <p className="text-xs text-muted-foreground">
                     Choose one or more cities to personalize job suggestions.

@@ -37,10 +37,7 @@ export default function Layout() {
                     </Button>
                   </SheetTrigger>
                   <SheetContent side="left" className="p-0 w-[280px]">
-                    <Sidebar
-                      mobile
-                      onClose={() => setIsCollapsed(false)}
-                    />
+                    <Sidebar mobile onClose={() => setIsCollapsed(false)} />
                   </SheetContent>
                 </Sheet>
               </Header>
