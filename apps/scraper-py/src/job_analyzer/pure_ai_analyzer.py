@@ -1,7 +1,7 @@
+import concurrent.futures
 import json
 import os
 import subprocess
-import concurrent.futures
 from typing import Any, Dict
 
 

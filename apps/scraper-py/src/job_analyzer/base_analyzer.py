@@ -3,10 +3,10 @@
 from typing import Any, Dict, List
 
 from .constants import (  # RESPONSIBILITIES_PATTERN,
+    EDUCATION_PATTERNS,
+    EXPERIENCE_PATTERNS,
     JOB_TYPE_PATTERNS,
     LANGUAGE_PATTERNS,
-    EXPERIENCE_PATTERNS,
-    EDUCATION_PATTERNS,
     SKILL_PATTERNS,
     YEARS_PATTERN,
 )
@@ -35,7 +35,8 @@ class BaseJobAnalyzer:
         self.years_pattern = YEARS_PATTERN
 
     def analyze_job(self, job: Dict[str, Any]) -> Dict[str, Any]:
-        """Extract all structured information from job description and merge into original job data"""
+        """Extract all structured information from job description
+        and merge into original job data"""
         description = job.get("description", "")
 
         if not description or description == "N/A":

@@ -1,7 +1,6 @@
 """Job scraping and analysis pipeline: jobly scraper → hybrid analyzer → logs"""
 
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -15,12 +14,11 @@ if str(project_root.parent) not in sys.path:
 if str(jobly_path) not in sys.path:
     sys.path.insert(0, str(jobly_path))
 
-# Import components
-sys.path.insert(0, str(jobly_path))
-import jobly_extractor
-import jobly_scraper
+# Import components AFTER sys.path is updated
+import jobly_extractor  # noqa: E402
+import jobly_scraper  # noqa: E402
 
-from job_analyzer.hybrid_job_analyzer import HybridJobAnalyzer
+from job_analyzer.hybrid_job_analyzer import HybridJobAnalyzer  # noqa: E402
 
 
 def main():

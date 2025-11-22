@@ -21,7 +21,9 @@ JOB_TYPE_PATTERNS = {
 LANGUAGE_PATTERNS = {
     "required": re.compile(
         r"(?:(?:english|englanti)|(?:finnish|suomi)|(?:swedish|ruotsi))"
-        r"\s+(?:(?:required|vaaditaan|välttämätön|pakollinen)|(?:essential|välttämätön)|(?:mandatory|pakollinen))",
+        r"\s+(?:(?:required|vaaditaan|välttämätön|pakollinen)|"
+        r"(?:essential|välttämätön)|"
+        r"(?:mandatory|pakollinen))",
         re.IGNORECASE | re.UNICODE,
     ),
     "advantage": re.compile(
@@ -100,8 +102,10 @@ SKILL_PATTERNS = {
         r"\b(?:pipeline|putkilinja|welding|hitsaus|construction|rakentaminen|"
         r"engineering|insinööri|manufacturing|valmistus|"
         r"quality\s+control|laatukontrolli|safety|turvallisuus|"
-        r"regulations|säännökset|compliance|yhdysmäärrys|iso|iso\s+standardi|"
-        r"drawing|piirustus|blueprint|piirros|autocad|autocad|solidworks|solidworks|revit|revit|"
+        r"regulations|säännökset|compliance|yhdysmäärrys|iso|"
+        r"iso\s+standardi|"
+        r"drawing|piirustus|blueprint|piirros|autocad|autocad|"
+        r"solidworks|solidworks|revit|revit|"
         r"sap|sap|erp|erp|crm|crm|salesforce|salesforce|"
         r"banking|pankki|finance|rahoitus|healthcare|terveydenhuolto|"
         r"education|koulutus|government|valtionhallinto|"
@@ -114,7 +118,7 @@ SKILL_PATTERNS = {
     ),
     "certificate": re.compile(
         r"(?:työturvallisuuskortti|TTT-kortti|turvakortti|"
-        r"safe\s+pass|work\s+permit" 
+        r"safe\s+pass|work\s+permit"
         r"hygieniapassi|anniskelupassi|tulityökortti|"
         r"ensiapukortti|tieturvakortti|sähkötyöturvallisuuskortti)",
         re.IGNORECASE | re.UNICODE,
@@ -125,9 +129,10 @@ SKILL_PATTERNS = {
         r"critical\s+thinking|kriittinen\s+ajattelu|creativity|luovuus|"
         r"adaptability|joustavuus|flexibility|joustavuus|"
         r"time\s+management|aikaopas|organization|organisaatio|"
-        r"attention\s+to\s+detail|huomio\s+tarkkuuteen|customer\s+service|asiakaspalvelu|"
-        r"interpersonal|ihmissuhteet|collaboration|yhteistyö|"
-        r"project\s+management|projektinhallinta|agile|agile|scrum|scrum|kanban|kanban)\b",
+        r"attention\s+to\s+detail|huomio\s+tarkkuuteen|customer\s+service|"
+        r"asiakaspalvelu|interpersonal|ihmissuhteet|collaboration|yhteistyö|"
+        r"project\s+management|projektinhallinta|agile|agile|"
+        r"scrum|scrum|kanban|kanban)\b",
         re.IGNORECASE,
     ),
 }

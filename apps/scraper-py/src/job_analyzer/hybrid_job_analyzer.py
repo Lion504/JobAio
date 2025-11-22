@@ -30,24 +30,29 @@ class HybridJobAnalyzer:
 
         # Stage 1: Base analysis foundation
         base_result = self.base_analyzer.analyze_job(job.copy())
-        print(f"   🔧 Base: job_type={len(base_result.get('job_type', []))}")
-        print(f"   🔧 Base: education={len(base_result.get('education_level', []))}")
-        print(f"   🔧 Base: experience={base_result.get('experience_level', '')}")
         print(
-            f"   🔧 Base: languages={sum(len(v) for v in base_result.get('language', {}).values())}"
-        )
-        print(
-            f"   🔧 Base: skills={sum(len(v) for v in base_result.get('skill_type', {}).values())}"
+            f"   🔧 Base: job_type={len(base_result.get('job_type', []))}"
+            f"   🔧 Base: education={len(base_result.get('education_level', []))}"
+            f"   🔧 Base: experience={base_result.get('experience_level', '')}"
+            f"   🔧 Base: languages={
+                sum(len(v) for v in base_result.get('language', {}).values())}"
+            f"   🔧 Base: skills={
+                sum(len(v) for v in base_result.get('skill_type', {}).values())}"
         )
 
         # Stage 2: AI analysis enhancement
         ai_result = self.ai_analyzer.analyze_job(job.copy())
         print(
-            f"   🤖 AI: job_type={len(ai_result.get('job_type', []))}"
-            f"   🤖 AI: education={len(ai_result.get('education_level', []))}"
-            f"   🤖 AI: experience={ai_result.get('experience_level', '')}"
-            f"   🤖 AI: languages={sum(len(v) for v in ai_result.get('language', {}).values())}"
-            f"   🤖 AI: skills={sum(len(v) for v in ai_result.get('skill_type', {}).values())}"
+            f"   🤖 AI: job_type={
+                len(ai_result.get('job_type', []))}"
+            f"   🤖 AI: education={
+                len(ai_result.get('education_level', []))}"
+            f"   🤖 AI: experience={
+                ai_result.get('experience_level', '')}"
+            f"   🤖 AI: languages={
+                sum(len(v) for v in ai_result.get('language', {}).values())}"
+            f"   🤖 AI: skills={
+                sum(len(v) for v in ai_result.get('skill_type', {}).values())}"
         )
 
         # Merge with AI override: base first, AI on top
