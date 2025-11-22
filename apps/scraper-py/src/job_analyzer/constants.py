@@ -1,39 +1,32 @@
 import re
 
+# Job type patterns
+JOB_TYPE_PATTERNS = {
+    "internship": re.compile(
+        r"(?:internship|harjoittelu|trainee|temporary|kesätyö|project|projekti)",
+        re.IGNORECASE | re.UNICODE,
+    ),
+    "part_time": re.compile(
+        r"(?:part[- ]?time|shift[- ]?work|osa[- ]?aikainen|osa[- ]?aika"
+        r"|tuntityö|keikkatyö)",
+        re.IGNORECASE | re.UNICODE,
+    ),
+    "full_time": re.compile(
+        r"(?:full[- ]?time|kokoaikainen|kokoaika)",
+        re.IGNORECASE | re.UNICODE,
+    ),
+}
+
 # Language patterns (English/Finnish)
 LANGUAGE_PATTERNS = {
     "required": re.compile(
-        # 1. Language ... Requirement
-        r"(?:(english|englanti|englannin|finnish|suomi|suomen(?:\s+kieli)?"
-        r"|äidinkieli\s+suomi|swedish|ruotsi|ruotsin)"
-        r"(?:\s+(?:ja|and|or|tai)\s+(english|englanti|englannin|finnish"
-        r"|suomi|suomen(?:\s+kieli)?|äidinkieli\s+suomi|swedish|ruotsi"
-        r"|ruotsin))?"
-        r"\s+(?:language\s+|kielen\s+)?(?:skills?\s+|taitoa\s+|osaamista\s+)?"
-        r"(?:are|is|on)?\s*"
-        r"(?:required|essential|mandatory|fluent|sujuva(?:n|a)?|excellent"
-        r"|erinomainen|native|vaaditaan|on\s+välttämätön"
-        r"|on\s+pakollinen|taitoa|osaamista))"
-        # 2. Requirement ... Language
-        r"|(?:(?:required|essential|mandatory|fluent|sujuva(?:n|a)?"
-        r"|excellent|erinomainen|native|vaaditaan|on\s+välttämätön"
-        r"|on\s+pakollinen)"
-        r"\s+(?:spoken\s+and\s+written\s+)?(?:in\s+)?"
-        r"(english|englanti|englannin|finnish|suomi|suomen(?:\s+kieli)?"
-        r"|äidinkieli\s+suomi|swedish|ruotsi|ruotsin))"
-        # 3. Working language ... Language
-        r"|(?:(?:working\s+language\s+(?:is|will\s+be)|työkieli\s+(?:on))"
-        r"\s+"
-        r"(english|englanti|englannin|finnish|suomi|suomen(?:\s+kieli)?"
-        r"|äidinkieli\s+suomi|swedish|ruotsi|ruotsin))",
+        r"(?:(?:english|englanti)|(?:finnish|suomi)|(?:swedish|ruotsi))"
+        r"\s+(?:(?:required|vaaditaan|välttämätön|pakollinen)|(?:essential|välttämätön)|(?:mandatory|pakollinen))",
         re.IGNORECASE | re.UNICODE,
     ),
     "advantage": re.compile(
-        r"(?:(english|englanti|englannin|finnish|suomi|suomen\s+kieli"
-        r"|swedish|ruotsi|ruotsin)"
-        r"\s+(?:language\s+)?(?:skills?\s+)?(?:is\s+)?(?:an?\s+)?"
-        r"(?:advantage|eduksi|plus|asset|beneficial|"
-        r"on\s+etu|on\s+plussaa|on\s+hyväksi|arvostetaan))",
+        r"(?:(?:english|englanti)|(?:(?:finnish|suomi))|(?:(?:swedish|ruotsi)))"
+        r"\s+(?:(?:advantage|etu|plussaa)|(?:eduksi)|(?:plus))",
         re.IGNORECASE | re.UNICODE,
     ),
 }
@@ -41,63 +34,54 @@ LANGUAGE_PATTERNS = {
 # Experience patterns
 EXPERIENCE_PATTERNS = {
     "student": re.compile(
-        r"(?:student|intern|trainee|summer\s+job|thesis|no\s+experience|"
-        r"opiskelija|harjoittelija|harjoittelu|kesätyö|lopputyö"
-        r"|ei\s+kokemusta)",
+        r"(?:student|opiskelija|intern|harjoittelija|trainee|summer\s+job|kesätyö)",
         re.IGNORECASE | re.UNICODE,
     ),
     "entry": re.compile(
-        r"(?:entry\s+level|junior|beginner|fresh\s+graduate|recent\s+graduate|"
-        r"1-2\s+years|juniori|aloittelija|vastavalmistunut|uransa\s+alussa|"
-        r"1-2\s+vuotta)",
+        r"(?:entry\s+level|aloittelija|junior|juniori|fresh\s+graduate|"
+        r"vastavalmistunut|no\s+experience|ei\s+kokemusta|1-2\s+years?|1-2\s+vuotta?)",
         re.IGNORECASE | re.UNICODE,
     ),
-    "specialist": re.compile(
-        r"(?:specialist|experienced|professional|2-5\s+years|3-5\s+years|"
-        r"asiantuntija|osaaja|ammattilainen|kokemusta|kokenut|2-5\s+vuotta)",
+    "junior": re.compile(
+        r"(?:specialist|asiantuntija|experienced|kokenut|professional|"
+        r"ammattilainen|2-5\s+years?|2-5\s+vuotta?)",
         re.IGNORECASE | re.UNICODE,
     ),
     "senior": re.compile(
-        r"(?:senior|lead|principal|expert|advanced|5\+?\s+years|7\+?\s+years|"
-        r"vanhempi|johtava|erityisasiantuntija|yli\s+5\s+vuotta)",
+        r"(?:senior|vanhempi|lead|johtava|expert|erityisasiantuntija|"
+        r"5\+?\s+years?|yli\s+5\s+vuotta?)",
         re.IGNORECASE | re.UNICODE,
     ),
 }
 
 # Education patterns
 EDUCATION_PATTERNS = {
+    "vocational": re.compile(
+        r"(?:vocational|ammatti|apprenticeship|oppisopimus|certificate|"
+        r"todistus|diploma|diplomi|tutinto|ammatillinen)",
+        re.IGNORECASE | re.UNICODE,
+    ),
     "bachelor": re.compile(
-        r"(?:bachelor'?s?|b\.?s\.?|b\.?sc\.?|bachelor\s+degree|"
-        r"bachelor\s+of\s+(?:science|arts|engineering|business|"
-        r"commerce|technology)|"
-        r"university\s+degree|kandidaatti|yliopisto)"
-        r"(?:opisto|ammattikorkeakoulu|AMK|"
-        r"tietojenkäsittelyn\s+ammattikorkeakoulu)",
+        r"(?:bachelor'?s?|kandidaatti|bachelor'?s?\s+degree|"
+        r"kandidaatin\s+tutkinto|university|university\s+of\s+applied\s+sciences|"
+        r"yliopisto|ammattikorkeakoulu|AMK)",
         re.IGNORECASE | re.UNICODE,
     ),
     "master": re.compile(
-        r"(?:master'?s?|m\.?s\.?|m\.?sc\.?|master\s+degree|"
-        r"master\s+of\s+(?:science|arts|engineering|business|"
-        r"commerce|technology)|"
-        r"mba|m\.?eng\.?|m\.?tech\.?|maisteri)",
+        r"(?:master'?s?|maisteri|master'?s?\s+degree|"
+        r"maisterin\s+tutkinto|MBA|mba|MEng|M\.Eng\.)",
         re.IGNORECASE | re.UNICODE,
     ),
     "phd": re.compile(
-        r"(?:ph\.?d\.?|doctorate|doctoral|postgraduate|"
-        r"post-graduate|advanced\s+degree|tohtori|lisensiaatti)",
-        re.IGNORECASE | re.UNICODE,
-    ),
-    "vocational": re.compile(
-        r"(?:vocational|trade\s+school|apprenticeship|"
-        r"certificate|diploma|certification|licensed|qualified|"
-        r"ammattitutkinto|ammatillinen\s+tutkinto|oppisopimus|ammatti)",
+        r"(?:phd|ph\.?d\.?|tohtori|doctorate|tohtori\s+tutkinto|"
+        r"doctoral|postgraduate)",
         re.IGNORECASE | re.UNICODE,
     ),
 }
 
 # Skill patterns
 SKILL_PATTERNS = {
-    "programming": re.compile(
+    "technical": re.compile(
         r"(?:\b(?:python|javascript|java|php|ruby|go|golang"
         r"|rust|swift|kotlin|scala|perl|r|matlab|"
         r"sql|nosql|mongodb|postgresql|mysql|oracle|sqlite|redis"
@@ -112,63 +96,42 @@ SKILL_PATTERNS = {
         r"|c\+\+(?!\w)|c#(?!\w)|(?<!\w)\.net(?!\w))",
         re.IGNORECASE,
     ),
-    "soft_skills": re.compile(
-        r"\b(?:communication|teamwork|leadership|problem\s+solving|"
-        r"analytical|"
-        r"critical\s+thinking|creativity|adaptability|flexibility|"
-        r"time\s+management|"
-        r"organization|attention\s+to\s+detail|customer\s+service|"
-        r"interpersonal|"
-        r"collaboration|project\s+management|agile|scrum|kanban)\b",
-        re.IGNORECASE,
-    ),
     "domain_specific": re.compile(
-        r"\b(?:pipeline|welding|construction|engineering|manufacturing|"
-        r"quality\s+control|safety|regulations|compliance|iso|"
-        r"certification|"
-        r"drawing|blueprint|autocad|solidworks|revit|sap|erp|crm|"
-        r"salesforce|netsuite|infor|wms|datalake|idm|mec|"
-        r"oracle|e-commerce|retail|banking|finance|healthcare|insurance|"
-        r"education|government|non-profit|"
-        r"metsäteollisuus|metsä|puu|sellu|kartonki|energia|voima|"
-        r"tuuli|aurinko|sähkö|kaasu|lämpö|rakentaminen|talous|"
-        r"finanssi|bank|vakuutus|terveydenhuolto|koulutus|opetus|"
-        r"julkishallinto|valtio|kunta|kaupunki|logistics|logistiikka|"
-        r"kuljetus|varastointi|it|ohjelmointi|tietotekniikka|"
-        r"digitaalinen|digital|rest\s+api|soap|xml)\b"
-        r"|(?:CE\s+merkintä|ISO\s+9001|ISO\s+45001|"
-        r"OHSAS|laatu|ympäristö|"
-        r"sertifikaatti|tutkinto|pätevyys|kortti|lupa|lisenssi)"
-        r"(?:työturvallisuuskortti|TTT-kortti|turvakortti)",
-        re.IGNORECASE | re.UNICODE,
+        r"\b(?:pipeline|putkilinja|welding|hitsaus|construction|rakentaminen|"
+        r"engineering|insinööri|manufacturing|valmistus|"
+        r"quality\s+control|laatukontrolli|safety|turvallisuus|"
+        r"regulations|säännökset|compliance|yhdysmäärrys|iso|iso\s+standardi|"
+        r"drawing|piirustus|blueprint|piirros|autocad|autocad|solidworks|solidworks|revit|revit|"
+        r"sap|sap|erp|erp|crm|crm|salesforce|salesforce|"
+        r"banking|pankki|finance|rahoitus|healthcare|terveydenhuolto|"
+        r"education|koulutus|government|valtionhallinto|"
+        r"e-commerce|verkkokauppa|retail|vähittäiskauppa|"
+        r"IT|tietotekniikka|logistics|logistiikka|kuljetus|"
+        r"rim|sertifikaatti|tutkinto|pätevyys|kortti|lupa|lisenssi"
+        r"|metsäteollisuus|metsä|puu|energia|sähkö|kaasu|lämpö|"
+        r"räjestyksenvalvojakortti|vartijakortti|työturvallisuuskortti)\b",
+        re.IGNORECASE,
     ),
     "certificate": re.compile(
         r"(?:työturvallisuuskortti|TTT-kortti|turvakortti|"
+        r"safe\s+pass|work\s+permit" 
         r"hygieniapassi|anniskelupassi|tulityökortti|"
-        r"ensiapukortti|tieturvakortti|sähkötyöturvallisuuskortti"
-        r"järjestyksenvalvojakortti|vartijakortti)",
+        r"ensiapukortti|tieturvakortti|sähkötyöturvallisuuskortti)",
         re.IGNORECASE | re.UNICODE,
+    ),
+    "soft_skills": re.compile(
+        r"\b(?:communication|kommunikaatio|teamwork|tiimityö|leadership|johtaminen|"
+        r"problem\s+solving|ongelmanratkaisu|analytical|analyyttinen|"
+        r"critical\s+thinking|kriittinen\s+ajattelu|creativity|luovuus|"
+        r"adaptability|joustavuus|flexibility|joustavuus|"
+        r"time\s+management|aikaopas|organization|organisaatio|"
+        r"attention\s+to\s+detail|huomio\s+tarkkuuteen|customer\s+service|asiakaspalvelu|"
+        r"interpersonal|ihmissuhteet|collaboration|yhteistyö|"
+        r"project\s+management|projektinhallinta|agile|agile|scrum|scrum|kanban|kanban)\b",
+        re.IGNORECASE,
     ),
 }
 
 YEARS_PATTERN = re.compile(
     r"(\d+)(?:\+|\s*-\s*\d+)?\s+years?\s+(?:of\s+)?experience", re.IGNORECASE
 )
-
-JOB_TYPE_PATTERNS = {
-    "full_time": re.compile(
-        r"(?:full[- ]?time|kokoaikainen|kokoaika|päivätyö|37,5\s*h|37.5\s*h)",
-        re.IGNORECASE | re.UNICODE,
-    ),
-    "part_time": re.compile(
-        r"(?:part[- ]?time|osa-aikainen|osa-aika|shift[- ]?work|"
-        r"vuorotyö|hourly|tuntityö|keikkatyö)",
-        re.IGNORECASE | re.UNICODE,
-    ),
-    "internship": re.compile(
-        r"(?:fixed[- ]?term|määräaikainen|määräaika|project|"
-        r"projekti|summer[- ]?job|kesätyö|internship|harjoittelu|"
-        r"trainee|sijaisuus|substitute|temporary)",
-        re.IGNORECASE | re.UNICODE,
-    ),
-}

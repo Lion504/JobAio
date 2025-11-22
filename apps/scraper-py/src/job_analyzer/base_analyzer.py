@@ -3,10 +3,10 @@
 from typing import Any, Dict, List
 
 from .constants import (  # RESPONSIBILITIES_PATTERN,
-    EDUCATION_PATTERNS,
-    EXPERIENCE_PATTERNS,
     JOB_TYPE_PATTERNS,
     LANGUAGE_PATTERNS,
+    EXPERIENCE_PATTERNS,
+    EDUCATION_PATTERNS,
     SKILL_PATTERNS,
     YEARS_PATTERN,
 )
@@ -16,6 +16,9 @@ class BaseJobAnalyzer:
     """Rule-based job description analysis"""
 
     def __init__(self):
+        # Job type patterns
+        self.job_type_patterns = JOB_TYPE_PATTERNS
+
         # Language patterns (English/Finnish)
         self.language_patterns = LANGUAGE_PATTERNS
 
@@ -31,35 +34,35 @@ class BaseJobAnalyzer:
         # Years pattern
         self.years_pattern = YEARS_PATTERN
 
-        # Responsibilities pattern
-        # self.responsibilities_pattern = RESPONSIBILITIES_PATTERN
+    def analyze_job(self, job: Dict[str, Any]) -> Dict[str, Any]:
+        """Extract all structured information from job description and merge into original job data"""
+        description = job.get("description", "")
 
-        # Job type patterns
-        self.job_type_patterns = JOB_TYPE_PATTERNS
-
-    def analyze_job(self, description: str) -> Dict[str, Any]:
-        """Extract all structured information from job description"""
         if not description or description == "N/A":
-            return self._empty_analysis()
+            analysis = self._empty_analysis()
+        else:
+            analysis = {
+                "job_type": self.extract_job_type(description),
+                "language": self.extract_languages(description),
+                "experience_level": self.extract_experience_level(description),
+                "education_level": self.extract_education(description),
+                "skill_type": self.extract_skills(description),
+                "responsibilities": self.extract_responsibilities(description),
+            }
 
-        return {
-            "language": self.extract_languages(description),
-            "experience_level": self.extract_experience_level(description),
-            "education_level": self.extract_education(description),
-            "skill_type": self.extract_skills(description),
-            "responsibilities": self.extract_responsibilities(description),
-            "job_type": self.extract_job_type(description),
-        }
+        # Merge analysis into original job data
+        return {**job, **analysis}
 
     def extract_job_type(self, text: str) -> List[str]:
         """Extract job type (full_time, part_time, internship)"""
-        job_types = []
-
-        for type_name, pattern in self.job_type_patterns.items():
-            if pattern.search(text):
-                job_types.append(type_name)
-
-        return list(set(job_types))
+        if self.job_type_patterns["internship"].search(text):
+            return ["internship"]
+        elif self.job_type_patterns["part_time"].search(text):
+            return ["part_time"]
+        elif self.job_type_patterns["full_time"].search(text):
+            return ["full_time"]
+        else:
+            return []
 
     LANGUAGE_MAPPING = {
         "suomi": "finnish",
@@ -107,7 +110,7 @@ class BaseJobAnalyzer:
         return {"required": required, "advantage": advantage}
 
     def extract_experience_level(self, text: str) -> str:
-        """Extract experience level (student/entry/specialist/senior/unknown)"""
+        """Extract experience level (student/entry/specialist/senior)"""
         # Check specific keywords (Senior > Specialist > Entry > Student)
         for experience_name, experience_pattern in self.experience_patterns.items():
             if experience_pattern.search(text):
@@ -127,11 +130,11 @@ class BaseJobAnalyzer:
         if max_years >= 5:
             return "senior"
         elif max_years >= 2:
-            return "specialist"
+            return "junior"
         elif max_years >= 0:
             return "entry"
 
-        return "unknown"
+        return ""
 
     def extract_education(self, text: str) -> List[str]:
         """Extract education requirements"""
@@ -146,15 +149,15 @@ class BaseJobAnalyzer:
     def extract_skills(self, text: str) -> Dict[str, List[str]]:
         """Extract technical and soft skills"""
         skills = {
-            "programming": [],
+            "technical": [],
             "soft_skills": [],
             "domain_specific": [],
             "certificate": [],
             "other": [],
         }
 
-        prog_matches = self.skill_patterns["programming"].findall(text)
-        skills["programming"] = list(set(prog_matches))
+        prog_matches = self.skill_patterns["technical"].findall(text)
+        skills["technical"] = list(set(prog_matches))
 
         soft_matches = self.skill_patterns["soft_skills"].findall(text)
         skills["soft_skills"] = list(set(soft_matches))
@@ -177,10 +180,10 @@ class BaseJobAnalyzer:
         return {
             "job_type": [],
             "language": {"required": [], "advantage": []},
-            "experience_level": "unknown",
+            "experience_level": "",
             "education_level": [],
             "skill_type": {
-                "programming": [],
+                "technical": [],
                 "soft_skills": [],
                 "domain_specific": [],
                 "certificate": [],
