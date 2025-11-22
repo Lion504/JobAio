@@ -30,29 +30,30 @@ class HybridJobAnalyzer:
 
         # Stage 1: Base analysis foundation
         base_result = self.base_analyzer.analyze_job(job.copy())
+        base_job_type = len(base_result.get("job_type", []))
+        base_education = len(base_result.get("education_level", []))
+        base_experience = base_result.get("experience_level", "")
+        base_languages = sum(len(v) for v in base_result.get("language", {}).values())
+        base_skills = sum(len(v) for v in base_result.get("skill_type", {}).values())
+
         print(
-            f"   🔧 Base: job_type={len(base_result.get('job_type', []))}"
-            f"   🔧 Base: education={len(base_result.get('education_level', []))}"
-            f"   🔧 Base: experience={base_result.get('experience_level', '')}"
-            f"   🔧 Base: languages={
-                sum(len(v) for v in base_result.get('language', {}).values())}"
-            f"   🔧 Base: skills={
-                sum(len(v) for v in base_result.get('skill_type', {}).values())}"
+            f"   🔧 Base: job_type={base_job_type} education={base_education} "
+            f"experience={base_experience} languages={base_languages} "
+            f"skills={base_skills}"
         )
 
         # Stage 2: AI analysis enhancement
         ai_result = self.ai_analyzer.analyze_job(job.copy())
+        ai_job_type = len(ai_result.get("job_type", []))
+        ai_education = len(ai_result.get("education_level", []))
+        ai_experience = ai_result.get("experience_level", "")
+        ai_languages = sum(len(v) for v in ai_result.get("language", {}).values())
+        ai_skills = sum(len(v) for v in ai_result.get("skill_type", {}).values())
+
         print(
-            f"   🤖 AI: job_type={
-                len(ai_result.get('job_type', []))}"
-            f"   🤖 AI: education={
-                len(ai_result.get('education_level', []))}"
-            f"   🤖 AI: experience={
-                ai_result.get('experience_level', '')}"
-            f"   🤖 AI: languages={
-                sum(len(v) for v in ai_result.get('language', {}).values())}"
-            f"   🤖 AI: skills={
-                sum(len(v) for v in ai_result.get('skill_type', {}).values())}"
+            f"   🤖 AI: job_type={ai_job_type} education={ai_education} "
+            f"experience={ai_experience} languages={ai_languages} "
+            f"skills={ai_skills}"
         )
 
         # Merge with AI override: base first, AI on top
