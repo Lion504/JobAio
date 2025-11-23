@@ -23,23 +23,24 @@ import {
 // Load real job data from logs
 async function loadJobData() {
   try {
+    // Target specific file: jobs_jobly_20251121_213443.json
+    const targetFile = "jobs_jobly_20251121_213443.json";
     const logsDir = path.join(__dirname, "../../../apps/scraper-py/logs");
-    const files = await fs.readdir(logsDir);
-    const jobFiles = files.filter(
-      (file) => file.startsWith("jobs_jobly_") && file.endsWith(".json"),
-    );
+    const targetFilePath = path.join(logsDir, targetFile);
 
-    let allJobs = [];
-
-    for (const file of jobFiles) {
-      const filePath = path.join(logsDir, file);
-      const content = await fs.readFile(filePath, "utf-8");
-      const jobs = JSON.parse(content);
-      allJobs = allJobs.concat(jobs);
+    // Check if target file exists
+    try {
+      await fs.access(targetFilePath);
+    } catch {
+      console.error(`Target job file not found: ${targetFilePath}`);
+      return [];
     }
 
-    console.log(`Loaded ${allJobs.length} jobs from ${jobFiles.length} files`);
-    return allJobs;
+    const content = await fs.readFile(targetFilePath, "utf-8");
+    const jobs = JSON.parse(content);
+
+    console.log(`✅ Loaded ${jobs.length} jobs from ${targetFile}`);
+    return jobs;
   } catch (error) {
     console.error("Error loading job data:", error);
     return [];

@@ -28,7 +28,7 @@ const TOKEN_LIMITS = {
  */
 async function callGemini(prompt, max_tokens) {
   const result = await genAI.models.generateContent({
-    model: process.env.MODEL_NAME,
+    model: process.env.GEMINI_MODEL_NAME,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: {
       maxOutputTokens: max_tokens,
