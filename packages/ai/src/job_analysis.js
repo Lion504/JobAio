@@ -60,7 +60,7 @@ async function analyzeJobType(description) {
     const prompt = `
 Analyze this job description and determine the job type.
 Return only one of: 'full-time', 'part-time', 'internship', or 'unknown'
-example traninee = internship
+example trainee = internship
 Job Description:
 ${description.substring(0, 2000)}
 
