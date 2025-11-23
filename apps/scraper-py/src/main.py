@@ -1,9 +1,9 @@
 """Job scraping and analysis pipeline: jobly scraper → hybrid analyzer → logs"""
 
 import json
+import random  # For delay calculations
 import sys
 from pathlib import Path
-import random  # For delay calculations
 
 # Add paths to allow importing jobly and job_analyzer
 project_root = Path(__file__).parent  # apps/scraper-py/src
