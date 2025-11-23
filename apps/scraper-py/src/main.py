@@ -3,6 +3,7 @@
 import json
 import sys
 from pathlib import Path
+import random  # For delay calculations
 
 # Add paths to allow importing jobly and job_analyzer
 project_root = Path(__file__).parent  # apps/scraper-py/src
@@ -137,6 +138,5 @@ def main():
 
 
 if __name__ == "__main__":
-    import random  # For delay calculations
 
     main()
