@@ -1,8 +1,9 @@
 """Job scraping and analysis pipeline: jobly scraper → hybrid analyzer → logs"""
-	import time
+
 import json
 import random  # For delay calculations
 import sys
+import time
 from pathlib import Path
 
 # Add paths to allow importing jobly and job_analyzer
