@@ -153,7 +153,7 @@ class BaseJobAnalyzer:
             "technical": [],
             "soft_skills": [],
             "domain_specific": [],
-            "certificate": [],
+            "certifications": [],
             "other": [],
         }
 
