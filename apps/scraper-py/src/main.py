@@ -75,7 +75,6 @@ def main():
 
                 page_num += 1
                 if DELAY > 0:
-                    import time
 
                     time.sleep(DELAY)
 
