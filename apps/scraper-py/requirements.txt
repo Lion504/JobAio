@@ -11,3 +11,5 @@ brotli
 black
 flake8
 isort
+matplotlib
+numpy

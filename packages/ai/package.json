@@ -5,9 +5,11 @@
   "type": "module",
   "main": "src/index.js",
   "dependencies": {
+    "@google/genai": "^1.30.0",
     "@google-ai/generativelanguage": "^3.5.0",
     "@huggingface/inference": "^4.13.3",
     "@jobaio/shared": "workspace:*",
+    "dotenv": "^16.4.5",
     "openai": "^4.0.0"
   }
 }
