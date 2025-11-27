@@ -24,4 +24,5 @@ const OriginalJobSchema = new mongoose.Schema({
   deadline: Date
 }, { timestamps: true });
 
+
 export default mongoose.model("OriginalJob", OriginalJobSchema);

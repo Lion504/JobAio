@@ -18,4 +18,5 @@ const TranslatedJobSchema = new mongoose.Schema({
 
 TranslatedJobSchema.index({ job_id: 1, translation_lang: 1 }, { unique: true });
 
+
 export default mongoose.model("TranslatedJob", TranslatedJobSchema);
