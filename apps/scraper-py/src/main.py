@@ -2,10 +2,10 @@
 
 import json
 import random  # For delay calculations
-import sys
-import time
 import subprocess
+import sys
 import tempfile
+import time
 from pathlib import Path
 
 # Add paths to allow importing jobly and job_analyzer
@@ -30,7 +30,10 @@ def main():
     print("\n" + "=" * 70)
     print("🚀 JOB SCRAPER & ANALYZER PIPELINE")
     print(
-        "🕷️ Step 1: Scrape jobs  →  🌐 Step 2: Pre-translate to English  →  🔬 Step 3: Analyze jobs  →  💾 Step 4: Save results"
+        "  →  🕷️ Step 1: Scrape jobs"
+        "  →  🌐 Step 2: Pre-translate to English"
+        "  →  🔬 Step 3: Analyze jobs"
+        "  →  💾 Step 4: Save results"
     )
     print("=" * 70)
 
@@ -154,14 +157,17 @@ def main():
         with open(output_file_path, "r", encoding="utf-8") as f:
             translated_jobs = json.load(f)
 
-        print(f"✅ Pretranslation complete - processed {len(translated_jobs)} jobs")
+        print(
+            f"✅ Pretranslation complete - processed {
+                len(translated_jobs)} jobs"
+        )
 
         # Clean up temp files
         try:
             Path(input_file_path).unlink()
             Path(output_file_path).unlink()
-        except:
-            pass  # Ignore cleanup errors
+        except Exception as e:
+            print(f"⚠️ Warning: Failed to clean up temp files: {e}")
 
     except Exception as e:
         print(f"❌ Pretranslation failed: {e}")
