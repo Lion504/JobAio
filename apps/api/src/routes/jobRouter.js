@@ -1,16 +1,20 @@
-const express = require("express");
-const {
-  getAllJobs,
-  getJobByTitle,
-  getJobByCompany,
-  getJobByLocation,
-} = require("../controllers/jobController");
+// apps/api/src/routes/jobRouter.js
+import express from "express";
+import {
+  getAllJobsController,
+  searchJobsController,
+  filterJobsController,
+} from "../controllers/jobController.js";
 
 const router = express.Router();
 
-router.get("/", getAllJobs);
-router.get("/title/:jobTitle", getJobByTitle);
-router.get("/company/:jobCompany", getJobByCompany);
-router.get("/location/:jobLocation", getJobByLocation);
+// GET /api/jobs
+router.get("/", getAllJobsController);
 
-module.exports = router;
+// GET /api/jobs/search?q=...
+router.get("/search", searchJobsController);
+
+// GET /api/jobs/filter?category=&experienceLevel=&languageRequired=&jobType=&company=&location=&translationLang=
+router.get("/filter", filterJobsController);
+
+export default router;
