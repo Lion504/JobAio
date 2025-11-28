@@ -157,10 +157,7 @@ def main():
         with open(output_file_path, "r", encoding="utf-8") as f:
             translated_jobs = json.load(f)
 
-        print(
-            f"✅ Pretranslation complete - processed {len(
-                translated_jobs)} jobs"
-        )
+        print(f"✅ Pretranslation complete - processed {len(translated_jobs)} jobs")
 
         # Clean up temp files
         try:
