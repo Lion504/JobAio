@@ -158,8 +158,8 @@ def main():
             translated_jobs = json.load(f)
 
         print(
-            f"✅ Pretranslation complete - processed {
-                len(translated_jobs)} jobs"
+            f"✅ Pretranslation complete - processed {len(
+                translated_jobs)} jobs"
         )
 
         # Clean up temp files
