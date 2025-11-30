@@ -43,7 +43,6 @@ class AIAnalyzer:
             result = subprocess.run(
                 cmd,
                 capture_output=True,
-                text=True,
                 timeout=15,
                 cwd=os.path.dirname(self.ai_script),
             )
