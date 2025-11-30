@@ -8,6 +8,7 @@ import { GoogleGenAI } from "@google/genai";
 import { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs/promises";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,14 +36,79 @@ const INDUSTRY_CATEGORIES = [
   "Other",
 ];
 
-// In-memory cache for company -> category mapping
-const companyCache = new Map();
+// Persistent cache file path
+const CACHE_FILE = path.join(__dirname, ".company_cache.json");
+
+/**
+ * Load company cache from disk
+ * @returns {Map} - Company to category mapping
+ */
+function loadCache() {
+  try {
+    if (existsSync(CACHE_FILE)) {
+      const data = JSON.parse(readFileSync(CACHE_FILE, "utf-8"));
+      console.log(
+        `Loaded ${Object.keys(data).length} cached companies from disk`,
+      );
+      return new Map(Object.entries(data));
+    }
+  } catch (e) {
+    console.warn("Failed to load cache:", e.message);
+  }
+  return new Map();
+}
+
+/**
+ * Save company cache to disk
+ * @param {Map} cache
+ */
+function saveCache(cache) {
+  try {
+    const data = Object.fromEntries(cache);
+    writeFileSync(CACHE_FILE, JSON.stringify(data, null, 2), "utf-8");
+  } catch (e) {
+    console.warn("Failed to save cache:", e.message);
+  }
+}
+
+// Load persistent cache on module init
+const companyCache = loadCache();
+
+/**
+ * Process items in parallel batches with concurrency limit
+ * @param {Array} items - Items to process
+ * @param {Function} processor - Async function to process each item
+ * @param {number} concurrency - Max concurrent operations (default: 10)
+ * @param {number} batchDelay - Delay between batches in ms (default: 100)
+ * @returns {Promise<Array>} - Processed results
+ */
+async function processBatch(
+  items,
+  processor,
+  concurrency = 10,
+  batchDelay = 100,
+) {
+  const results = [];
+
+  for (let i = 0; i < items.length; i += concurrency) {
+    const batch = items.slice(i, i + concurrency);
+    const batchResults = await Promise.all(batch.map(processor));
+    results.push(...batchResults);
+
+    // Delay between batches to avoid rate limiting
+    if (i + concurrency < items.length) {
+      await new Promise((r) => setTimeout(r, batchDelay));
+    }
+  }
+
+  return results;
+}
 
 /**
  * Call Gemini API with minimal prompt for fast categorization
- * @param {string} prompt
- * @param {number} maxTokens
- * @returns {Promise<string>}
+ * @param {string} prompt - The prompt to send
+ * @param {number} maxTokens - Maximum tokens for response
+ * @returns {Promise<string>} - Generated text
  */
 async function callGemini(prompt, maxTokens = 20) {
   const result = await genAI.models.generateContent({
@@ -112,18 +178,21 @@ Return only the category name, nothing else.`;
 }
 
 /**
- * Batch categorize jobs by company name
+ * Batch categorize jobs by company name with parallel processing
  * @param {Array} jobs
+ * @param {number} concurrency
  * @returns {Promise<Array>}
  */
-export async function categorizeJobs(jobs) {
-  const categorizedJobs = [];
+export async function categorizeJobs(jobs, concurrency = 10) {
   let cachedCount = 0;
   let apiCallCount = 0;
 
-  console.log(`Categorizing ${jobs.length} jobs by company...`);
+  console.log(
+    `Categorizing ${jobs.length} jobs by company (concurrency: ${concurrency})...`,
+  );
 
-  for (const job of jobs) {
+  // Process a single job
+  const processJob = async (job) => {
     try {
       const { category, cached } = await categorizeByCompany(job.company);
 
@@ -131,11 +200,9 @@ export async function categorizeJobs(jobs) {
         cachedCount++;
       } else {
         apiCallCount++;
-        // Rate limiting - only delay for API calls
-        await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
-      const categorizedJob = {
+      return {
         ...job,
         industry_category: category,
         _metadata: {
@@ -147,11 +214,9 @@ export async function categorizeJobs(jobs) {
           },
         },
       };
-
-      categorizedJobs.push(categorizedJob);
     } catch (error) {
       // On error, add job with "Other" category
-      categorizedJobs.push({
+      return {
         ...job,
         industry_category: "Other",
         _metadata: {
@@ -162,9 +227,20 @@ export async function categorizeJobs(jobs) {
             completed_at: new Date().toISOString(),
           },
         },
-      });
+      };
     }
-  }
+  };
+
+  // Process jobs in parallel batches
+  const categorizedJobs = await processBatch(
+    jobs,
+    processJob,
+    concurrency,
+    100,
+  );
+
+  // Save cache to disk after processing
+  saveCache(companyCache);
 
   console.log(
     `Categorization complete: ${apiCallCount} API calls, ${cachedCount} cached`,
