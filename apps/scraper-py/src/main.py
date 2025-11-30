@@ -1,4 +1,10 @@
-"""Job scraping and analysis pipeline: jobly scraper → pre-translate → categorize → analyze → logs"""
+"""Job scraping and analysis pipeline:
+→ jobly scraper
+→ pre-translate
+→ categorize
+→ analyze
+→ logs
+"""
 
 import json
 import random  # For delay calculations
@@ -26,7 +32,7 @@ from job_analyzer.hybrid_job_analyzer import HybridJobAnalyzer  # noqa: E402
 
 
 def main():
-    """Full pipeline: scrape jobs → pre-translate → categorize → analyze → save to logs"""
+    # Full pipeline
     print("\n" + "=" * 70)
     print("🚀 JOB SCRAPER & ANALYZER PIPELINE")
     print(
