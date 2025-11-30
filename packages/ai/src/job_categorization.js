@@ -7,8 +7,15 @@ import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
 import { fileURLToPath } from "url";
 import path from "path";
+import os from "os";
 import fs from "fs/promises";
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import {
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  unlinkSync,
+} from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,8 +43,18 @@ const INDUSTRY_CATEGORIES = [
   "Other",
 ];
 
-// Persistent cache file path
-const CACHE_FILE = path.join(__dirname, ".company_cache.json");
+// Persistent cache file path - store in OS temp directory
+const CACHE_DIR = path.join(os.tmpdir(), "jobaio-cache");
+const CACHE_FILE = path.join(CACHE_DIR, "company_cache.json");
+
+/**
+ * Ensure cache directory exists
+ */
+function ensureCacheDir() {
+  if (!existsSync(CACHE_DIR)) {
+    mkdirSync(CACHE_DIR, { recursive: true });
+  }
+}
 
 /**
  * Load company cache from disk
@@ -45,10 +62,11 @@ const CACHE_FILE = path.join(__dirname, ".company_cache.json");
  */
 function loadCache() {
   try {
+    ensureCacheDir();
     if (existsSync(CACHE_FILE)) {
       const data = JSON.parse(readFileSync(CACHE_FILE, "utf-8"));
       console.log(
-        `Loaded ${Object.keys(data).length} cached companies from disk`,
+        `Loaded ${Object.keys(data).length} cached companies from ${CACHE_FILE}`,
       );
       return new Map(Object.entries(data));
     }
@@ -64,10 +82,26 @@ function loadCache() {
  */
 function saveCache(cache) {
   try {
+    ensureCacheDir();
     const data = Object.fromEntries(cache);
     writeFileSync(CACHE_FILE, JSON.stringify(data, null, 2), "utf-8");
   } catch (e) {
     console.warn("Failed to save cache:", e.message);
+  }
+}
+
+/**
+ * Clear the cache file from disk
+ */
+export function clearCache() {
+  try {
+    if (existsSync(CACHE_FILE)) {
+      unlinkSync(CACHE_FILE);
+      companyCache.clear();
+      console.log("Cache cleared successfully");
+    }
+  } catch (e) {
+    console.warn("Failed to clear cache:", e.message);
   }
 }
 
@@ -306,4 +340,4 @@ if (process.argv[1]?.endsWith("job_categorization.js")) {
   }
 }
 
-export { categorizeByCompany, INDUSTRY_CATEGORIES };
+export { categorizeByCompany, INDUSTRY_CATEGORIES, clearCache };
