@@ -256,18 +256,20 @@ def main():
         print(f"❌ Analysis failed: {e}")
         return
 
-    # Step 5: Save enhanced results to logs
-    print("\n💾 [5/5] Saving enhanced results to logs...")
+    # Step 5: Save enhanced results to packages/db/data
+    print("\n💾 [5/5] Saving enhanced results to database data folder...")
     try:
-        # Create logs directory if not exists
-        logs_dir = Path(__file__).parent.parent / "logs"
-        logs_dir.mkdir(exist_ok=True)
+        # Create data directory if not exists
+        data_dir = (
+            Path(__file__).parent.parent.parent.parent / "packages" / "db" / "data"
+        )
+        data_dir.mkdir(exist_ok=True)
 
         # Generate timestamped filename
         from datetime import datetime
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = logs_dir / f"pipeline_results_{timestamp}.json"
+        output_file = data_dir / f"pipeline_results_{timestamp}.json"
 
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump(analyzed_jobs, f, indent=2, ensure_ascii=False)
