@@ -340,4 +340,4 @@ if (process.argv[1]?.endsWith("job_categorization.js")) {
   }
 }
 
-export { categorizeByCompany, INDUSTRY_CATEGORIES, clearCache };
+export { categorizeByCompany, INDUSTRY_CATEGORIES };
