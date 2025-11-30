@@ -2,6 +2,10 @@
   "name": "jobaio",
   "private": true,
   "packageManager": "pnpm@9.15.3",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
     "dev": "pnpm --filter @jobaio/web dev",
     "dev:web": "pnpm --filter @jobaio/web dev",
@@ -23,6 +27,7 @@
     "express": "^5.1.0",
     "franc": "^6.2.0",
     "mongoose": "^8.19.4",
+    "mongoose-sequence": "^6.0.1",
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2"
   }

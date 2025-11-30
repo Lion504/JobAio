@@ -1,28 +1,42 @@
-// apps/api/src/controllers/jobController.js  (only logic shown)
-
+import OriginalJob from "../../../../packages/db/src/models/OriginalJob.js";
 import {
   findAllJobs,
   findJobsByField,
   searchJobs,
   findJobsByFilters,
 } from "../../../../packages/search/src/adapter.js";
+import { normalizeScrapedJob } from "../utils/normalizeScrapedJob.js";
 
-// ======================================================================
+// =======================================================
+// POST /api/jobs  → insert scraped job
+// =======================================================
+export const createJobController = async (req, res, next) => {
+  try {
+    const normalized = normalizeScrapedJob(req.body);
+
+    // Remove job_id if it exists (we want auto-increment)
+    delete normalized.job_id;
+
+    // Create the job
+    const job = await OriginalJob.create(normalized);
+
+    return res.status(201).json(job);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// =======================================================
 // GET /api/jobs
-// Returns all jobs, or runs a simple search if ?search= or ?q= is provided
-// ======================================================================
+// =======================================================
 export const getAllJobsController = async (req, res, next) => {
   try {
     const { search, q } = req.query;
     const searchTerm = search || q;
 
-    let jobs;
-
-    if (searchTerm) {
-      jobs = await searchJobs(searchTerm.trim());
-    } else {
-      jobs = await findAllJobs();
-    }
+    const jobs = searchTerm
+      ? await searchJobs(searchTerm.trim())
+      : await findAllJobs();
 
     return res.status(200).json(jobs);
   } catch (error) {
@@ -30,17 +44,14 @@ export const getAllJobsController = async (req, res, next) => {
   }
 };
 
-// ======================================================================
+// =======================================================
 // GET /api/jobs/search?q=developer
-// Pure keyword-based search endpoint
-// ======================================================================
+// =======================================================
 export const searchJobsController = async (req, res, next) => {
   try {
     const { q } = req.query;
-
-    if (!q || typeof q !== "string" || q.trim().length < 2) {
+    if (!q || q.trim().length < 2)
       return res.status(400).json({ message: "Invalid search query" });
-    }
 
     const jobs = await searchJobs(q.trim());
     return res.status(200).json(jobs);
@@ -49,12 +60,9 @@ export const searchJobsController = async (req, res, next) => {
   }
 };
 
-// ======================================================================
-// GET /api/jobs/filter?category=IT&location=Dubai&type=Full-time
-// Multi-filter support for:
-// category, experienceLevel, languageRequired, jobType, company, location
-// + translationLang (for now only triggers translatedModel stub)
-// ======================================================================
+// =======================================================
+// GET /api/jobs/filter?category=...&location=...
+// =======================================================
 export const filterJobsController = async (req, res, next) => {
   try {
     const {
@@ -64,10 +72,9 @@ export const filterJobsController = async (req, res, next) => {
       jobType,
       company,
       location,
-      translationLang, // optional
+      translationLang,
     } = req.query;
 
-    // Map query params -> DB field names in OriginalJob
     const filters = {};
 
     if (category) filters.job_category = category;
@@ -77,27 +84,22 @@ export const filterJobsController = async (req, res, next) => {
     if (company) filters.company_name = company;
     if (location) filters.location = location;
 
-    if (Object.keys(filters).length === 0 && !translationLang) {
+    if (Object.keys(filters).length === 0 && !translationLang)
       return res.status(400).json({ message: "No filter parameters provided" });
-    }
 
-    // If only 1 real filter (no translationLang) → single-field optimization
-    const realFilterKeys = Object.keys(filters);
-    if (realFilterKeys.length === 1 && !translationLang) {
-      const field = realFilterKeys[0];
-      const value = filters[field];
-      const jobs = await findJobsByField(field, value); // regex, optimized
+    if (Object.keys(filters).length === 1 && !translationLang) {
+      const key = Object.keys(filters)[0];
+      const value = filters[key];
+      const jobs = await findJobsByField(key, value);
       return res.status(200).json(jobs);
     }
 
-    // Multi-field or translationLang present → use multi-filter adapter
     const jobs = await findJobsByFilters(filters, { translationLang });
 
-    if (!jobs || jobs.length === 0) {
+    if (!jobs || jobs.length === 0)
       return res
         .status(404)
         .json({ message: "No jobs found with given filters" });
-    }
 
     return res.status(200).json(jobs);
   } catch (error) {

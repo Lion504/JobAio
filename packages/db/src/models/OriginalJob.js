@@ -1,28 +1,44 @@
 import mongoose from "mongoose";
+import AutoIncrementFactory from "mongoose-sequence";
 
-const OriginalJobSchema = new mongoose.Schema({
-  source_language: String,
+const AutoIncrement = AutoIncrementFactory(mongoose);
 
-  job_description: String,
-  skill_types: String,
-  responsibilities: String,
-  other: String,
-  advantages: String,
-  job_title: String,
-  job_category: String,
-  job_type: String,
-  language_required: String,
-  experience_level: String,
+const originalJobSchema = new mongoose.Schema(
+  {
+    source_language: { type: String },
 
-  company_name: String,
-  location: String,
-  education_level: String,
-  certification: String,
-  job_link: String,
-  job_source: String,
-  publish_date: Date,
-  deadline: Date
-}, { timestamps: true });
+    // Auto-incremented job_id (do NOT send this in POST)
+    job_id: { type: Number, unique: true },
 
+    job_description: { type: String },
+    skill_types: { type: String },
+    responsibilities: { type: String },
+    other: { type: String },
+    advantages: { type: String },
 
-export default mongoose.model("OriginalJob", OriginalJobSchema);
+    job_title: { type: String },
+    job_category: { type: String },
+    job_type: { type: String },
+
+    language_required: { type: String },
+    experience_level: { type: String },
+
+    company_name: { type: String },
+    location: { type: String },
+
+    education_level: { type: String },
+    certification: { type: String },
+
+    job_link: { type: String },
+    job_source: { type: String },
+
+    publish_date: { type: String },
+    deadline: { type: String },
+  },
+  { timestamps: true }
+);
+
+// Plugin to auto-increment job_id
+originalJobSchema.plugin(AutoIncrement, { inc_field: "job_id" });
+
+export default mongoose.model("OriginalJob", originalJobSchema);
