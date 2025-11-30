@@ -5,14 +5,13 @@ const {
   //searchJobs,
 } = require("../../../../packages/search/src/adapter");
 
-
 //GET /api/jobs/search?term=someTerm
 const searchJobs = async (req, res, next) => {
   //Get the parameter from the request
   const { term, location, job_type, experience_level, company } = req.query;
 
   //Check if it's a string or if it's empty
-  if(!term || typeof term !== "string" || term.trim().length === 0) {
+  if (!term || typeof term !== "string" || term.trim().length === 0) {
     return res.status(400).json({ message: "Invalid search parameters" });
   }
 
@@ -21,7 +20,9 @@ const searchJobs = async (req, res, next) => {
     const jobs = await rankedJobSearch(term, filters);
 
     if (!jobs || jobs.length === 0) {
-      return res.status(404).json({ message: "No jobs found matching the given parameters"});
+      return res
+        .status(404)
+        .json({ message: "No jobs found matching the given parameters" });
     }
 
     return res.status(200).json(jobs);
