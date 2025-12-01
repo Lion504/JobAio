@@ -1,4 +1,3 @@
-// TODO: Implement API entry point
 // apps/api/src/index.js
 
 import express from "express";
