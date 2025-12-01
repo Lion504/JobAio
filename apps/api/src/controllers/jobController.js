@@ -1,9 +1,9 @@
-const {
+import {
   rankedJobSearch,
   findAllJobs,
   //findJobsByField,
   //searchJobs,
-} = require("../../../../packages/search/src/adapter");
+} from "../../../../packages/search/src/adapter";
 
 //GET /api/jobs/search?term=someTerm
 const searchJobs = async (req, res, next) => {
@@ -39,7 +39,7 @@ const getAllJobs = async (req, res, next) => {
 
     let jobs;
     if (searchTerm) {
-      jobs = await searchJobs(searchTerm);
+      jobs = await rankedJobSearch(searchTerm);
     } else {
       jobs = await findAllJobs();
     }
@@ -127,7 +127,7 @@ const getAllJobs = async (req, res, next) => {
 //   }
 // };
 
-module.exports = {
+export {
   searchJobs,
   getAllJobs,
   //getJobByTitle,

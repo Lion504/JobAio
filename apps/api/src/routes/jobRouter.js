@@ -1,11 +1,11 @@
-const express = require("express");
-const {
+import express from "express";
+import {
   searchJobs,
   getAllJobs,
   //getJobByTitle,
   //getJobByCompany,
   //getJobByLocation,
-} = require("../controllers/jobController");
+} from "../controllers/jobController.js";
 
 const router = express.Router();
 
@@ -15,4 +15,4 @@ router.get("/", getAllJobs);
 // router.get("/company/:jobCompany", getJobByCompany);
 // router.get("/location/:jobLocation", getJobByLocation);
 
-module.exports = router;
+export default router;

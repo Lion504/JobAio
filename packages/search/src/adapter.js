@@ -1,7 +1,7 @@
 // Search adapter/controller for job queries
 import Job from "../../db/src/models/jobModel.js";
 
-async function rankedJobSearch (terms, filters = {}) {
+async function rankedJobSearch(terms, filters = {}) {
   //Case insensitive search term
   //const expression = new RegExp(terms, "i");
 
@@ -66,20 +66,20 @@ async function rankedJobSearch (terms, filters = {}) {
         $and: [
           //Check filters
           filterCriteria,
-        { $text: { $search: term } }
-        ]
-      }
+          { $text: { $search: terms } },
+        ],
+      },
     },
     //Scoring
     {
       $addFields: {
-        score: { $meta: "textScore" }
-      }
+        score: { $meta: "textScore" },
+      },
     },
     //Sort the searched jobs showing first the ones with highest scores and the newest on the DB
     {
-      $sort: { score: -1, createdAt: -1 }
-    }
+      $sort: { score: -1, createdAt: -1 },
+    },
   ]);
 
   return jobs;
@@ -92,13 +92,13 @@ async function rankedJobSearch (terms, filters = {}) {
 //     return jobs;
 // }
 
-async function findAllJobs () {
-  const jobs = await Job.find().sort({createdAt: -1}).lean();
+async function findAllJobs() {
+  const jobs = await Job.find().sort({ createdAt: -1 }).lean();
   return jobs;
 }
 
-module.exports = {
+export {
   rankedJobSearch,
   //findJobsByField,
-  findAllJobs
+  findAllJobs,
 };
