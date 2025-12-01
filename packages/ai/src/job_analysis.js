@@ -88,7 +88,9 @@ Job Type:`;
 async function analyzeLanguage(description) {
   try {
     const prompt = `
-Extract required and advantage languages from this job description.
+Extract required and advantage HUMAN languages (not programming languages)
+from this job description. Only include natural languages like 
+English, Finnish, etc.
 
 - "required": Languages that are explicitly mandatory or essential for the role
 - "advantage": Languages that would be beneficial but are not strictly required
