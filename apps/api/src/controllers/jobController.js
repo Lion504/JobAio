@@ -5,30 +5,84 @@ import {
   searchJobs,
   findJobsByFilters,
 } from "../../../../packages/search/src/adapter.js";
-import { normalizeScrapedJob } from "../utils/normalizeScrapedJob.js";
 
-// =======================================================
-// POST /api/jobs  → insert scraped job
-// =======================================================
+function normalizeScrapedJob(raw) {
+  return {
+    title: raw.title || "",
+    url: raw.url || "",
+    company: raw.company || "",
+    location: raw.location || "",
+    publish_date: raw.publish_date || "",
+    description: raw.description || "",
+    original_title: raw.original_title || "",
+    original_description: raw.original_description || "",
+
+    industry_category: raw.industry_category || "",
+    job_type: raw.job_type || [],
+    language: {
+      required: raw.language?.required || [],
+      advantage: raw.language?.advantage || [],
+    },
+    experience_level: raw.experience_level || "",
+    education_level: raw.education_level || [],
+    skill_type: {
+      technical: raw.skill_type?.technical || [],
+      domain_specific: raw.skill_type?.domain_specific || [],
+      certifications: raw.skill_type?.certifications || [],
+      soft_skills: raw.skill_type?.soft_skills || [],
+      other: raw.skill_type?.other || [],
+    },
+    responsibilities: raw.responsibilities || [],
+
+    _metadata: raw._metadata || {},
+  };
+}
+
+// Insert a single job
 export const createJobController = async (req, res, next) => {
   try {
     const normalized = normalizeScrapedJob(req.body);
-
-    // Remove job_id if it exists (we want auto-increment)
-    delete normalized.job_id;
-
-    // Create the job
-    const job = await OriginalJob.create(normalized);
-
-    return res.status(201).json(job);
+    const createdJob = await OriginalJob.create(normalized);
+    return res.status(201).json(createdJob);
   } catch (err) {
     next(err);
   }
 };
 
-// =======================================================
+// Insert multiple jobs safely (auto-increment works)
+export const createJobsBulkController = async (req, res, next) => {
+  try {
+    if (!Array.isArray(req.body)) {
+      return res.status(400).json({ error: "Expected an array of jobs" });
+    }
+
+    const insertedDocs = [];
+    const errors = [];
+
+    for (let i = 0; i < req.body.length; i++) {
+      try {
+        const normalized = normalizeScrapedJob(req.body[i]);
+        const createdJob = await OriginalJob.create(normalized);
+        insertedDocs.push(createdJob);
+      } catch (err) {
+        errors.push({ index: i, err: err.message });
+      }
+    }
+
+    const response = {
+      message: "Jobs insertion complete",
+      insertedCount: insertedDocs.length,
+      insertedDocs,
+      errors,
+    };
+
+    return res.status(201).json(response);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // GET /api/jobs
-// =======================================================
 export const getAllJobsController = async (req, res, next) => {
   try {
     const { search, q } = req.query;
@@ -44,9 +98,7 @@ export const getAllJobsController = async (req, res, next) => {
   }
 };
 
-// =======================================================
-// GET /api/jobs/search?q=developer
-// =======================================================
+// GET /api/jobs/search
 export const searchJobsController = async (req, res, next) => {
   try {
     const { q } = req.query;
@@ -60,9 +112,7 @@ export const searchJobsController = async (req, res, next) => {
   }
 };
 
-// =======================================================
-// GET /api/jobs/filter?category=...&location=...
-// =======================================================
+// GET /api/jobs/filter
 export const filterJobsController = async (req, res, next) => {
   try {
     const {
@@ -77,11 +127,11 @@ export const filterJobsController = async (req, res, next) => {
 
     const filters = {};
 
-    if (category) filters.job_category = category;
+    if (category) filters.industry_category = category;
     if (experienceLevel) filters.experience_level = experienceLevel;
-    if (languageRequired) filters.language_required = languageRequired;
+    if (languageRequired) filters["language.required"] = languageRequired;
     if (jobType) filters.job_type = jobType;
-    if (company) filters.company_name = company;
+    if (company) filters.company = company;
     if (location) filters.location = location;
 
     if (Object.keys(filters).length === 0 && !translationLang)

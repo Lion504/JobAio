@@ -5,40 +5,40 @@ const AutoIncrement = AutoIncrementFactory(mongoose);
 
 const originalJobSchema = new mongoose.Schema(
   {
-    source_language: { type: String },
-
-    // Auto-incremented job_id (do NOT send this in POST)
-    job_id: { type: Number, unique: true },
-
-    job_description: { type: String },
-    skill_types: { type: String },
-    responsibilities: { type: String },
-    other: { type: String },
-    advantages: { type: String },
-
-    job_title: { type: String },
-    job_category: { type: String },
-    job_type: { type: String },
-
-    language_required: { type: String },
-    experience_level: { type: String },
-
-    company_name: { type: String },
+    title: { type: String },
+    url: { type: String },
+    company: { type: String },
     location: { type: String },
-
-    education_level: { type: String },
-    certification: { type: String },
-
-    job_link: { type: String },
-    job_source: { type: String },
-
     publish_date: { type: String },
-    deadline: { type: String },
+    description: { type: String },
+    original_title: { type: String },
+    original_description: { type: String },
+
+    industry_category: { type: String },
+    job_type: { type: [String] },
+    language: {
+      required: { type: [String] },
+      advantage: { type: [String] },
+    },
+    experience_level: { type: String },
+    education_level: { type: [String] },
+    skill_type: {
+      technical: { type: [String] },
+      domain_specific: { type: [String] },
+      certifications: { type: [String] },
+      soft_skills: { type: [String] },
+      other: { type: [String] },
+    },
+    responsibilities: { type: [String] },
+
+    _metadata: { type: Object },
+
+    // Auto-incremented job_id
+    job_id: { type: Number, unique: true },
   },
   { timestamps: true }
 );
 
-// Plugin to auto-increment job_id
 originalJobSchema.plugin(AutoIncrement, { inc_field: "job_id" });
 
 export default mongoose.model("OriginalJob", originalJobSchema);

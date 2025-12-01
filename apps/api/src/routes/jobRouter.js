@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createJobController,
+  createJobsBulkController,
   getAllJobsController,
   searchJobsController,
   filterJobsController,
@@ -8,8 +9,11 @@ import {
 
 const router = express.Router();
 
-// POST /api/jobs → insert scraped job
+// POST /api/jobs → single job
 router.post("/", createJobController);
+
+// POST /api/jobs/bulk → multiple jobs
+router.post("/bulk", createJobsBulkController);
 
 // GET /api/jobs
 router.get("/", getAllJobsController);
