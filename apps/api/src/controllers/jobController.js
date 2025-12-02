@@ -117,9 +117,9 @@ export const filterJobsController = async (req, res, next) => {
   try {
     const {
       category,
-      experienceLevel,
-      languageRequired,
-      jobType,
+      experience_level,
+      language_required,
+      job_type,
       company,
       location,
       translationLang,
@@ -128,9 +128,14 @@ export const filterJobsController = async (req, res, next) => {
     const filters = {};
 
     if (category) filters.industry_category = category;
-    if (experienceLevel) filters.experience_level = experienceLevel;
-    if (languageRequired) filters["language.required"] = languageRequired;
-    if (jobType) filters.job_type = jobType;
+    if (experience_level) filters.experience_level = experience_level;
+
+    if (language_required) {
+      const langs = language_required.split(",").map((v) => v.trim());
+      filters["language.required"] = { $all: langs };
+    }
+
+    if (job_type) filters.job_type = job_type;
     if (company) filters.company = company;
     if (location) filters.location = location;
 

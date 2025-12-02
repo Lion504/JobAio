@@ -11,13 +11,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5001;
 
 app.use(express.json());
 
-// Very simple CORS so your Next.js app (localhost:3000) can call this API
+// Very simple CORS so your Next.js app (localhost:5173) can call this API
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET,OPTIONS,POST,PUT,PATCH,DELETE",
