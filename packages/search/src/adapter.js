@@ -39,6 +39,25 @@ async function rankedJobSearch(terms, filters = {}) {
     //Case insensitive
     filterCriteria.company = new RegExp(filters.company, "i");
   }
+
+  if (filters.industry_category) {
+    filterCriteria.industry_category = new RegExp(
+      filters.industry_category,
+      "i",
+    );
+  }
+
+  if (filters.required_language) {
+    filterCriteria["language.required"] = new RegExp(
+      filters.required_language,
+      "i",
+    );
+  }
+
+  if (filters.education_level) {
+    filterCriteria.education_level = new RegExp(filters.education_level, "i");
+  }
+
   // //Helper function to score array fields
   // const scoreArray = (fieldPath, points) => ({
   //   $cond: [
@@ -77,7 +96,11 @@ async function rankedJobSearch(terms, filters = {}) {
         $and: [
           //Check filters
           filterCriteria,
-          { $text: { $search: searchTerms } },
+<<<<<<< HEAD
+          { $text: { $search: terms } },
+=======
+          { $text: { $search: term } },
+>>>>>>> 508ac2a (fix(search-engine): adapt search engine to new DB structure)
         ],
       },
     },

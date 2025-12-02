@@ -27,7 +27,6 @@ async function testSearch() {
       console.log(`    Posted: ${job.createdAt}`);
       console.log("-------------------------------------");
     });
-
   } catch (error) {
     console.error("❌ Test Failed:", error.message);
     console.error("Hint: Is your server running?");

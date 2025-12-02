@@ -8,7 +8,16 @@ import {
 //GET /api/jobs/search?term=someTerm
 const searchJobs = async (req, res, next) => {
   //Get the parameter from the request
-  const { term, location, job_type, experience_level, company } = req.query;
+  const {
+    term,
+    location,
+    job_type,
+    experience_level,
+    company,
+    industry_category,
+    required_language,
+    education_level,
+  } = req.query;
 
   //Check if it's a string or if it's empty
   if (!term || typeof term !== "string" || term.trim().length === 0) {
@@ -16,7 +25,15 @@ const searchJobs = async (req, res, next) => {
   }
 
   try {
-    const filters = { location, job_type, experience_level, company };
+    const filters = {
+      location,
+      job_type,
+      experience_level,
+      company,
+      industry_category,
+      required_language,
+      education_level,
+    };
     const jobs = await rankedJobSearch(term, filters);
 
     if (!jobs || jobs.length === 0) {

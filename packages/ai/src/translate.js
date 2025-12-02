@@ -1,6 +1,16 @@
 import fetch from "node-fetch";
 
-export const TARGET_LANGUAGES = ["en", "es", "fr", "pt", "de", "ur", "ta", "zh", "fi"];
+export const TARGET_LANGUAGES = [
+  "en",
+  "es",
+  "fr",
+  "pt",
+  "de",
+  "ur",
+  "ta",
+  "zh",
+  "fi",
+];
 
 // Use environment variable for API key
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
