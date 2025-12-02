@@ -6,7 +6,7 @@ from duunitori_scraper import DuunitoriScraper
 
 BASE_URL = "https://duunitori.fi/tyopaikat"
 OUTPUT_FILE = None
-MAX_PAGES = 1  # current test value
+MAX_PAGES = 2  # current test value
 DELAY = None
 
 

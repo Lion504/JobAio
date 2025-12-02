@@ -13,25 +13,11 @@ class DuunitoriExtractor:
 
         # Extract Job Title and URL
         try:
-            # Duunitori.fi specific selectors for job title and link
-            title_selectors = [
-                'h2[class*="job-title"] a',
-                'h3[class*="job-title"] a',
-                'a[class*="job-title"]',
-                "h2 a",
-                "h3 a",
-                'a[href*="/tyopaikat"]',
-            ]
-
-            title_elem = None
-            for selector in title_selectors:
-                title_elem = job_card.select_one(selector)
-                if title_elem:
-                    break
-
-            if title_elem:
-                job["title"] = title_elem.get_text(strip=True)
-                href = title_elem.get("href")
+            # job_card is now the parent container, look for the <a> tag inside it
+            link_elem = job_card.find("a", class_="job-box__hover")
+            if link_elem:
+                job["title"] = link_elem.get_text(strip=True)
+                href = link_elem.get("href")
                 if href:
                     job["url"] = (
                         "https://duunitori.fi" + href if href.startswith("/") else href
@@ -39,14 +25,12 @@ class DuunitoriExtractor:
                 else:
                     job["url"] = "N/A"
             else:
-                # Fallback to general title search
-                title_elem = job_card.find(["h1", "h2", "h3", "h4"])
-                if title_elem:
-                    job["title"] = title_elem.get_text(strip=True)
-                    # Try to find link in the card
-                    link_elem = job_card.find("a")
-                    if link_elem and link_elem.get("href"):
-                        href = link_elem.get("href")
+                # Fallback: any anchor tag
+                link_elem = job_card.find("a")
+                if link_elem:
+                    job["title"] = link_elem.get_text(strip=True)
+                    href = link_elem.get("href")
+                    if href:
                         job["url"] = (
                             "https://duunitori.fi" + href
                             if href.startswith("/")
@@ -55,67 +39,54 @@ class DuunitoriExtractor:
                     else:
                         job["url"] = "N/A"
                 else:
-                    job["title"] = "N/A"
+                    job["title"] = job_card.get_text(strip=True)[
+                        :100
+                    ]  # Limit title length
                     job["url"] = "N/A"
 
-            # Extract Company Name
-            company_selectors = [
-                'span[class*="company"]',
-                'div[class*="company"]',
-                '[class*="employer"]',
-                'span[class*="recruiter"]',
-                'div[class*="recruiter"]',
-            ]
-
-            company_elem = None
-            for selector in company_selectors:
-                company_elem = job_card.select_one(selector)
-                if company_elem:
-                    break
-
-            if company_elem:
-                job["company"] = company_elem.get_text(strip=True)
+            # Extract Company Name - try data attribute first (from HTML structure)
+            company_name = job_card.get("data-company")
+            if company_name and company_name.strip():
+                job["company"] = company_name.strip()
             else:
-                job["company"] = "N/A"
+                # Fallback to looking for company elements
+                company_selectors = [
+                    'span[class*="company"]',
+                    'div[class*="company"]',
+                    '[class*="employer"]',
+                    'span[class*="recruiter"]',
+                    'div[class*="recruiter"]',
+                ]
 
-            # Extract Location
-            location_selectors = [
-                'span[class*="location"]',
-                'div[class*="location"]',
-                '[class*="place"]',
-                'span[class*="city"]',
-            ]
+                company_elem = None
+                for selector in company_selectors:
+                    company_elem = job_card.select_one(selector)
+                    if company_elem:
+                        break
 
-            location_elem = None
-            for selector in location_selectors:
-                location_elem = job_card.select_one(selector)
-                if location_elem:
-                    break
+                if company_elem:
+                    job["company"] = company_elem.get_text(strip=True)
+                else:
+                    job["company"] = "N/A"
 
+            # Extract Location - look for job-box__job-location anywhere in the job card
+            location_elem = job_card.select_one(".job-box__job-location")
             if location_elem:
-                job["location"] = location_elem.get_text(strip=True)
+                # Clean up the location text (remove extra elements)
+                location_text = location_elem.get_text(strip=True)
+                # Remove the "–" and anything after it if present
+                location_text = location_text.split("–")[0].strip()
+                job["location"] = location_text
             else:
                 job["location"] = "N/A"
 
-            # Extract Posted Date
-            date_selectors = [
-                'span[class*="date"]',
-                "time",
-                '[class*="published"]',
-                '[class*="posted"]',
-            ]
-
-            date_elem = None
-            for selector in date_selectors:
-                date_elem = job_card.select_one(selector)
-                if date_elem:
-                    break
-
+            # Extract Posted Date - look for job-box__job-posted anywhere in the job card
+            date_elem = job_card.select_one(".job-box__job-posted")
             if date_elem:
-                # Try different date formats
                 date_text = date_elem.get_text(strip=True)
-                if date_elem.get("datetime"):
-                    date_text = date_elem.get("datetime")
+                # Clean up "Julkaistu" prefix if present
+                if date_text.startswith("Julkaistu"):
+                    date_text = date_text.replace("Julkaistu", "").strip()
                 job["publish_date"] = date_text
             else:
                 job["publish_date"] = "N/A"

@@ -156,16 +156,12 @@ class DuunitoriScraper:
             # Debug: Print page title and some structure
             print(f"  🔍 Page title: {soup.title.text if soup.title else 'No title'}")
 
-            # Duunitori.fi specific job card selectors (more specific)
+            # Duunitori.fi specific job container selectors (looking for parent containers)
             job_selectors = [
-                "div.job-item",  # Common pattern
-                'div[class*="job-item"]',
-                'article[class*="job"]',
-                "div[data-jobid]",  # If they use data attributes
-                ".job-card",
-                ".job-listing",
-                "div.listing",
-                "div.item",
+                "div.job-box",  # Parent container with job data
+                'div[class*="job-box"]',  # Container pattern
+                "div[data-jobid]",  # Container with job ID
+                "article",  # Fallback to article tags
             ]
 
             job_cards = []
