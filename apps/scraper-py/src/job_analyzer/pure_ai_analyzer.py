@@ -45,6 +45,7 @@ class AIAnalyzer:
                 capture_output=True,
                 timeout=15,
                 cwd=os.path.dirname(self.ai_script),
+                text=True,
             )
 
             if result.returncode == 0:
