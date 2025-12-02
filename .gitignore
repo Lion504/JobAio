@@ -89,4 +89,4 @@ apps/scraper-py/src/process.py
 apps/scraper-py/backend_process_flow.gif
 apps/scraper-py/tests/test_output/
 backend_process_flow.gif
-packages/db/data/pipeline_results_20251130_211450.json
+packages/db/data/pipeline_results_*.json
