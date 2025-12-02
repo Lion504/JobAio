@@ -121,4 +121,3 @@ export async function findAllJobs() {
   const jobs = await OriginalJob.find().sort({ createdAt: -1 }).lean();
   return jobs;
 }
-

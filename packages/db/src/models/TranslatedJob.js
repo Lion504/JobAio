@@ -14,18 +14,17 @@ const TranslatedJobSchema = new mongoose.Schema(
     job_category: String,
     job_type: String,
     language_required: String,
-    experience_level: String
+    experience_level: String,
   },
-  { timestamps: true }  
+  { timestamps: true },
 );
-
 
 TranslatedJobSchema.index({ job_id: 1, translation_lang: 1 }, { unique: true });
 
-// TTL index → delete after 14 days 
+// TTL index → delete after 14 days
 TranslatedJobSchema.index(
   { createdAt: 1 },
-  { expireAfterSeconds: 60 * 60 * 24 * 14 } 
+  { expireAfterSeconds: 60 * 60 * 24 * 14 },
 );
 
 export default mongoose.model("TranslatedJob", TranslatedJobSchema);

@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 import AutoIncrementFactory from "mongoose-sequence";
 
@@ -36,19 +35,19 @@ const originalJobSchema = new mongoose.Schema(
 
     job_id: { type: Number, unique: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 //  prevent duplicates with same (title, company, location)
 originalJobSchema.index(
   { title: 1, company: 1, location: 1 },
-  { unique: true }
+  { unique: true },
 );
 
 // TTL index → delete after 14 days
 originalJobSchema.index(
   { createdAt: 1 },
-  { expireAfterSeconds: 60 * 60 * 24 * 14 }
+  { expireAfterSeconds: 60 * 60 * 24 * 14 },
 );
 
 originalJobSchema.plugin(AutoIncrement, { inc_field: "job_id" });
