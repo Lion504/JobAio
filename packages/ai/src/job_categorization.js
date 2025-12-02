@@ -296,48 +296,50 @@ export function getCacheStats() {
 
 // CLI interface for subprocess calls from Python
 if (process.argv[1]?.endsWith("job_categorization.js")) {
-  const inputFile = process.argv[2];
-  const outputFile = process.argv[3];
+  (async () => {
+    const inputFile = process.argv[2];
+    const outputFile = process.argv[3];
 
-  if (!inputFile || !outputFile) {
-    console.error(
-      "Usage: node job_categorization.js <input.json> <output.json>",
-    );
-    process.exit(1);
-  }
-
-  try {
-    // Read input file
-    const inputData = await fs.readFile(inputFile, "utf-8");
-    const jobs = JSON.parse(inputData);
-
-    if (!Array.isArray(jobs)) {
-      throw new Error("Input file must contain an array of jobs");
+    if (!inputFile || !outputFile) {
+      console.error(
+        "Usage: node job_categorization.js <input.json> <output.json>",
+      );
+      process.exit(1);
     }
 
-    console.log(`Processing ${jobs.length} jobs for categorization...`);
+    try {
+      // Read input file
+      const inputData = await fs.readFile(inputFile, "utf-8");
+      const jobs = JSON.parse(inputData);
 
-    // Process jobs
-    const categorizedJobs = await categorizeJobs(jobs);
+      if (!Array.isArray(jobs)) {
+        throw new Error("Input file must contain an array of jobs");
+      }
 
-    // Write output file
-    await fs.writeFile(
-      outputFile,
-      JSON.stringify(categorizedJobs, null, 2),
-      "utf-8",
-    );
+      console.log(`Processing ${jobs.length} jobs for categorization...`);
 
-    console.log(
-      `Successfully wrote ${categorizedJobs.length} categorized jobs to ${outputFile}`,
-    );
+      // Process jobs
+      const categorizedJobs = await categorizeJobs(jobs);
 
-    // Print cache stats
-    const stats = getCacheStats();
-    console.log(`Company cache: ${stats.size} unique companies cached`);
-  } catch (error) {
-    console.error("Categorization failed:", error.message);
-    process.exit(1);
-  }
+      // Write output file
+      await fs.writeFile(
+        outputFile,
+        JSON.stringify(categorizedJobs, null, 2),
+        "utf-8",
+      );
+
+      console.log(
+        `Successfully wrote ${categorizedJobs.length} categorized jobs to ${outputFile}`,
+      );
+
+      // Print cache stats
+      const stats = getCacheStats();
+      console.log(`Company cache: ${stats.size} unique companies cached`);
+    } catch (error) {
+      console.error("Categorization failed:", error.message);
+      process.exit(1);
+    }
+  })();
 }
 
 export { categorizeByCompany, INDUSTRY_CATEGORIES };
