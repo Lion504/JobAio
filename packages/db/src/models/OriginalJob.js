@@ -33,10 +33,16 @@ const originalJobSchema = new mongoose.Schema(
 
     _metadata: { type: Object },
 
-    // Auto-incremented job_id
+   
     job_id: { type: Number, unique: true },
   },
-  { timestamps: true }
+  { timestamps: true } 
+);
+
+// TTL index → delete after 14 days 
+originalJobSchema.index(
+  { createdAt: 1 },
+  { expireAfterSeconds: 60 * 60 * 24 * 14 } 
 );
 
 originalJobSchema.plugin(AutoIncrement, { inc_field: "job_id" });

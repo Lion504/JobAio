@@ -49,7 +49,7 @@ export const createJobController = async (req, res, next) => {
   }
 };
 
-// Insert multiple jobs safely (auto-increment works)
+// Insert multiple jobs safely
 export const createJobsBulkController = async (req, res, next) => {
   try {
     if (!Array.isArray(req.body)) {
@@ -157,6 +157,26 @@ export const filterJobsController = async (req, res, next) => {
         .json({ message: "No jobs found with given filters" });
 
     return res.status(200).json(jobs);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// UPDATE /api/jobs/:id
+export const updateJobController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const updatedJob = await OriginalJob.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedJob) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    return res.status(200).json(updatedJob);
   } catch (error) {
     next(error);
   }
