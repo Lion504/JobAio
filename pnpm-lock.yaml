@@ -169,7 +169,7 @@ importers:
         specifier: ^22
         version: 22.19.1
       '@types/react':
-        specifier: ^19.1.13
+        specifier: ^19.2.6
         version: 19.2.6
       '@types/react-dom':
         specifier: ^19.1.9
