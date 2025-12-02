@@ -5,6 +5,7 @@ import {
   getAllJobsController,
   searchJobsController,
   filterJobsController,
+  updateJobController,   
 } from "../controllers/jobController.js";
 
 const router = express.Router();
@@ -24,4 +25,6 @@ router.get("/search", searchJobsController);
 // GET /api/jobs/filter
 router.get("/filter", filterJobsController);
 
+// PUT /api/jobs
+router.put("/:id", updateJobController);   
 export default router;
