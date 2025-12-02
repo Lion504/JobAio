@@ -1,8 +1,8 @@
 import OriginalJob from "../../../../packages/db/src/models/OriginalJob.js";
 import {
   findAllJobs,
+  rankedJobSearch,
   findJobsByField,
-  searchJobs,
   findJobsByFilters,
 } from "../../../../packages/search/src/adapter.js";
 
@@ -88,9 +88,12 @@ export const getAllJobsController = async (req, res, next) => {
     const { search, q } = req.query;
     const searchTerm = search || q;
 
-    const jobs = searchTerm
-      ? await searchJobs(searchTerm.trim())
-      : await findAllJobs();
+    let jobs;
+    if (searchTerm) {
+      jobs = await rankedJobSearch(searchTerm);
+    } else {
+      jobs = await findAllJobs();
+    }
 
     return res.status(200).json(jobs);
   } catch (error) {
@@ -98,14 +101,26 @@ export const getAllJobsController = async (req, res, next) => {
   }
 };
 
-// GET /api/jobs/search
+//GET /api/jobs/search?term=someTerm
 export const searchJobsController = async (req, res, next) => {
-  try {
-    const { q } = req.query;
-    if (!q || q.trim().length < 2)
-      return res.status(400).json({ message: "Invalid search query" });
+  //Get the parameter from the request
+  const { term, location, job_type, experience_level, company } = req.query;
 
-    const jobs = await searchJobs(q.trim());
+  //Check if it's a string or if it's empty
+  if (!term || typeof term !== "string" || term.trim().length === 0) {
+    return res.status(400).json({ message: "Invalid search parameters" });
+  }
+
+  try {
+    const filters = { location, job_type, experience_level, company };
+    const jobs = await rankedJobSearch(term, filters);
+
+    if (!jobs || jobs.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No jobs found matching the given parameters" });
+    }
+
     return res.status(200).json(jobs);
   } catch (error) {
     next(error);

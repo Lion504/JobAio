@@ -2,7 +2,9 @@
 
 import json
 import random  # For delay calculations
+import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -24,11 +26,14 @@ from job_analyzer.hybrid_job_analyzer import HybridJobAnalyzer  # noqa: E402
 
 
 def main():
-    """Full pipeline: scrape jobs → analyze → save to logs"""
+    """Full pipeline: scrape jobs → pre-translate → analyze → save to logs"""
     print("\n" + "=" * 70)
     print("🚀 JOB SCRAPER & ANALYZER PIPELINE")
     print(
-        "🕷️ Step 1: Scrape jobs  →  🔬 Step 2: Analyze jobs  →  💾 Step 3: Save results"
+        "  →  🕷️ Step 1: Scrape jobs"
+        "  →  🌐 Step 2: Pre-translate to English"
+        "  →  🔬 Step 3: Analyze jobs"
+        "  →  💾 Step 4: Save results"
     )
     print("=" * 70)
 
@@ -102,19 +107,82 @@ def main():
         print(f"❌ Scraping failed: {e}")
         return
 
-    # Step 2: Analyze jobs with hybrid analyzer
-    print("\n🔬 [2/3] Analyzing jobs with hybrid engine...")
+    # Step 2: Pre-translate jobs to English
+    print("\n🌐 [2/4] Pre-translating jobs to English...")
+    try:
+        # Resolve path to Node.js pretranslation script
+        pretranslate_script = (
+            project_root.parent.parent.parent
+            / "packages"
+            / "ai"
+            / "src"
+            / "job_pretranslator.js"
+        )
+        pretranslate_script = Path(pretranslate_script).resolve()
+
+        # Check script availability
+        if not pretranslate_script.exists():
+            print(f"❌ Pretranslation script not found at {pretranslate_script}")
+            return
+
+        # Create temporary files for input and output
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as input_file:
+            json.dump(scraped_jobs, input_file, ensure_ascii=False, indent=2)
+            input_file_path = input_file.name
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as output_file:
+            output_file_path = output_file.name
+
+        # Run Node.js script with input and output file paths
+        node_cmd = ["node", str(pretranslate_script), input_file_path, output_file_path]
+
+        result = subprocess.run(
+            node_cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=300,  # 5 minute timeout
+            cwd=pretranslate_script.parent,
+        )
+
+        if result.returncode != 0:
+            print(f"❌ Pretranslation failed: {result.stderr}")
+            return
+
+        # Read the translated jobs from output file
+        with open(output_file_path, "r", encoding="utf-8") as f:
+            translated_jobs = json.load(f)
+
+        print(f"✅ Pretranslation complete - processed {len(translated_jobs)} jobs")
+
+        # Clean up temp files
+        try:
+            Path(input_file_path).unlink()
+            Path(output_file_path).unlink()
+        except Exception as e:
+            print(f"⚠️ Warning: Failed to clean up temp files: {e}")
+
+    except Exception as e:
+        print(f"❌ Pretranslation failed: {e}")
+        return
+
+    # Step 3: Analyze jobs with hybrid analyzer
+    print("\n🔬 [3/4] Analyzing jobs with hybrid engine...")
     try:
         analyzer = HybridJobAnalyzer()
-        analyzed_jobs = analyzer.analyze_batch(scraped_jobs)
+        analyzed_jobs = analyzer.analyze_batch(translated_jobs)
         print(f"✅ Analysis complete - processed {len(analyzed_jobs)} jobs")
 
     except Exception as e:
         print(f"❌ Analysis failed: {e}")
         return
 
-    # Step 3: Save enhanced results to logs
-    print("\n💾 [3/3] Saving enhanced results to logs...")
+    # Step 4: Save enhanced results to logs
+    print("\n💾 [4/4] Saving enhanced results to logs...")
     try:
         # Create logs directory if not exists
         logs_dir = Path(__file__).parent.parent / "logs"
