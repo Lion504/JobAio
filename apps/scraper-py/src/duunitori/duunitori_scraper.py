@@ -129,7 +129,7 @@ class DuunitoriScraper:
             if job_description:
                 job_description = self.clean_personal_data(job_description)
 
-            print(f"Job detail: {len(job_description)} chars from {job_url}")
+            # print(f"Job detail: {len(job_description)} chars from {job_url}")
 
             if not job_description:
                 job_description = "N/A"
@@ -154,7 +154,7 @@ class DuunitoriScraper:
             soup = BeautifulSoup(html_content, "html.parser")
 
             # Debug: Print page title and some structure
-            print(f"  🔍 Page title: {soup.title.text if soup.title else 'No title'}")
+            # print(f"  🔍 Page title: {soup.title.text if soup.title else 'No title'}")
 
             # Duunitori.fi specific job container selectors (looking for parent containers)
             job_selectors = [
@@ -167,10 +167,10 @@ class DuunitoriScraper:
             job_cards = []
             for selector in job_selectors:
                 cards = soup.select(selector)
-                print(f"  🔍 Selector '{selector}': found {len(cards)} elements")
+                # print(f"  🔍 Selector '{selector}': found {len(cards)} elements")
                 if cards:
                     job_cards.extend(cards)
-                    print(f"  ✅ Using selector: {selector}")
+                    # print(f"  ✅ Using selector: {selector}")
                     break
 
             # If no cards found, try broader search
@@ -201,7 +201,7 @@ class DuunitoriScraper:
                             break
                 print(f"  🔍 Last resort found {len(job_cards)} potential cards")
 
-            print(f"  📋 Total job cards to process: {len(job_cards)}")
+            # print(f"  📋 Total job cards to process: {len(job_cards)}")
             return job_cards
 
         except requests.RequestException as e:

@@ -130,7 +130,7 @@ class JoblyScraper:
             if job_description:
                 job_description = self.clean_personal_data(job_description)
 
-            print(f"Job detail: {len(job_description)} chars from {job_url}")
+            # print(f"Job detail: {len(job_description)} chars from {job_url}")
 
             if not job_description:
                 job_description = "N/A"

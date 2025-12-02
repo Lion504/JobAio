@@ -61,59 +61,102 @@ ${text}`;
 }
 
 /**
- * Batch translate multiple jobs to English with rate limiting
+ * Translate a single job's title and description to English
+ */
+async function translateJob(job) {
+  try {
+    // Store original title and description
+    const originalTitle = job.title;
+    const originalDescription = job.description;
+
+    // Translate title and description to English
+    const translatedTitle = await translateText(job.title);
+    const translatedDescription = await translateText(job.description);
+
+    // Merge back with original non-translated fields
+    return {
+      ...job,
+      title: translatedTitle,
+      description: translatedDescription,
+      original_title: originalTitle,
+      original_description: originalDescription,
+      _metadata: {
+        ...job._metadata,
+        pretranslation: {
+          completed_at: new Date().toISOString(),
+          source_language: "auto",
+          target_language: "en",
+        },
+      },
+    };
+  } catch (error) {
+    // Return original job with error marker
+    return {
+      ...job,
+      _metadata: {
+        ...job._metadata,
+        pretranslation: {
+          error: error.message,
+          failed_at: new Date().toISOString(),
+          source_language: "unknown",
+        },
+      },
+    };
+  }
+}
+
+/**
+ * Batch translate multiple jobs to English with concurrent processing and rate limiting
  */
 export async function pretranslateJobsToEnglish(jobs) {
   const translatedJobs = [];
+  const BATCH_SIZE = 5; // Process 5 jobs concurrently
+  const BATCH_DELAY = 2000; // 2 seconds between batches
 
-  // Process jobs sequentially with simple rate limiting
-  for (const job of jobs) {
+  console.log(`Processing ${jobs.length} jobs in batches of ${BATCH_SIZE}...`);
+
+  // Split jobs into batches
+  for (let i = 0; i < jobs.length; i += BATCH_SIZE) {
+    const batch = jobs.slice(i, i + BATCH_SIZE);
+    const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
+    const totalBatches = Math.ceil(jobs.length / BATCH_SIZE);
+
+    console.log(
+      `Processing batch ${batchNumber}/${totalBatches} (${batch.length} jobs)...`,
+    );
+
     try {
-      // Store original title and description
-      const originalTitle = job.title;
-      const originalDescription = job.description;
+      // Process batch concurrently
+      const batchPromises = batch.map((job) => translateJob(job));
+      const translatedBatch = await Promise.all(batchPromises);
 
-      // Translate title and description to English
-      const translatedTitle = await translateText(job.title);
-      const translatedDescription = await translateText(job.description);
+      translatedJobs.push(...translatedBatch);
+      console.log(`✅ Batch ${batchNumber}/${totalBatches} completed`);
 
-      // Merge back with original non-translated fields
-      const finalJob = {
-        ...job,
-        title: translatedTitle,
-        description: translatedDescription,
-        original_title: originalTitle,
-        original_description: originalDescription,
-        _metadata: {
-          ...job._metadata,
-          pretranslation: {
-            completed_at: new Date().toISOString(),
-            source_language: "auto",
-            target_language: "en",
-          },
-        },
-      };
-
-      translatedJobs.push(finalJob);
-
-      // Simple rate limiting - 1 second between jobs
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Rate limiting between batches (except for the last batch)
+      if (i + BATCH_SIZE < jobs.length) {
+        console.log(`⏳ Waiting ${BATCH_DELAY}ms before next batch...`);
+        await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
+      }
     } catch (error) {
-      // Return original job with error marker
-      translatedJobs.push({
+      console.error(`❌ Batch ${batchNumber} failed:`, error.message);
+      // On batch failure, add all jobs as failed
+      const failedBatch = batch.map((job) => ({
         ...job,
         _metadata: {
           ...job._metadata,
           pretranslation: {
-            error: error.message,
+            error: `Batch processing failed: ${error.message}`,
             failed_at: new Date().toISOString(),
             source_language: "unknown",
           },
         },
-      });
+      }));
+      translatedJobs.push(...failedBatch);
     }
   }
 
+  console.log(`✅ All ${translatedJobs.length} jobs processed`);
   return translatedJobs;
 }
 
