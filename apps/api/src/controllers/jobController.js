@@ -45,10 +45,18 @@ export const createJobController = async (req, res, next) => {
     const createdJob = await OriginalJob.create(normalized);
     return res.status(201).json(createdJob);
   } catch (err) {
+    // ⭐ NEW: handle duplicate (title, company, location)
+    if (err.code === 11000) {
+      return res.status(409).json({
+        message: "Job already exists (same title, company and location)",
+        duplicateFields: err.keyValue,
+      });
+    }
     next(err);
   }
 };
 
+// Insert multiple jobs safely
 // Insert multiple jobs safely
 export const createJobsBulkController = async (req, res, next) => {
   try {
@@ -65,7 +73,17 @@ export const createJobsBulkController = async (req, res, next) => {
         const createdJob = await OriginalJob.create(normalized);
         insertedDocs.push(createdJob);
       } catch (err) {
-        errors.push({ index: i, err: err.message });
+        // ⭐ NEW: special handling for duplicates in bulk
+        if (err.code === 11000) {
+          errors.push({
+            index: i,
+            type: "duplicate",
+            message: "Job already exists (same title, company and location)",
+            duplicateFields: err.keyValue,
+          });
+        } else {
+          errors.push({ index: i, err: err.message });
+        }
       }
     }
 
