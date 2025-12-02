@@ -45,7 +45,7 @@ class DuunitoriExtractor:
                     job["url"] = "N/A"
 
             # Extract Company Name - try data attribute first (from HTML structure)
-            company_name = job_card.get("data-company")
+            company_name = link_elem.get("data-company")
             if company_name and company_name.strip():
                 job["company"] = company_name.strip()
             else:

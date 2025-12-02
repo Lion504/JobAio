@@ -1,3 +1,4 @@
+from datetime import datetime
 import random
 import time
 
@@ -5,8 +6,8 @@ from duunitori_extractor import DuunitoriExtractor
 from duunitori_scraper import DuunitoriScraper
 
 BASE_URL = "https://duunitori.fi/tyopaikat"
-OUTPUT_FILE = None
-MAX_PAGES = 2  # current test value
+OUTPUT_FILE = f"duunitori_jobs_{datetime.now().strftime('%Y%m%d')}.json"
+MAX_PAGES = 1  # current test value
 DELAY = None
 
 
