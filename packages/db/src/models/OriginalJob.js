@@ -39,7 +39,7 @@ const originalJobSchema = new mongoose.Schema(
   { timestamps: true } 
 );
 
-
+// TTL index → delete after 14 days 
 originalJobSchema.index(
   { createdAt: 1 },
   { expireAfterSeconds: 60 * 60 * 24 * 14 } 

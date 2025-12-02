@@ -22,7 +22,7 @@ const TranslatedJobSchema = new mongoose.Schema(
 
 TranslatedJobSchema.index({ job_id: 1, translation_lang: 1 }, { unique: true });
 
-
+// TTL index → delete after 14 days 
 TranslatedJobSchema.index(
   { createdAt: 1 },
   { expireAfterSeconds: 60 * 60 * 24 * 14 } 

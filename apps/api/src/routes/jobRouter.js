@@ -5,15 +5,15 @@ import {
   getAllJobsController,
   searchJobsController,
   filterJobsController,
-  updateJobController,   
+  updateJobController,
 } from "../controllers/jobController.js";
 
 const router = express.Router();
 
-// POST /api/jobs → single job
+// POST /api/jobs  single job
 router.post("/", createJobController);
 
-// POST /api/jobs/bulk → multiple jobs
+// POST /api/jobs/bulk  multiple jobs
 router.post("/bulk", createJobsBulkController);
 
 // GET /api/jobs
@@ -26,5 +26,5 @@ router.get("/search", searchJobsController);
 router.get("/filter", filterJobsController);
 
 // PUT /api/jobs
-router.put("/:id", updateJobController);   
+router.put("/:id", updateJobController);
 export default router;
