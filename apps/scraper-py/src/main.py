@@ -25,11 +25,10 @@ import jobly_scraper  # noqa: E402
 # Import duunitori components
 from duunitori.duunitori_extractor import DuunitoriExtractor  # noqa: E402
 from duunitori.duunitori_scraper import DuunitoriScraper  # noqa: E402
+from job_analyzer.hybrid_job_analyzer import HybridJobAnalyzer  # noqa: E402
 
 # Import deduplication utility
 from job_deduplicator import deduplicate_jobs  # noqa: E402
-
-from job_analyzer.hybrid_job_analyzer import HybridJobAnalyzer  # noqa: E402
 
 
 def main():
@@ -176,9 +175,7 @@ def main():
         # Advanced content-based deduplication (company + title + location)
         scraped_jobs = deduplicate_jobs(all_scraped_jobs)
 
-        print(
-            f"✅ Combined: {len(jobly_jobs)} jobly + {len(duunitori_jobs)} duunitori = {len(scraped_jobs)} unique jobs"
-        )
+        print(f"✅ Combined: {len(scraped_jobs)} jobs")
 
     except Exception as e:
         print(f"❌ Deduplication failed: {e}")
@@ -220,7 +217,7 @@ def main():
         result = subprocess.run(
             node_cmd,
             text=True,
-            timeout=600,  # 10 minute timeout (should be plenty with concurrent processing)
+            timeout=600,  # 10 minute timeout
             cwd=pretranslate_script.parent,
         )
 

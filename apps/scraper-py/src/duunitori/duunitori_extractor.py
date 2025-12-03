@@ -80,7 +80,7 @@ class DuunitoriExtractor:
             else:
                 job["location"] = "N/A"
 
-            # Extract Posted Date - look for job-box__job-posted anywhere in the job card
+            # Extract Posted Date - look for job-box__job-posted anywhere
             date_elem = job_card.select_one(".job-box__job-posted")
             if date_elem:
                 date_text = date_elem.get_text(strip=True)

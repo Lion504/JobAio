@@ -1,14 +1,13 @@
-from datetime import datetime
-
-import sys
 import os
+import sys
+from datetime import datetime
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from base_cli import BaseScraperCLI
-from duunitori_extractor import DuunitoriExtractor
-from duunitori_scraper import DuunitoriScraper
+from duunitori_extractor import DuunitoriExtractor  # noqa: E402
+from duunitori_scraper import DuunitoriScraper  # noqa: E402
 
+from base_cli import BaseScraperCLI  # noqa: E402
 
 if __name__ == "__main__":
     cli = BaseScraperCLI(

@@ -1,12 +1,12 @@
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from base_cli import BaseScraperCLI
-from jobly_extractor import JoblyExtractor
-from jobly_scraper import JoblyScraper
+from jobly_extractor import JoblyExtractor  # noqa: E402
+from jobly_scraper import JoblyScraper  # noqa: E402
 
+from base_cli import BaseScraperCLI  # noqa: E402
 
 if __name__ == "__main__":
     cli = BaseScraperCLI(

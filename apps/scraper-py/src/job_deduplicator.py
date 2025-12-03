@@ -7,7 +7,7 @@ Uses company + title + location fingerprints to identify duplicates across platf
 
 import hashlib
 import re
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 
 def normalize_text(text: str) -> str:

@@ -4,8 +4,8 @@ import time
 
 class BaseScraperCLI:
     """
-    Generic CLI class for web scrapers that takes scraper/extractor classes as parameters.
-    Eliminates code duplication between different scraper implementations.
+    Generic CLI class for web scrapers that takes scraper/extractor classes as
+    parameters. Eliminates code duplication between different scraper implementations.
     """
 
     def __init__(
@@ -24,7 +24,8 @@ class BaseScraperCLI:
             scraper_class: The scraper class (e.g., DuunitoriScraper)
             extractor_class: The extractor class (e.g., DuunitoriExtractor)
             base_url: Base URL for scraping (e.g., "https://duunitori.fi/tyopaikat")
-            output_file: Output filename (optional, will generate timestamped name if None)
+            output_file: Output filename (optional, will generate timestamped name
+            if None)
             max_pages: Maximum number of pages to scrape (default: 1)
             delay: Delay between requests in seconds (optional, random 1-5s if None)
         """

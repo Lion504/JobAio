@@ -156,7 +156,7 @@ class DuunitoriScraper:
             # Debug: Print page title and some structure
             # print(f"  🔍 Page title: {soup.title.text if soup.title else 'No title'}")
 
-            # Duunitori.fi specific job container selectors (looking for parent containers)
+            # Duunitori.fi specific job container selectors
             job_selectors = [
                 "div.job-box",  # Parent container with job data
                 'div[class*="job-box"]',  # Container pattern
@@ -175,9 +175,7 @@ class DuunitoriScraper:
 
             # If no cards found, try broader search
             if not job_cards:
-                print(
-                    "  ⚠️  No job cards found with specific selectors, trying broader search..."
-                )
+                print("  ⚠️  No job cards found with specific selectors...")
                 # Look for divs with links that contain /tyopaikat/
                 potential_cards = soup.find_all("div", class_=True)
                 for div in potential_cards:
