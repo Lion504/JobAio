@@ -111,7 +111,7 @@ async function translateJob(job) {
 export async function pretranslateJobsToEnglish(jobs) {
   const translatedJobs = [];
   const BATCH_SIZE = 5; // Process 5 jobs concurrently
-  const BATCH_DELAY = 2000; // 2 seconds between batches
+  const BATCH_DELAY = 1000; // 1 second between batches
 
   console.log(`Processing ${jobs.length} jobs in batches of ${BATCH_SIZE}...`);
 
@@ -135,7 +135,7 @@ export async function pretranslateJobsToEnglish(jobs) {
 
       // Rate limiting between batches (except for the last batch)
       if (i + BATCH_SIZE < jobs.length) {
-        console.log(`⏳ Waiting ${BATCH_DELAY}ms before next batch...`);
+        // console.log(`⏳ Waiting ${BATCH_DELAY}ms before next batch...`);
         await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
       }
     } catch (error) {
@@ -181,7 +181,7 @@ if (process.argv[1]?.endsWith("job_pretranslator.js")) {
       throw new Error("Input file must contain an array of jobs");
     }
 
-    console.log(`Processing ${jobs.length} jobs...`);
+    // console.log(`Processing ${jobs.length} jobs...`);
 
     // Process jobs
     const translatedJobs = await pretranslateJobsToEnglish(jobs);
