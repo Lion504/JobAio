@@ -125,34 +125,17 @@ export async function pretranslateJobsToEnglish(jobs) {
       `Processing batch ${batchNumber}/${totalBatches} (${batch.length} jobs)...`,
     );
 
-    try {
-      // Process batch concurrently
-      const batchPromises = batch.map((job) => translateJob(job));
-      const translatedBatch = await Promise.all(batchPromises);
+    // Process batch concurrently
+    const batchPromises = batch.map((job) => translateJob(job));
+    const translatedBatch = await Promise.all(batchPromises);
 
-      translatedJobs.push(...translatedBatch);
-      console.log(`✅ Batch ${batchNumber}/${totalBatches} completed`);
+    translatedJobs.push(...translatedBatch);
+    console.log(`✅ Batch ${batchNumber}/${totalBatches} completed`);
 
-      // Rate limiting between batches (except for the last batch)
-      if (i + BATCH_SIZE < jobs.length) {
-        // console.log(`⏳ Waiting ${BATCH_DELAY}ms before next batch...`);
-        await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
-      }
-    } catch (error) {
-      console.error(`❌ Batch ${batchNumber} failed:`, error.message);
-      // On batch failure, add all jobs as failed
-      const failedBatch = batch.map((job) => ({
-        ...job,
-        _metadata: {
-          ...job._metadata,
-          pretranslation: {
-            error: `Batch processing failed: ${error.message}`,
-            failed_at: new Date().toISOString(),
-            source_language: "unknown",
-          },
-        },
-      }));
-      translatedJobs.push(...failedBatch);
+    // Rate limiting between batches (except for the last batch)
+    if (i + BATCH_SIZE < jobs.length) {
+      // console.log(`⏳ Waiting ${BATCH_DELAY}ms before next batch...`);
+      await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
     }
   }
 

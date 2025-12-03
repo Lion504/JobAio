@@ -63,7 +63,8 @@ class AIAnalyzer:
                     return []
             else:
                 print(
-                    f"❌ Batch AI analysis failed{result.returncode}: {result.stderr}"
+                    f"❌ Batch AI analysis failed: "
+                    f"(exit code {result.returncode}): {result.stderr}"
                 )
                 return []
 
