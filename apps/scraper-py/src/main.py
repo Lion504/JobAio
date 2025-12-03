@@ -118,7 +118,7 @@ def main():
         # Duunitori scraping parameters
         DUUNITORI_BASE_URL = "https://duunitori.fi/tyopaikat"
         DUUNITORI_MAX_PAGES = 1  # Quick test mode
-        DUUNITORI_DELAY = random.uniform(1, 3) if hasattr(random, "uniform") else 1.5
+        DUUNITORI_DELAY = random.uniform(1, 3)
 
         # Scrape duunitori jobs
         duunitori_max_pages = (
