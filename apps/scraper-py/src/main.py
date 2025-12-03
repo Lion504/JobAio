@@ -105,9 +105,7 @@ def main():
                 deduped_jobs.append(job)
 
         jobly_jobs = deduped_jobs
-        print(
-            f"✅ Scraped {len(scraped_jobs)} jobs from jobly.fi, {len(jobly_jobs)} unique"
-        )
+        print(f"✅ Scraped {len(scraped_jobs)} jobs from jobly.fi")
 
     except Exception as e:
         print(f"❌ Jobly scraping failed: {e}")
@@ -232,9 +230,7 @@ def main():
 
         result = subprocess.run(
             node_cmd,
-            capture_output=True,
             text=True,
-            encoding="utf-8",
             timeout=600,  # 10 minute timeout (should be plenty with concurrent processing)
             cwd=pretranslate_script.parent,
         )
@@ -265,6 +261,17 @@ def main():
     try:
         analyzer = HybridJobAnalyzer()
         analyzed_jobs = analyzer.analyze_batch(translated_jobs)
+
+        # Validate the analyzed jobs
+        if not analyzed_jobs or len(analyzed_jobs) == 0:
+            print("❌ Analysis failed: Empty results from hybrid analyzer")
+            return
+
+        # Check if any jobs have analysis errors
+        jobs_with_errors = [job for job in analyzed_jobs if job.get("_error")]
+        if jobs_with_errors:
+            print(f"⚠️ Warning: {len(jobs_with_errors)} jobs had analysis errors")
+
         print(f"✅ Analysis complete - processed {len(analyzed_jobs)} jobs")
 
     except Exception as e:
