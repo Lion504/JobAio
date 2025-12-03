@@ -4,6 +4,7 @@ import AutoIncrementFactory from "mongoose-sequence";
 
 const AutoIncrement = AutoIncrementFactory(mongoose);
 
+
 const originalJobSchema = new mongoose.Schema(
   {
     title: { type: String },
