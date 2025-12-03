@@ -8,6 +8,7 @@ import {
   updateJobController,
 } from "../controllers/jobController.js";
 
+
 const router = express.Router();
 
 // POST /api/jobs  single job

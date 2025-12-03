@@ -38,6 +38,7 @@ function normalizeScrapedJob(raw) {
   };
 }
 
+
 // Insert a single job
 export const createJobController = async (req, res, next) => {
   try {
