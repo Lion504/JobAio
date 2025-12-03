@@ -62,7 +62,9 @@ class AIAnalyzer:
                     print(f"❌ Failed to parse batch AI response: {e}")
                     return []
             else:
-                print(f"❌ Batch AI analysis failed (exit code {result.returncode})")
+                print(
+                    f"❌ Batch AI analysis failed{result.returncode}: {result.stderr}"
+                )
                 return []
 
         except subprocess.TimeoutExpired:
