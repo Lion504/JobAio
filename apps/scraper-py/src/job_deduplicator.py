@@ -34,7 +34,7 @@ def generate_job_fingerprint(job: Dict[str, Any]) -> str:
     fingerprint_str = f"{company}|{title}|{location}"
 
     # Return hash
-    return hashlib.md5(fingerprint_str.encode()).hexdigest()
+    return hashlib.blake2b(fingerprint_str.encode(), digest_size=16).hexdigest()
 
 
 def deduplicate_jobs(jobs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
