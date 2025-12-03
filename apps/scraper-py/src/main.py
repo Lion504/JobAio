@@ -26,6 +26,9 @@ import jobly_scraper  # noqa: E402
 from duunitori.duunitori_extractor import DuunitoriExtractor  # noqa: E402
 from duunitori.duunitori_scraper import DuunitoriScraper  # noqa: E402
 
+# Import deduplication utility
+from job_deduplicator import deduplicate_jobs  # noqa: E402
+
 from job_analyzer.hybrid_job_analyzer import HybridJobAnalyzer  # noqa: E402
 
 
@@ -96,16 +99,8 @@ def main():
         extractor.save_jobs(temp_output)
         scraped_jobs = extractor.jobs.copy()
 
-        # Deduplicate jobs by URL to avoid duplicates
-        seen_urls = set()
-        deduped_jobs = []
-        for job in scraped_jobs:
-            if job.get("url") and job["url"] not in seen_urls:
-                seen_urls.add(job["url"])
-                deduped_jobs.append(job)
-
-        jobly_jobs = deduped_jobs
-        print(f"✅ Scraped {len(scraped_jobs)} jobs from jobly.fi")
+        jobly_jobs = scraped_jobs.copy()  # Keep all for now, dedup later
+        print(f"✅ Scraped {len(jobly_jobs)} jobs from jobly.fi")
 
     except Exception as e:
         print(f"❌ Jobly scraping failed: {e}")
@@ -178,15 +173,9 @@ def main():
     try:
         all_scraped_jobs = jobly_jobs + duunitori_jobs
 
-        # Deduplicate by URL across both sources
-        seen_urls = set()
-        deduped_jobs = []
-        for job in all_scraped_jobs:
-            if job.get("url") and job["url"] not in seen_urls:
-                seen_urls.add(job["url"])
-                deduped_jobs.append(job)
+        # Advanced content-based deduplication (company + title + location)
+        scraped_jobs = deduplicate_jobs(all_scraped_jobs)
 
-        scraped_jobs = deduped_jobs
         print(
             f"✅ Combined: {len(jobly_jobs)} jobly + {len(duunitori_jobs)} duunitori = {len(scraped_jobs)} unique jobs"
         )
