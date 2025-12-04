@@ -3,6 +3,7 @@ import AutoIncrementFactory from "mongoose-sequence";
 
 const AutoIncrement = AutoIncrementFactory(mongoose);
 
+
 const originalJobSchema = new mongoose.Schema(
   {
     title: { type: String },
@@ -26,16 +27,12 @@ const originalJobSchema = new mongoose.Schema(
       technical: { type: [String] },
       domain_specific: { type: [String] },
       certifications: { type: [String] },
-      soft_skills: { type: [String] },
-      other: { type: [String] },
+
+      _metadata: { type: Object },
     },
-    responsibilities: { type: [String] },
-
-    _metadata: { type: Object },
-
-    job_id: { type: Number, unique: true },
-  },
-  { timestamps: true },
+      job_id: { type: Number, unique: true },
+    },
+  { timestamps: true }
 );
 
 //  prevent duplicates with same (title, company, location)
