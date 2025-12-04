@@ -9,9 +9,6 @@ import {
 
 const router = express.Router();
 
-// GET /api/jobs
-router.get("/", getAllJobsController);
-
 // POST /api/jobs  single job
 router.post("/", createJobController);
 
