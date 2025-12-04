@@ -1,4 +1,10 @@
-"""Job scraping and analysis pipeline: jobly scraper → hybrid analyzer → logs"""
+"""Job scraping and analysis pipeline:
+→ jobly scraper
+→ pre-translate
+→ categorize
+→ analyze
+→ logs
+"""
 
 import json
 import random  # For delay calculations
@@ -26,19 +32,20 @@ from job_analyzer.hybrid_job_analyzer import HybridJobAnalyzer  # noqa: E402
 
 
 def main():
-    """Full pipeline: scrape jobs → pre-translate → analyze → save to logs"""
+    # Full pipeline
     print("\n" + "=" * 70)
     print("🚀 JOB SCRAPER & ANALYZER PIPELINE")
     print(
         "  →  🕷️ Step 1: Scrape jobs"
         "  →  🌐 Step 2: Pre-translate to English"
-        "  →  🔬 Step 3: Analyze jobs"
-        "  →  💾 Step 4: Save results"
+        "  →  🏷️ Step 3: Categorize by industry"
+        "  →  🔬 Step 4: Analyze jobs"
+        "  →  💾 Step 5: Save results"
     )
     print("=" * 70)
 
     # Step 1: Scrape jobs from jobly.fi
-    print("\n🕷️ [1/3] Scraping jobs from jobly.fi...")
+    print("\n🕷️ [1/5] Scraping jobs from jobly.fi...")
     try:
         # Create JoblyExtractor and modify to return jobs instead of saving
         scraper = jobly_scraper.JoblyScraper()
@@ -108,7 +115,7 @@ def main():
         return
 
     # Step 2: Pre-translate jobs to English
-    print("\n🌐 [2/4] Pre-translating jobs to English...")
+    print("\n🌐 [2/5] Pre-translating jobs to English...")
     try:
         # Resolve path to Node.js pretranslation script
         pretranslate_script = (
@@ -170,29 +177,99 @@ def main():
         print(f"❌ Pretranslation failed: {e}")
         return
 
-    # Step 3: Analyze jobs with hybrid analyzer
-    print("\n🔬 [3/4] Analyzing jobs with hybrid engine...")
+    # Step 3: Categorize jobs by industry
+    print("\n🏷️ [3/5] Categorizing jobs by industry...")
+    try:
+        # Resolve path to Node.js categorization script
+        categorize_script = (
+            project_root.parent.parent.parent
+            / "packages"
+            / "ai"
+            / "src"
+            / "job_categorization.js"
+        )
+        categorize_script = Path(categorize_script).resolve()
+
+        # Check script availability
+        if not categorize_script.exists():
+            print(f"❌ Categorization script not found at {categorize_script}")
+            return
+
+        # Create temporary files for input and output
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as input_file:
+            json.dump(translated_jobs, input_file, ensure_ascii=False, indent=2)
+            cat_input_file_path = input_file.name
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as output_file:
+            cat_output_file_path = output_file.name
+
+        # Run Node.js script with input and output file paths
+        node_cmd = [
+            "node",
+            str(categorize_script),
+            cat_input_file_path,
+            cat_output_file_path,
+        ]
+
+        result = subprocess.run(
+            node_cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=300,  # 5 minute timeout
+            cwd=categorize_script.parent,
+        )
+
+        if result.returncode != 0:
+            print(f"❌ Categorization failed: {result.stderr}")
+            return
+
+        # Read the categorized jobs from output file
+        with open(cat_output_file_path, "r", encoding="utf-8") as f:
+            categorized_jobs = json.load(f)
+
+        print(f"✅ Categorization complete - processed {len(categorized_jobs)} jobs")
+
+        # Clean up temp files
+        try:
+            Path(cat_input_file_path).unlink()
+            Path(cat_output_file_path).unlink()
+        except Exception as e:
+            print(f"⚠️ Warning: Failed to clean up temp files: {e}")
+
+    except Exception as e:
+        print(f"❌ Categorization failed: {e}")
+        return
+
+    # Step 4: Analyze jobs with hybrid analyzer
+    print("\n🔬 [4/5] Analyzing jobs with hybrid engine...")
     try:
         analyzer = HybridJobAnalyzer()
-        analyzed_jobs = analyzer.analyze_batch(translated_jobs)
+        analyzed_jobs = analyzer.analyze_batch(categorized_jobs)
         print(f"✅ Analysis complete - processed {len(analyzed_jobs)} jobs")
 
     except Exception as e:
         print(f"❌ Analysis failed: {e}")
         return
 
-    # Step 4: Save enhanced results to logs
-    print("\n💾 [4/4] Saving enhanced results to logs...")
+    # Step 5: Save enhanced results to packages/db/data
+    print("\n💾 [5/5] Saving enhanced results to database data folder...")
     try:
-        # Create logs directory if not exists
-        logs_dir = Path(__file__).parent.parent / "logs"
-        logs_dir.mkdir(exist_ok=True)
+        # Create data directory if not exists
+        data_dir = (
+            Path(__file__).parent.parent.parent.parent / "packages" / "db" / "data"
+        )
+        data_dir.mkdir(exist_ok=True)
 
         # Generate timestamped filename
         from datetime import datetime
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = logs_dir / f"pipeline_results_{timestamp}.json"
+        output_file = data_dir / f"pipeline_results_{timestamp}.json"
 
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump(analyzed_jobs, f, indent=2, ensure_ascii=False)
