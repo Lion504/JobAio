@@ -16,6 +16,7 @@ function normalizeScrapedJob(raw) {
     description: raw.description || "",
     original_title: raw.original_title || "",
     original_description: raw.original_description || "",
+    source: raw.source || "",
 
     industry_category: raw.industry_category || "",
     job_type: raw.job_type || [],
@@ -41,6 +42,7 @@ function normalizeScrapedJob(raw) {
 // Insert a single job
 export const createJobController = async (req, res, next) => {
   try {
+    await OriginalJob.init();
     const normalized = normalizeScrapedJob(req.body);
     const createdJob = await OriginalJob.create(normalized);
     return res.status(201).json(createdJob);
@@ -55,6 +57,8 @@ export const createJobsBulkController = async (req, res, next) => {
     if (!Array.isArray(req.body)) {
       return res.status(400).json({ error: "Expected an array of jobs" });
     }
+
+    await OriginalJob.init();
 
     const insertedDocs = [];
     const errors = [];

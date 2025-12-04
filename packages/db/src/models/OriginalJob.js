@@ -13,7 +13,7 @@ const originalJobSchema = new mongoose.Schema(
     description: { type: String },
     original_title: { type: String },
     original_description: { type: String },
-    
+    source: { type: String },
 
     industry_category: { type: String, index: true },
     job_type: { type: [String], index: true },
@@ -30,7 +30,7 @@ const originalJobSchema = new mongoose.Schema(
       soft_skills: { type: [String] },
       other: { type: [String] },
     },
-    responsibilities: { type: [String] }, 
+    responsibilities: { type: [String] },
 
     _metadata: { type: Object },
 
@@ -42,13 +42,13 @@ const originalJobSchema = new mongoose.Schema(
 // prevent duplicates with same (title, company, location)
 originalJobSchema.index(
   { title: 1, company: 1, location: 1 },
-  { unique: true },
+  { unique: true }
 );
 
 // TTL index → delete after 14 days
 originalJobSchema.index(
   { createdAt: 1 },
-  { expireAfterSeconds: 60 * 60 * 24 * 14 },
+  { expireAfterSeconds: 60 * 60 * 24 * 14 }
 );
 
 // 🚀 CORRECTED: Full-Text Search Index for $text queries
@@ -88,10 +88,11 @@ originalJobSchema.index(
       experience_level: 1,
       education_level: 1,
       description: 1,
-      original_description: 1
+      original_description: 1,
     },
     name: "FullTextSearchIndex",
-  },
+    language_override: "language_override",
+  }
 );
 
 originalJobSchema.plugin(AutoIncrement, { inc_field: "job_id" });
