@@ -4,13 +4,23 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { JobCard, type Job } from '@/components/job-card'
 
 interface ApiJob {
-  _id: string
-  title: string
-  company?: string
-  location?: string
-  link?: string
-  description?: string
-  createdAt: string
+  original_job: {
+    jobtitle: string
+    jobdescription: string
+    industry?: string
+    experience?: string
+    job_original_language?: string
+  }
+  translations: Array<{
+    translation_language: string
+    jobtitle: string
+    jobdescription: string
+  }>
+  languageMatch?: boolean
+}
+interface ApiResponse {
+  count: number
+  jobs: ApiJob[]
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -26,19 +36,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const res = await fetch(apiUrl)
     if (!res.ok) throw new Error('Failed to fetch jobs')
 
-    const data = (await res.json()) as ApiJob[]
+    const result: ApiResponse = await res.json()
+    const data = result.jobs || []
 
-    const jobs: Job[] = data.map((job) => ({
-      id: job._id,
-      title: job.title,
-      company: job.company || 'Unknown Company',
-      location: job.location || 'Remote',
-      link: job.link || '',
+    const jobs: Job[] = data.map((job, index) => ({
+      id: String(index),
+      title: job.original_job?.jobtitle || 'Untitled',
+      company: 'Unknown Company',
+      location: 'Remote',
+      link: '',
       salary: 'Competitive',
       type: 'Full-time',
-      postedAt: new Date(job.createdAt).toLocaleDateString(),
-      description: job.description || '',
-      tags: [],
+      postedAt: new Date().toLocaleDateString(),
+      description: job.original_job?.jobdescription || '',
+      tags: job.original_job?.industry ? [job.original_job.industry] : [],
     }))
 
     return { jobs }
