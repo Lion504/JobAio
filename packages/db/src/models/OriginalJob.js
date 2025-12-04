@@ -3,7 +3,6 @@ import AutoIncrementFactory from "mongoose-sequence";
 
 const AutoIncrement = AutoIncrementFactory(mongoose);
 
-
 const originalJobSchema = new mongoose.Schema(
   {
     title: { type: String, index: true },
@@ -14,6 +13,7 @@ const originalJobSchema = new mongoose.Schema(
     description: { type: String },
     original_title: { type: String },
     original_description: { type: String },
+    
 
     industry_category: { type: String, index: true },
     job_type: { type: [String], index: true },
@@ -29,17 +29,17 @@ const originalJobSchema = new mongoose.Schema(
       certifications: { type: [String] },
       soft_skills: { type: [String] },
       other: { type: [String] },
-
     },
+    responsibilities: { type: [String] }, 
 
-      _metadata: { type: Object },
+    _metadata: { type: Object },
 
-      job_id: { type: Number, unique: true },
-    },
+    job_id: { type: Number, unique: true },
+  },
   { timestamps: true }
 );
 
-//  prevent duplicates with same (title, company, location)
+// prevent duplicates with same (title, company, location)
 originalJobSchema.index(
   { title: 1, company: 1, location: 1 },
   { unique: true },
@@ -51,13 +51,15 @@ originalJobSchema.index(
   { expireAfterSeconds: 60 * 60 * 24 * 14 },
 );
 
-//Fields to index for the search engine
+// 🚀 CORRECTED: Full-Text Search Index for $text queries
 originalJobSchema.index(
   {
     title: "text",
     description: "text",
     original_title: "text",
     original_description: "text",
+    company: "text", // Added to search company names
+    industry_category: "text", // Added as per your request
     "skill_type.technical": "text",
     "skill_type.certifications": "text",
     "skill_type.domain_specific": "text",
@@ -65,7 +67,7 @@ originalJobSchema.index(
     responsibilities: "text",
     job_type: "text",
     experience_level: "text",
-    "language_required": "text",
+    "language.required": "text", // Fixed path from 'language_required'
     "language.advantage": "text",
     education_level: "text",
   },
@@ -76,6 +78,8 @@ originalJobSchema.index(
       "skill_type.technical": 5,
       "skill_type.certifications": 5,
       "language.required": 5,
+      company: 4, // Assigned a weight
+      industry_category: 4, // Assigned a weight
       "skill_type.domain_specific": 3,
       "skill_type.soft_skills": 3,
       job_type: 3,
