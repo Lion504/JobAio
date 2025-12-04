@@ -11,7 +11,19 @@ import path from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-//console.log(`Loading .env from: ${path.join(__dirname, "../../../.env")}`);
+
+// Validate required environment variables
+if (!process.env.GEMINI_API_KEY) {
+  throw new Error(
+    "Missing required environment variable: GEMINI_API_KEY. Please set it in your .env file.",
+  );
+}
+if (!process.env.GEMINI_MODEL_NAME) {
+  throw new Error(
+    "Missing required environment variable: GEMINI_MODEL_NAME. Please set it in your .env file.",
+  );
+}
+
 // Initialize AI clients
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const TOKEN_LIMITS = {

@@ -44,11 +44,9 @@ class AIAnalyzer:
             result = subprocess.run(
                 cmd,
                 capture_output=True,
-                text=True,
-                encoding="utf-8",  # Explicit UTF-8 decoding
-                timeout=120,
+                timeout=15,
                 cwd=os.path.dirname(self.ai_script),
-                env=env,  # Pass UTF-8 environment
+                text=True,
             )
 
             if result.returncode == 0:
