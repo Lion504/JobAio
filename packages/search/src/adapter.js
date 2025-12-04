@@ -30,6 +30,18 @@ export async function rankedJobSearch(terms, filters = {}) {
     //Case insensitive
     filterCriteria.company = new RegExp(filters.company, "i");
   }
+
+  if (filters.industry_category) {
+    filterCriteria.industry_category = new RegExp(filters.industry_category, "i");
+  }
+
+  if (filters.required_language) {
+    filterCriteria["language.required"] = new RegExp(filters.required_language, "i");
+  }
+
+  if (filters.education_level) {
+    filterCriteria.education_level = new RegExp(filters.education_level, "i");
+  }
   // //Helper function to score array fields
   // const scoreArray = (fieldPath, points) => ({
   //   $cond: [
@@ -94,27 +106,27 @@ export async function findJobsByField(field, value) {
   const jobs = await OriginalJob.find(query).sort({ createdAt: -1 }).lean();
   return jobs;
 }
-// Multi-field search with filters and optional translation
-export async function findJobsByFilters(filters, options = {}) {
-  const { translationLang } = options;
+// // Multi-field search with filters and optional translation
+// export async function findJobsByFilters(filters, options = {}) {
+//   const { translationLang } = options;
 
-  if (translationLang) {
-    // Stub for later real implementation
-    console.log(`
-      get the translated job from translatedModel (translation_lang = ${translationLang})
-    `);
-    // e.g. future: await TranslatedJob.find({ translation_lang: translationLang, ... })
-  }
+//   if (translationLang) {
+//     // Stub for later real implementation
+//     console.log(`
+//       get the translated job from translatedModel (translation_lang = ${translationLang})
+//     `);
+//     // e.g. future: await TranslatedJob.find({ translation_lang: translationLang, ... })
+//   }
 
-  const query = {};
-  for (const [field, value] of Object.entries(filters)) {
-    if (!value) continue;
-    query[field] = new RegExp(value, "i");
-  }
+//   const query = {};
+//   for (const [field, value] of Object.entries(filters)) {
+//     if (!value) continue;
+//     query[field] = new RegExp(value, "i");
+//   }
 
-  const jobs = await OriginalJob.find(query).sort({ createdAt: -1 }).lean();
-  return jobs;
-}
+//   const jobs = await OriginalJob.find(query).sort({ createdAt: -1 }).lean();
+//   return jobs;
+// }
 
 // All jobs (original)
 export async function findAllJobs() {

@@ -2,8 +2,8 @@ import OriginalJob from "../../../../packages/db/src/models/OriginalJob.js";
 import {
   findAllJobs,
   rankedJobSearch,
-  findJobsByField,
-  findJobsByFilters,
+  //findJobsByField,
+  //findJobsByFilters,
 } from "../../../../packages/search/src/adapter.js";
 
 function normalizeScrapedJob(raw) {
@@ -104,7 +104,16 @@ export const getAllJobsController = async (req, res, next) => {
 //GET /api/jobs/search?term=someTerm
 export const searchJobsController = async (req, res, next) => {
   //Get the parameter from the request
-  const { term, location, job_type, experience_level, company } = req.query;
+  const {
+    term,
+    location,
+    job_type,
+    experience_level,
+    company,
+    industry_category,
+    required_language,
+    education_level,
+  } = req.query;
 
   //Check if it's a string or if it's empty
   if (!term || typeof term !== "string" || term.trim().length === 0) {
@@ -112,7 +121,15 @@ export const searchJobsController = async (req, res, next) => {
   }
 
   try {
-    const filters = { location, job_type, experience_level, company };
+    const filters = {
+      location,
+      job_type,
+      experience_level,
+      company,
+      industry_category,
+      required_language,
+      education_level,
+    };
     const jobs = await rankedJobSearch(term, filters);
 
     if (!jobs || jobs.length === 0) {
@@ -120,56 +137,6 @@ export const searchJobsController = async (req, res, next) => {
         .status(404)
         .json({ message: "No jobs found matching the given parameters" });
     }
-
-    return res.status(200).json(jobs);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// GET /api/jobs/filter
-export const filterJobsController = async (req, res, next) => {
-  try {
-    const {
-      category,
-      experience_level,
-      language_required,
-      job_type,
-      company,
-      location,
-      translationLang,
-    } = req.query;
-
-    const filters = {};
-
-    if (category) filters.industry_category = category;
-    if (experience_level) filters.experience_level = experience_level;
-
-    if (language_required) {
-      const langs = language_required.split(",").map((v) => v.trim());
-      filters["language.required"] = { $all: langs };
-    }
-
-    if (job_type) filters.job_type = job_type;
-    if (company) filters.company = company;
-    if (location) filters.location = location;
-
-    if (Object.keys(filters).length === 0 && !translationLang)
-      return res.status(400).json({ message: "No filter parameters provided" });
-
-    if (Object.keys(filters).length === 1 && !translationLang) {
-      const key = Object.keys(filters)[0];
-      const value = filters[key];
-      const jobs = await findJobsByField(key, value);
-      return res.status(200).json(jobs);
-    }
-
-    const jobs = await findJobsByFilters(filters, { translationLang });
-
-    if (!jobs || jobs.length === 0)
-      return res
-        .status(404)
-        .json({ message: "No jobs found with given filters" });
 
     return res.status(200).json(jobs);
   } catch (error) {
