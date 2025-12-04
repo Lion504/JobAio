@@ -47,6 +47,8 @@ class AIAnalyzer:
                 timeout=15,
                 cwd=os.path.dirname(self.ai_script),
                 text=True,
+                encoding="utf-8",
+                env=env,
             )
 
             if result.returncode == 0:
