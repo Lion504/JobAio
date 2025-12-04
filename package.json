@@ -10,7 +10,7 @@
     "build": "echo 'Add build script later'",
     "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:ai": "pnpm --filter @jobaio/ai test",
-    "test:py": "cd apps/scraper-py && python -m pytest",
+    "test:py": "cd apps/scraper-py && call venv\\Scripts\\python.exe -m pytest",
     "lint:web": "pnpm --filter @jobaio/web lint",
     "lint:api": "pnpm --filter jobaio-api lint",
     "lint": "pnpm --parallel lint",

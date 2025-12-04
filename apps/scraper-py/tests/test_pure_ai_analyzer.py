@@ -1,133 +1,270 @@
 #!/usr/bin/env python3
 """
-Test Pure AI Job Analyzer
-Uses only AI (no rule-based fallback) and saves results to logs folder
+Unit tests for Pure AI Job Analyzer
+Tests encoding handling and subprocess mocking
 """
 
 import json
-import sys
-import argparse
-import random
+import os
+import subprocess
+import unittest
+from unittest.mock import patch, MagicMock
 from pathlib import Path
 
 # Add src directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+import sys
+import os
 
-from job_analyzer.pure_ai_analyzer import PureAIJobAnalyzer
+# Add the src directory to Python path
+src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
+sys.path.insert(0, src_path)
+
+# Import directly to avoid package issues
+import importlib.util
+
+pure_ai_analyzer_path = os.path.join(src_path, "job_analyzer", "pure_ai_analyzer.py")
+spec = importlib.util.spec_from_file_location("pure_ai_analyzer", pure_ai_analyzer_path)
+pure_ai_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(pure_ai_module)
+AIAnalyzer = pure_ai_module.AIAnalyzer
+PureAIJobAnalyzer = pure_ai_module.PureAIJobAnalyzer
 
 
-def run_pure_ai_test(input_file: Path, limit: int):
-    """
-    Run pure AI analysis on jobs
-    """
-    print("\n" + "=" * 60)
-    print("🤖 PURE AI JOB ANALYZER TEST")
-    print("=" * 60)
-    print(f"Input:  {input_file}")
-    print(f"Limit:  {limit} jobs")
-    print("-" * 60)
+class TestAIAnalyzer(unittest.TestCase):
+    """Test AIAnalyzer class with mocked subprocess calls"""
 
-    # 1. Load Jobs
-    try:
-        with open(input_file, "r", encoding="utf-8") as f:
-            jobs = json.load(f)
-        print(f"✅ Loaded {len(jobs)} jobs from input file")
-    except Exception as e:
-        print(f"❌ Error loading input file: {e}")
-        return
+    def setUp(self):
+        """Set up test fixtures"""
+        self.analyzer = AIAnalyzer()
+        # Mock the AI script path check
+        with patch("os.path.exists", return_value=True):
+            self.analyzer.ai_available = True
 
-    # 2. Randomly select jobs to process
-    if len(jobs) > limit:
-        jobs_to_process = random.sample(jobs, limit)
-        print(f"🎲 Randomly selected {limit} jobs from {len(jobs)} total")
-    else:
-        jobs_to_process = jobs
-        print(f"📊 Processing all {len(jobs)} jobs (less than limit)")
+    @patch("subprocess.run")
+    def test_call_batch_analysis_success(self, mock_run):
+        """Test successful batch analysis with proper encoding"""
+        # Mock successful subprocess result with UTF-8 content
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = json.dumps(
+            [
+                {
+                    "job_type": ["full-time"],
+                    "language": {
+                        "languages": {"required": ["English"], "advantage": ["Finnish"]}
+                    },
+                    "experience_level": {"level": "junior"},
+                    "education_level": ["bachelor"],
+                    "skill_type": {
+                        "skills": {
+                            "technical": ["Python", "JavaScript"],
+                            "soft_skills": ["Communication"],
+                        }
+                    },
+                    "responsibilities": ["Develop software", "Write tests"],
+                }
+            ]
+        )
+        mock_result.stderr = ""
+        mock_run.return_value = mock_result
 
-    print(f"\n📊 Processing {len(jobs_to_process)} jobs with Pure AI...")
+        jobs = [{"description": "Test job description"}]
+        result = self.analyzer._call_batch_analysis(jobs)
 
-    # 3. Process Jobs
-    analyzer = PureAIJobAnalyzer()
-    all_analyses = []
+        # Verify subprocess.run was called with correct parameters
+        mock_run.assert_called_once()
+        call_args = mock_run.call_args
+        self.assertIn("env", call_args.kwargs)
+        env = call_args.kwargs["env"]
+        self.assertEqual(env["PYTHONIOENCODING"], "utf-8")
+        self.assertEqual(call_args.kwargs["encoding"], "utf-8")
+        self.assertTrue(call_args.kwargs["text"])
 
-    for idx, job in enumerate(jobs_to_process, 1):
-        title = job.get("title", "Unknown")
-        description = job.get("description", "")
+        # Verify result parsing
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["job_type"], ["full-time"])
 
-        print(f"\n[{idx}/{len(jobs_to_process)}] {title}")
+    @patch("subprocess.run")
+    def test_call_batch_analysis_unicode_content(self, mock_run):
+        """Test batch analysis with Unicode characters (emojis, special chars)"""
+        # Mock result with Unicode content
+        unicode_response = [
+            {
+                "job_type": ["full-time"],
+                "language": {
+                    "languages": {
+                        "required": ["English"],
+                        "advantage": ["中文", "Español"],
+                    }
+                },
+                "experience_level": {"level": "senior"},
+                "education_level": ["master"],
+                "skill_type": {
+                    "skills": {
+                        "technical": ["Python", "React", "Node.js"],
+                        "soft_skills": ["Team collaboration", "Problem solving 🚀"],
+                    }
+                },
+                "responsibilities": [
+                    "Lead development team",
+                    "Mentor junior developers",
+                    "Code reviews 📋",
+                ],
+            }
+        ]
 
-        if not description:
-            print("   ⚠️  Skipping: No description")
-            continue
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = json.dumps(unicode_response, ensure_ascii=False)
+        mock_result.stderr = ""
+        mock_run.return_value = mock_result
 
-        try:
-            # Analyze with pure AI
-            updated_job = analyzer.analyze_job(job)
+        jobs = [
+            {"description": "Senior developer role with leadership responsibilities 🚀"}
+        ]
+        result = self.analyzer._call_batch_analysis(jobs)
 
-            all_analyses.append(updated_job)
+        # Verify Unicode handling
+        self.assertEqual(len(result), 1)
+        self.assertIn("中文", result[0]["language"]["languages"]["advantage"])
+        self.assertIn("🚀", result[0]["skill_type"]["skills"]["soft_skills"][1])
+        self.assertIn("📋", result[0]["responsibilities"][2])
 
-            # Print results
-            lang_str = f"{updated_job['language'].get('required', [])} / {updated_job['language'].get('advantage', [])}"
-            print(f"   🔹 Languages:  {lang_str}")
-            print(f"   🔹 Experience: {updated_job['experience_level']}")
-            print(f"   🔹 Education:  {updated_job['education_level']}")
-            print(
-                f"   🔹 Skills:     {sum(len(v) for v in updated_job['skill_type'].values())} found"
+    @patch("subprocess.run")
+    def test_call_batch_analysis_empty_response(self, mock_run):
+        """Test handling of empty response from subprocess"""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = ""  # Empty response
+        mock_result.stderr = ""
+        mock_run.return_value = mock_result
+
+        jobs = [{"description": "Test job"}]
+        result = self.analyzer._call_batch_analysis(jobs)
+
+        self.assertEqual(result, [])
+
+    @patch("subprocess.run")
+    def test_call_batch_analysis_invalid_json(self, mock_run):
+        """Test handling of invalid JSON response"""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "invalid json response"
+        mock_result.stderr = ""
+        mock_run.return_value = mock_result
+
+        jobs = [{"description": "Test job"}]
+        result = self.analyzer._call_batch_analysis(jobs)
+
+        self.assertEqual(result, [])
+
+    @patch("subprocess.run")
+    def test_call_batch_analysis_subprocess_error(self, mock_run):
+        """Test handling of subprocess errors"""
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stdout = ""
+        mock_result.stderr = "Node.js error: missing API key"
+        mock_run.return_value = mock_result
+
+        jobs = [{"description": "Test job"}]
+        result = self.analyzer._call_batch_analysis(jobs)
+
+        self.assertEqual(result, [])
+
+    def test_analyze_pure_ai_success(self):
+        """Test successful pure AI analysis"""
+        with patch.object(self.analyzer, "_call_batch_analysis") as mock_batch:
+            mock_batch.return_value = [
+                {
+                    "job_type": ["full-time"],
+                    "language": {
+                        "languages": {"required": ["English"], "advantage": []}
+                    },
+                    "experience_level": {"level": "mid"},
+                    "education_level": ["bachelor"],
+                    "skill_type": {
+                        "skills": {"technical": ["Python"], "soft_skills": []}
+                    },
+                    "responsibilities": ["Write code", "Test software"],
+                }
+            ]
+
+            result = self.analyzer.analyze_pure_ai("Test description")
+
+            self.assertEqual(result["job_type"], ["full-time"])
+            self.assertEqual(
+                result["language"], {"required": ["English"], "advantage": []}
             )
-            print(f"   🔹 Job type:   {updated_job['job_type']}")
-            print(f"   🔹 Resp count: {len(updated_job.get('responsibilities', []))}")
+            self.assertEqual(result["experience_level"], "mid")
+            self.assertEqual(result["education_level"], ["bachelor"])
+            self.assertEqual(result["skill_type"]["technical"], ["Python"])
+            self.assertEqual(
+                result["responsibilities"], ["Write code", "Test software"]
+            )
 
-        except Exception as e:
-            print(f"   ❌ Error: {e}")
-            import traceback
+    def test_analyze_pure_ai_batch_failure(self):
+        """Test pure AI analysis when batch analysis fails"""
+        with patch.object(self.analyzer, "_call_batch_analysis", return_value=[]):
+            result = self.analyzer.analyze_pure_ai("Test description")
 
-            traceback.print_exc()
+            self.assertEqual(result, {"error": "Batch analysis failed"})
 
-    # 4. Save Combined Results
-    print("\n" + "-" * 60)
-    from datetime import datetime
+    def test_analyze_pure_ai_not_available(self):
+        """Test pure AI analysis when AI is not available"""
+        self.analyzer.ai_available = False
+        result = self.analyzer.analyze_pure_ai("Test description")
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    combined_filename = f"pure_ai_batch_{timestamp}.json"
-    logs_dir = Path(__file__).parent.parent / "logs"
-    logs_dir.mkdir(parents=True, exist_ok=True)
-    combined_filepath = logs_dir / combined_filename
-
-    try:
-        with open(combined_filepath, "w", encoding="utf-8") as f:
-            json.dump(all_analyses, f, indent=2, ensure_ascii=False)
-        print(f"💾 Saved {len(all_analyses)} analyses to:")
-        print(f"   {combined_filepath}")
-    except Exception as e:
-        print(f"❌ Error saving combined results: {e}")
-
-    print("=" * 60 + "\n")
+        self.assertEqual(result, {"error": "AI not available"})
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Run Pure AI Job Analyzer Test")
+class TestPureAIJobAnalyzer(unittest.TestCase):
+    """Test PureAIJobAnalyzer class"""
 
-    # Default input file
-    default_input = (
-        Path(__file__).parent.parent / "logs" / "jobs_jobly_20251112_002641.json"
-    )
+    def setUp(self):
+        """Set up test fixtures"""
+        self.analyzer = PureAIJobAnalyzer()
 
-    parser.add_argument(
-        "--input", type=Path, default=default_input, help="Input JSON file path"
-    )
-    parser.add_argument(
-        "--limit", type=int, default=5, help="Number of jobs to process"
-    )
+    def test_analyze_job_success(self):
+        """Test successful job analysis"""
+        # Mock the AIAnalyzer.analyze_pure_ai method directly
+        with patch.object(self.analyzer.ai_analyzer, "analyze_pure_ai") as mock_analyze:
+            mock_analyze.return_value = {
+                "job_type": ["full-time"],
+                "language": {"required": ["English"], "advantage": []},
+                "experience_level": "junior",
+                "education_level": ["bachelor"],
+                "skill_type": {"technical": ["Python"], "soft_skills": []},
+                "responsibilities": ["Develop software"],
+            }
 
-    args = parser.parse_args()
+            job = {
+                "title": "Software Developer",
+                "description": "We are looking for a developer...",
+                "company": "Test Corp",
+            }
 
-    if not args.input.exists():
-        print(f"❌ Input file not found: {args.input}")
-        print("Please specify a valid input file with --input")
-        return
+            result = self.analyzer.analyze_job(job)
 
-    run_pure_ai_test(args.input, args.limit)
+            # Verify analysis is merged into original job
+            self.assertEqual(result["title"], "Software Developer")
+            self.assertEqual(result["company"], "Test Corp")
+            self.assertEqual(result["job_type"], ["full-time"])
+            self.assertEqual(result["language"]["required"], ["English"])
+
+    def test_analyze_job_no_description(self):
+        """Test job analysis with missing description"""
+        # Mock the AIAnalyzer.analyze_pure_ai method directly
+        with patch.object(self.analyzer.ai_analyzer, "analyze_pure_ai") as mock_analyze:
+            mock_analyze.return_value = {"error": "No description"}
+
+            job = {"title": "Test Job"}  # No description
+            result = self.analyzer.analyze_job(job)
+
+            # Should still merge the analysis result
+            self.assertEqual(result["title"], "Test Job")
+            self.assertEqual(result["error"], "No description")
 
 
 if __name__ == "__main__":
-    main()
+    unittest.main()
