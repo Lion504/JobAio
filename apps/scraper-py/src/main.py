@@ -344,8 +344,9 @@ def main():
     try:
         # Create data directory if not exists
         data_dir = (
-           # Path(__file__).parent.parent.parent.parent / "packages" / "db" / "data"
-           logs_dir = Path(__file__).parent.parent / "logs"
+            # Path(__file__).parent.parent.parent.parent / "packages" / "db" / "data"
+            Path(__file__).parent.parent
+            / "logs"
         )
         data_dir.mkdir(exist_ok=True)
 
