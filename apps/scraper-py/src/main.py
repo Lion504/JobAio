@@ -28,7 +28,13 @@ if str(jobly_path) not in sys.path:
 import jobly_extractor  # noqa: E402
 import jobly_scraper  # noqa: E402
 
+# Import duunitori components
+from duunitori.duunitori_extractor import DuunitoriExtractor  # noqa: E402
+from duunitori.duunitori_scraper import DuunitoriScraper  # noqa: E402
 from job_analyzer.hybrid_job_analyzer import HybridJobAnalyzer  # noqa: E402
+
+# Import deduplication utility
+from job_deduplicator import deduplicate_jobs  # noqa: E402
 
 
 def main():
@@ -44,8 +50,8 @@ def main():
     )
     print("=" * 70)
 
-    # Step 1: Scrape jobs from jobly.fi
-    print("\n🕷️ [1/5] Scraping jobs from jobly.fi...")
+    # Step 1a: Scrape jobs from jobly.fi
+    print("\n🕷️ [1a/5] Scraping jobs from jobly.fi...")
     try:
         # Create JoblyExtractor and modify to return jobs instead of saving
         scraper = jobly_scraper.JoblyScraper()
@@ -99,19 +105,87 @@ def main():
         extractor.save_jobs(temp_output)
         scraped_jobs = extractor.jobs.copy()
 
-        # Deduplicate jobs by URL to avoid duplicates
-        seen_urls = set()
-        deduped_jobs = []
-        for job in scraped_jobs:
-            if job.get("url") and job["url"] not in seen_urls:
-                seen_urls.add(job["url"])
-                deduped_jobs.append(job)
-
-        print(f"✅ Scraped {len(scraped_jobs)} jobs total, {len(deduped_jobs)} unique")
-        scraped_jobs = deduped_jobs
+        jobly_jobs = scraped_jobs.copy()  # Keep all for now, dedup later
+        print(f"✅ Scraped {len(jobly_jobs)} jobs from jobly.fi")
 
     except Exception as e:
-        print(f"❌ Scraping failed: {e}")
+        print(f"❌ Jobly scraping failed: {e}")
+        return
+
+    # Step 1b: Scrape jobs from duunitori.fi
+    print("\n🕷️ [1b/5] Scraping jobs from duunitori.fi...")
+    try:
+        # Create DuunitoriExtractor
+        duunitori_scraper = DuunitoriScraper()
+        duunitori_extractor = DuunitoriExtractor(duunitori_scraper)
+
+        # Reset extractor's job list
+        duunitori_extractor.jobs = []
+
+        # Duunitori scraping parameters
+        DUUNITORI_BASE_URL = "https://duunitori.fi/tyopaikat"
+        DUUNITORI_MAX_PAGES = 1  # Quick test mode
+        DUUNITORI_DELAY = random.uniform(1, 3)
+
+        # Scrape duunitori jobs
+        duunitori_max_pages = (
+            DUUNITORI_MAX_PAGES if DUUNITORI_MAX_PAGES is not None else float("inf")
+        )
+        duunitori_page_num = 0
+
+        while duunitori_page_num < duunitori_max_pages:
+            duunitori_job_url = (
+                DUUNITORI_BASE_URL
+                if duunitori_page_num == 0
+                else f"{DUUNITORI_BASE_URL}?page={duunitori_page_num}"
+            )
+            print(f"Scraping duunitori page {duunitori_page_num + 1}...")
+
+            try:
+                duunitori_job_cards = duunitori_scraper.scrape_jobs_list(
+                    duunitori_job_url
+                )
+                if not duunitori_job_cards and duunitori_page_num > 0:
+                    print("No more duunitori job postings found.")
+                    break
+
+                print(f"Found {len(duunitori_job_cards)} duunitori job postings.")
+                for job_card in duunitori_job_cards:
+                    job_data = duunitori_extractor.extract_job_data(job_card)
+                    if (
+                        job_data
+                        and job_data.get("title")
+                        and job_data["title"] != "N/A"
+                    ):
+                        duunitori_extractor.jobs.append(job_data)
+
+                duunitori_page_num += 1
+                if DUUNITORI_DELAY > 0:
+                    time.sleep(DUUNITORI_DELAY)
+
+            except Exception as e:
+                print(f"Error during duunitori scraping: {e}")
+                break
+
+        duunitori_jobs = duunitori_extractor.jobs.copy()
+        print(f"✅ Scraped {len(duunitori_jobs)} jobs from duunitori.fi")
+
+    except Exception as e:
+        print(f"❌ Duunitori scraping failed: {e}")
+        return
+
+    # Step 1c: Combine and deduplicate across both sources
+    print("\n🔄 [1c/5] Combining and deduplicating jobs...")
+    try:
+        all_scraped_jobs = jobly_jobs + duunitori_jobs
+
+        # Advanced content-based deduplication (company + title + location)
+        scraped_jobs = deduplicate_jobs(all_scraped_jobs)
+
+        print(f"✅ Combined: {len(scraped_jobs)} jobs")
+
+    except Exception as e:
+        print(f"❌ Deduplication failed: {e}")
         return
 
     # Step 2: Pre-translate jobs to English
@@ -149,10 +223,8 @@ def main():
 
         result = subprocess.run(
             node_cmd,
-            capture_output=True,
             text=True,
-            encoding="utf-8",
-            timeout=300,  # 5 minute timeout
+            timeout=600,  # 10 minute timeout
             cwd=pretranslate_script.parent,
         )
 
@@ -249,7 +321,18 @@ def main():
     print("\n🔬 [4/5] Analyzing jobs with hybrid engine...")
     try:
         analyzer = HybridJobAnalyzer()
-        analyzed_jobs = analyzer.analyze_batch(categorized_jobs)
+        analyzed_jobs = analyzer.analyze_batch(translated_jobs)
+
+        # Validate the analyzed jobs
+        if not analyzed_jobs or len(analyzed_jobs) == 0:
+            print("❌ Analysis failed: Empty results from hybrid analyzer")
+            return
+
+        # Check if any jobs have analysis errors
+        jobs_with_errors = [job for job in analyzed_jobs if job.get("_error")]
+        if jobs_with_errors:
+            print(f"⚠️ Warning: {len(jobs_with_errors)} jobs had analysis errors")
+
         print(f"✅ Analysis complete - processed {len(analyzed_jobs)} jobs")
 
     except Exception as e:
@@ -261,7 +344,9 @@ def main():
     try:
         # Create data directory if not exists
         data_dir = (
-            Path(__file__).parent.parent.parent.parent / "packages" / "db" / "data"
+            # Path(__file__).parent.parent.parent.parent / "packages" / "db" / "data"
+            Path(__file__).parent.parent
+            / "logs"
         )
         data_dir.mkdir(exist_ok=True)
 

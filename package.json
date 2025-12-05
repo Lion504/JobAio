@@ -12,7 +12,9 @@
     "dev:api": "pnpm --filter @jobaio/api dev",
     "dev:scraper": "pnpm --filter @jobaio/scraper-py run run",
     "build": "echo 'Add build script later'",
-    "test": "echo 'No testing configured'",
+    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest",
+    "test:ai": "pnpm --filter @jobaio/ai test",
+    "test:py": "cd apps/scraper-py && call venv\\Scripts\\python.exe -m pytest",
     "lint:web": "pnpm --filter @jobaio/web lint",
     "lint:api": "pnpm --filter @jobaio/api lint",
     "lint": "pnpm --parallel lint",
@@ -30,5 +32,9 @@
     "mongoose-sequence": "^6.0.1",
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "jest": "^29.7.0"
   }
 }
