@@ -29,8 +29,8 @@ const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const TOKEN_LIMITS = {
   simple_extraction: 10, // job_type, experience_level, education_level
   language_extraction: 50, // language (can be multiple)
-  skills_extraction: 300, // complex JSON
-  responsibilities: 400, // array of strings
+  skills_extraction: 400, // complex JSON
+  responsibilities: 500, // array of strings
 };
 /**
  * A helper function to call the generative model with a prompt.
@@ -301,25 +301,176 @@ Limit to 10 most important responsibilities.
 }
 
 /**
- * Main analysis function - called by Python wrapper
+ * Batch analysis functions - process multiple jobs concurrently for one analysis type
+ */
+async function analyzeJobTypeBatch(descriptions, quiet = false) {
+  if (!quiet)
+    console.log(`  → Analyzing job_type for ${descriptions.length} jobs...`);
+  const results = await Promise.all(
+    descriptions.map((desc) => analyzeJobType(desc)),
+  );
+  return results;
+}
+
+async function analyzeLanguageBatch(descriptions, quiet = false) {
+  if (!quiet)
+    console.log(`  → Analyzing languages for ${descriptions.length} jobs...`);
+  const results = await Promise.all(
+    descriptions.map((desc) => analyzeLanguage(desc)),
+  );
+  return results;
+}
+
+async function analyzeExperienceLevelBatch(descriptions, quiet = false) {
+  if (!quiet)
+    console.log(
+      `  → Analyzing experience_level for ${descriptions.length} jobs...`,
+    );
+  const results = await Promise.all(
+    descriptions.map((desc) => analyzeExperienceLevel(desc)),
+  );
+  return results;
+}
+
+async function analyzeEducationLevelBatch(descriptions, quiet = false) {
+  if (!quiet)
+    console.log(
+      `  → Analyzing education_level for ${descriptions.length} jobs...`,
+    );
+  const results = await Promise.all(
+    descriptions.map((desc) => analyzeEducationLevel(desc)),
+  );
+  return results;
+}
+
+async function analyzeSkillsBatch(descriptions, quiet = false) {
+  if (!quiet)
+    console.log(`  → Analyzing skills for ${descriptions.length} jobs...`);
+  const results = await Promise.all(
+    descriptions.map((desc) => analyzeSkills(desc)),
+  );
+  return results;
+}
+
+async function analyzeResponsibilitiesBatch(descriptions, quiet = false) {
+  if (!quiet)
+    console.log(
+      `  → Analyzing responsibilities for ${descriptions.length} jobs...`,
+    );
+  const results = await Promise.all(
+    descriptions.map((desc) => analyzeResponsibilities(desc)),
+  );
+  return results;
+}
+
+/**
+ * Batch analyze multiple jobs - process all analysis types for batches of jobs
+ */
+async function analyzeJobsBatch(jobs, batchSize = 5, quiet = false) {
+  const analyzedJobs = [];
+  const totalBatches = Math.ceil(jobs.length / batchSize);
+
+  if (!quiet) {
+    console.log(
+      `🔄 Batch analyzing ${jobs.length} jobs (${totalBatches} batches of ${batchSize})...`,
+    );
+  }
+
+  for (let i = 0; i < jobs.length; i += batchSize) {
+    const batch = jobs.slice(i, i + batchSize);
+    const batchNumber = Math.floor(i / batchSize) + 1;
+    const descriptions = batch.map((job) => job.description);
+
+    if (!quiet) {
+      console.log(
+        `📊 Processing batch ${batchNumber}/${totalBatches} (${batch.length} jobs)...`,
+      );
+    }
+
+    try {
+      // Analyze all types for this batch concurrently (quiet mode for programmatic calls)
+      const [
+        jobTypes,
+        languages,
+        experienceLevels,
+        educationLevels,
+        skills,
+        responsibilities,
+      ] = await Promise.all([
+        analyzeJobTypeBatch(descriptions, quiet),
+        analyzeLanguageBatch(descriptions, quiet),
+        analyzeExperienceLevelBatch(descriptions, quiet),
+        analyzeEducationLevelBatch(descriptions, quiet),
+        analyzeSkillsBatch(descriptions, quiet),
+        analyzeResponsibilitiesBatch(descriptions, quiet),
+      ]);
+
+      // Combine results for each job in the batch
+      const batchResults = batch.map((job, idx) => ({
+        ...job,
+        job_type: jobTypes[idx],
+        language: languages[idx],
+        experience_level: experienceLevels[idx],
+        education_level: educationLevels[idx],
+        skill_type: skills[idx],
+        responsibilities: responsibilities[idx],
+      }));
+
+      analyzedJobs.push(...batchResults);
+      if (!quiet) {
+        console.log(`✅ Batch ${batchNumber}/${totalBatches} completed`);
+      }
+
+      // Rate limiting between batches (except for last batch)
+      if (i + batchSize < jobs.length && !quiet) {
+        console.log(`⏳ Preparing next batch...`);
+      }
+      if (i + batchSize < jobs.length) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    } catch (error) {
+      console.error(`❌ Batch ${batchNumber} failed:`, error.message);
+      // On batch failure, add jobs with error markers
+      const failedBatch = batch.map((job) => ({
+        ...job,
+        _error: `Batch analysis failed: ${error.message}`,
+      }));
+      analyzedJobs.push(...failedBatch);
+    }
+  }
+
+  if (!quiet) {
+    console.log(`✅ All ${analyzedJobs.length} jobs analyzed`);
+  }
+  return analyzedJobs;
+}
+
+/**
+ * Main analysis function - only supports batch analysis now
  */
 async function analyzeJob(functionName, description) {
-  switch (functionName) {
-    case "job_type":
-      return await analyzeJobType(description);
-    case "language":
-      return await analyzeLanguage(description);
-    case "experience_level":
-      return await analyzeExperienceLevel(description);
-    case "education_level":
-      return await analyzeEducationLevel(description);
-    case "skills":
-      return await analyzeSkills(description);
-    case "responsibilities":
-      return await analyzeResponsibilities(description);
-    default:
-      throw new Error(`Unknown analysis function: ${functionName}`);
+  if (functionName !== "batch") {
+    throw new Error(`Only batch analysis is supported. Got: ${functionName}`);
   }
+
+  // Parse JSON string to jobs array
+  let jobsArray;
+  try {
+    jobsArray = JSON.parse(description);
+  } catch (e) {
+    throw new Error(`Invalid JSON for batch analysis: ${e.message}`);
+  }
+
+  if (!Array.isArray(jobsArray)) {
+    throw new Error("Batch analysis requires array of jobs");
+  }
+
+  if (jobsArray.length === 0) {
+    return [];
+  }
+
+  // Use quiet mode when called programmatically (suppresses progress messages)
+  return await analyzeJobsBatch(jobsArray, 5, true);
 }
 
 // CLI interface for testing
@@ -337,7 +488,10 @@ if (process.argv[1] === __filename) {
       console.log(JSON.stringify(result, null, 2));
     })
     .catch((error) => {
-      console.error("Analysis failed:", error);
+      console.error("Analysis failed:", error.message);
+      // Ensure we always output valid JSON for Python parser
+      const errorResult = { error: error.message, function: functionName };
+      console.log(JSON.stringify(errorResult, null, 2));
       process.exit(1);
     });
 }

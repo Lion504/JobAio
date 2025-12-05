@@ -84,7 +84,6 @@ packages/shared/src/index.js.example
 packages/db/prisma/schema.prisma.example
 
 #test files
-packages/ai/test_job_analysis.js
 apps/scraper-py/src/process.py
 apps/scraper-py/backend_process_flow.gif
 apps/scraper-py/tests/test_output/

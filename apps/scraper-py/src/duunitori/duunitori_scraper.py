@@ -24,7 +24,7 @@ HEADERS = {
 }
 
 
-class JoblyScraper:
+class DuunitoriScraper:
     MIN_JOB_DESCRIPTION_WORDS = 50
 
     def clean_personal_data(self, text):
@@ -94,21 +94,20 @@ class JoblyScraper:
             soup = BeautifulSoup(response.text, "html.parser")
 
             job_selectors = [
-                # Jobly.fi specific selectors (highest priority)
-                'div.field__item[property="content:encoded"]',
-                "div.field--name-body div.field__item",
+                # Duunitori.fi specific selectors (highest priority)
+                'div[class*="job-description"]',
+                'div[class*="description"]',
+                ".job-description",
+                ".description",
+                'div[class*="job-content"]',
+                'section[class*="job-content"]',
                 # Common job selectors
                 "div.job-description",
                 "section.job-description",
                 "div.description",
                 "section.description",
-                'div[class*="job-content"]',
-                'section[class*="job-content"]',
                 "div.content",
                 "main.content",
-                'div[class*="job-description"]',
-                ".job-description",
-                ".description",
                 "article",
                 "main",
             ]
@@ -154,9 +153,53 @@ class JoblyScraper:
 
             soup = BeautifulSoup(html_content, "html.parser")
 
-            # Use article elements as job containers
-            job_cards = soup.find_all("article")
+            # Debug: Print page title and some structure
+            # print(f"  🔍 Page title: {soup.title.text if soup.title else 'No title'}")
 
+            # Duunitori.fi specific job container selectors
+            job_selectors = [
+                "div.job-box",  # Parent container with job data
+                'div[class*="job-box"]',  # Container pattern
+                "div[data-jobid]",  # Container with job ID
+                "article",  # Fallback to article tags
+            ]
+
+            job_cards = []
+            for selector in job_selectors:
+                cards = soup.select(selector)
+                # print(f"  🔍 Selector '{selector}': found {len(cards)} elements")
+                if cards:
+                    job_cards.extend(cards)
+                    # print(f"  ✅ Using selector: {selector}")
+                    break
+
+            # If no cards found, try broader search
+            if not job_cards:
+                print("  ⚠️  No job cards found with specific selectors...")
+                # Look for divs with links that contain /tyopaikat/
+                potential_cards = soup.find_all("div", class_=True)
+                for div in potential_cards:
+                    if div.find("a", href=re.compile(r"/tyopaikat/")):
+                        job_cards.append(div)
+                        if len(job_cards) >= 10:  # Limit to first 10
+                            break
+
+                print(
+                    f"  🔍 Found {len(job_cards)} potential job cards with link pattern"
+                )
+
+            # Last resort: find all divs containing job links
+            if not job_cards:
+                print("  ⚠️  Still no cards, trying last resort...")
+                all_divs = soup.find_all("div")
+                for div in all_divs[:50]:  # Check first 50 divs
+                    if div.find("a", href=re.compile(r"/tyopaikat/")):
+                        job_cards.append(div)
+                        if len(job_cards) >= 20:  # Limit
+                            break
+                print(f"  🔍 Last resort found {len(job_cards)} potential cards")
+
+            # print(f"  📋 Total job cards to process: {len(job_cards)}")
             return job_cards
 
         except requests.RequestException as e:

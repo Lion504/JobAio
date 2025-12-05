@@ -13,7 +13,9 @@ class HybridJobAnalyzer:
         self.base_analyzer = BaseJobAnalyzer()
         self.ai_analyzer = PureAIJobAnalyzer()
 
-    def analyze_job(self, job: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze_job(
+        self, job: Dict[str, Any], job_index: int = None, total_jobs: int = None
+    ) -> Dict[str, Any]:
         """Two-stage analysis with AI override
 
         Process:
@@ -26,35 +28,15 @@ class HybridJobAnalyzer:
         - AI enhances with superior accuracy and fills gaps
         - Simple override: no complex merger logic
         """
-        print(f"🔍 Analyzing: {job.get('title', 'Unknown')}")
+        jobs_get = job.get("title", "Unknown")
+        job_counter = f"{job_index + 1} / {total_jobs}"
+        print(f"🔍 Analyzing job {job_counter}: {jobs_get}")
 
         # Stage 1: Base analysis foundation
         base_result = self.base_analyzer.analyze_job(job.copy())
-        base_job_type = len(base_result.get("job_type", []))
-        base_education = len(base_result.get("education_level", []))
-        base_experience = base_result.get("experience_level", "")
-        base_languages = sum(len(v) for v in base_result.get("language", {}).values())
-        base_skills = sum(len(v) for v in base_result.get("skill_type", {}).values())
-
-        print(
-            f"   🔧 Base: job_type={base_job_type} education={base_education} "
-            f"experience={base_experience} languages={base_languages} "
-            f"skills={base_skills}"
-        )
 
         # Stage 2: AI analysis enhancement
         ai_result = self.ai_analyzer.analyze_job(job.copy())
-        ai_job_type = len(ai_result.get("job_type", []))
-        ai_education = len(ai_result.get("education_level", []))
-        ai_experience = ai_result.get("experience_level", "")
-        ai_languages = sum(len(v) for v in ai_result.get("language", {}).values())
-        ai_skills = sum(len(v) for v in ai_result.get("skill_type", {}).values())
-
-        print(
-            f"   🤖 AI: job_type={ai_job_type} education={ai_education} "
-            f"experience={ai_experience} languages={ai_languages} "
-            f"skills={ai_skills}"
-        )
 
         # Merge with AI override: base first, AI on top
         # {**base_result, **ai_result} means AI fields replace base fields
@@ -90,7 +72,7 @@ class HybridJobAnalyzer:
 
         processed_jobs = []
         for job_index, job in enumerate(jobs):
-            enhanced_job = self.analyze_job(job)
+            enhanced_job = self.analyze_job(job, job_index, len(jobs))
             processed_jobs.append(enhanced_job)
 
         print(f"✅ Analysis complete - {len(processed_jobs)} jobs processed")
