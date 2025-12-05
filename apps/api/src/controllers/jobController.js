@@ -2,8 +2,6 @@ import OriginalJob from "../../../../packages/db/src/models/OriginalJob.js";
 import {
   findAllJobs,
   rankedJobSearch,
-  //findJobsByField,
-  //findJobsByFilters,
 } from "../../../../packages/search/src/adapter.js";
 
 function normalizeScrapedJob(raw) {
@@ -119,22 +117,28 @@ export const searchJobsController = async (req, res, next) => {
     education_level,
   } = req.query;
 
-  //Check if it's a string or if it's empty
-  if (!term || typeof term !== "string" || term.trim().length === 0) {
-    return res.status(400).json({ message: "Invalid search parameters" });
+  const searchTerm = (term || '').trim();
+
+  const filters = {
+    location,
+    job_type,
+    experience_level,
+    company,
+    industry_category,
+    required_language,
+    education_level,
+  };
+
+  // Check if any filter value is non-empty
+  const hasFilters = Object.values(filters).some(value => value && value.length > 0);
+
+  // Validation allows filter-only search
+  if (searchTerm.length === 0 && !hasFilters) {
+    return res.status(400).json({ message: "Provide a search term or at least one filter."});
   }
 
   try {
-    const filters = {
-      location,
-      job_type,
-      experience_level,
-      company,
-      industry_category,
-      required_language,
-      education_level,
-    };
-    const jobs = await rankedJobSearch(term, filters);
+    const jobs = await rankedJobSearch(searchTerm, filters);
 
     if (!jobs || jobs.length === 0) {
       return res
