@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
-import { translateJobs } from "../../../../packages/ai/src/geminiTranslate.js"; // import translator
+import { translateJobs } from "../../../../packages/ai/src/translator.js"; // import translator
 
 const SERVICE_DIR = path.dirname(fileURLToPath(import.meta.url)); // current folder path
 const ROOT_DIR = path.resolve(SERVICE_DIR, "../../../.."); // project root
