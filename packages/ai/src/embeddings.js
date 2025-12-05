@@ -157,10 +157,15 @@ Examples:
     let expandedTerms;
     try {
       expandedTerms = JSON.parse(responseText);
-    } catch {
+    } catch (err) {
+      console.warn("Failed to parse responseText as JSON array:", err.message);
       const jsonMatch = responseText.match(/\[[\s\S]*?\]/);
       if (jsonMatch) {
-        expandedTerms = JSON.parse(jsonMatch[0]);
+        try {
+          expandedTerms = JSON.parse(jsonMatch[0]);
+        } catch (innerErr) {
+          console.warn("Failed to parse matched JSON array from responseText:", innerErr.message);
+        }
       }
     }
 
