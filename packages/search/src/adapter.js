@@ -96,11 +96,7 @@ async function rankedJobSearch(terms, filters = {}) {
         $and: [
           //Check filters
           filterCriteria,
-<<<<<<< HEAD
           { $text: { $search: terms } },
-=======
-          { $text: { $search: term } },
->>>>>>> 508ac2a (fix(search-engine): adapt search engine to new DB structure)
         ],
       },
     },
