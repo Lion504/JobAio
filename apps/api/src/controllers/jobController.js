@@ -117,7 +117,7 @@ export const searchJobsController = async (req, res, next) => {
     education_level,
   } = req.query;
 
-  const searchTerm = (term || '').trim();
+  const searchTerm = (term || "").trim();
 
   const filters = {
     location,
@@ -130,11 +130,15 @@ export const searchJobsController = async (req, res, next) => {
   };
 
   // Check if any filter value is non-empty
-  const hasFilters = Object.values(filters).some(value => value && value.length > 0);
+  const hasFilters = Object.values(filters).some(
+    (value) => value && value.length > 0,
+  );
 
   // Validation allows filter-only search
   if (searchTerm.length === 0 && !hasFilters) {
-    return res.status(400).json({ message: "Provide a search term or at least one filter."});
+    return res
+      .status(400)
+      .json({ message: "Provide a search term or at least one filter." });
   }
 
   try {
