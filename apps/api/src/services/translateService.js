@@ -4,13 +4,36 @@ import { fileURLToPath } from "url";
 import { translateJobs } from "../../../../packages/ai/src/geminiTranslate.js"; // import translator
 
 const SERVICE_DIR = path.dirname(fileURLToPath(import.meta.url)); // current folder path
-const SEED_PATH = path.join(SERVICE_DIR, "..", "seedJobs2.json"); // input jobs file
+const ROOT_DIR = path.resolve(SERVICE_DIR, "../../../.."); // project root
+const SCRAPER_LOGS_DIR = path.join(ROOT_DIR, "apps/scraper-py/logs");
 const OUT_PATH = path.join(SERVICE_DIR, "..", "translated_jobs.json"); // output file path
 
-async function readSeedJobs() {
-  const raw = await fs.readFile(SEED_PATH, "utf-8"); // read job seed file
+// Get latest pipeline results file
+const getLatestPipelineFile = async () => {
+  try {
+    const files = await fs.readdir(SCRAPER_LOGS_DIR);
+    const pipelineFiles = files.filter(
+      (f) => f.startsWith("pipeline_results_") && f.endsWith(".json"),
+    );
+    if (pipelineFiles.length > 0) {
+      // Sort by timestamp and take latest
+      const latest = pipelineFiles.sort().reverse()[0];
+      return path.join(SCRAPER_LOGS_DIR, latest);
+    }
+  } catch (err) {
+    console.warn("Could not find pipeline results, falling back to seed file");
+  }
+  // Fallback to original seed file
+  return path.join(SERVICE_DIR, "..", "seedJobs2.json");
+};
+
+async function readJobs() {
+  const inputPath = await getLatestPipelineFile(); // auto-detect latest pipeline file
+  console.log(`Reading jobs from: ${inputPath}`);
+  const raw = await fs.readFile(inputPath, "utf-8"); // read job data file
   const jobs = JSON.parse(raw); // parse JSON data
-  if (!Array.isArray(jobs)) throw new Error("seedJobs.json must be an array"); // validate format
+  if (!Array.isArray(jobs)) throw new Error("Jobs file must be an array"); // validate format
+  console.log(`Loaded ${jobs.length} jobs for translation`);
   return jobs; // return job list
 }
 
@@ -27,7 +50,7 @@ async function writeOutput(allTranslated) {
 export async function runTranslation() {
   console.log("Starting translation run (Gemini)...");
 
-  const jobs = await readSeedJobs();
+  const jobs = await readJobs();
   const allTranslated = await translateJobs(jobs); // translate job list
   await writeOutput(allTranslated); // save translated output
 
@@ -37,16 +60,13 @@ export async function runTranslation() {
       if (t?.warnings?.length) {
         warnCount += t.warnings.length; // count warnings
         console.warn(
-          `Warning for job "${item.original_job.jobtitle}" -> ${t.translation_language}:`,
+          `Warning for job "${item.original_job.title}" -> ${t.translation_language}:`,
           t.warnings,
         ); // log warnings
       }
     }
     if (item.error)
-      console.error(
-        `Error for job "${item.original_job.jobtitle}":`,
-        item.error,
-      );
+      console.error(`Error for job "${item.original_job.title}":`, item.error);
   }
 
   console.log(
