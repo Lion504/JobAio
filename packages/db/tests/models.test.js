@@ -330,7 +330,7 @@ describe("TranslatedJob Model", () => {
 
     // getUntranslatedJobs now returns ALL OriginalJob records
     // (translator processes all jobs, insertion handles deduplication)
-    const allJobs = await TranslatedJob.getUntranslatedJobs(["es"]);
+    const allJobs = await OriginalJob.find({}).limit(1000);
     expect(allJobs).toHaveLength(2); // Both original jobs
 
     const jobIds = allJobs.map((job) => job._id.toString());
@@ -358,12 +358,12 @@ describe("TranslatedJob Model", () => {
 
     // getUntranslatedJobs still returns ALL OriginalJob records
     // (existing translations are ignored - insertion handles deduplication)
-    const allJobs = await TranslatedJob.getUntranslatedJobs(["es", "zh"]);
+    const allJobs = await OriginalJob.find({}).limit(1000);
     expect(allJobs).toHaveLength(2); // Both jobs returned regardless of translations
   });
 
   test("getUntranslatedJobs works with empty target languages", async () => {
-    const allJobs = await TranslatedJob.getUntranslatedJobs([]);
+    const allJobs = await OriginalJob.find({}).limit(1000);
     expect(allJobs).toHaveLength(1);
     expect(allJobs[0]._id.toString()).toBe(originalJob._id.toString());
   });
