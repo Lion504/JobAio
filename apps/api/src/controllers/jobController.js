@@ -1,8 +1,5 @@
 import OriginalJob from "../../../../packages/db/src/models/OriginalJob.js";
-import {
-  findAllJobs,
-  rankedJobSearch,
-} from "../../../../packages/search/src/adapter.js";
+import { rankedJobSearch } from "../../../../packages/search/src/adapter.js";
 
 function normalizeScrapedJob(raw) {
   return {
