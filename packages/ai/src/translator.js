@@ -13,14 +13,15 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 // Target languages (no "en" since pipeline outputs English)
-export const TARGET_LANGUAGES = ["es", "fr", "pt", "de", "ur", "ta", "zh"];
-
+//export const TARGET_LANGUAGES = ["es", "fr", "pt", "de", "ur", "ta", "zh"];
+export const TARGET_LANGUAGES = ["es", "zh"];
 // Source language is always English (pipeline output)
 const SOURCE_LANG = "en";
 
-// Rate limiting delays
-const DELAY_BETWEEN_LANGUAGES = 1000; // 1 second
-const DELAY_BETWEEN_JOBS = 2000; // 2 seconds
+// Batch processing configuration
+const BATCH_SIZE = 5; // Process 5 jobs in parallel per language
+const DELAY_BETWEEN_BATCHES = 2000; // 2 seconds between batches
+const DELAY_BETWEEN_LANGUAGES = 1000; // 1 second between language translations
 const RETRY_DELAY = 20000; // 20 seconds on rate limit
 const MAX_RETRIES = 3;
 
@@ -182,27 +183,60 @@ async function translateJobToLanguage(job, targetLang) {
 }
 
 /**
- * Translate a job to all target languages
+ * Translate a single job to all target languages (sequential for this job)
  */
 async function translateJob(job) {
   const translations = [];
-
-  console.log(`Translating job: "${job.title}"`);
 
   for (const targetLang of TARGET_LANGUAGES) {
     try {
       const translation = await translateJobToLanguage(job, targetLang);
       translations.push(translation);
     } catch (err) {
-      console.error(`  Failed to translate to ${targetLang}:`, err.message);
-      // Skip this language on failure (after retries exhausted in translateField)
+      console.error(
+        `    [${job.title?.slice(0, 30)}] Failed ${targetLang}:`,
+        err.message,
+      );
     }
 
-    // Rate limiting between languages
+    // Small delay between languages for same job
     await new Promise((r) => setTimeout(r, DELAY_BETWEEN_LANGUAGES));
   }
 
   return translations;
+}
+
+/**
+ * Process a batch of jobs in parallel - each job translates to all languages
+ * @param {Array} jobs - Array of jobs to translate
+ * @param {number} batchIndex - Current batch number for logging
+ * @param {number} totalBatches - Total number of batches
+ */
+async function translateBatch(jobs, batchIndex, totalBatches) {
+  console.log(
+    `\n[Batch ${batchIndex + 1}/${totalBatches}] Processing ${jobs.length} jobs in parallel...`,
+  );
+
+  const results = await Promise.all(
+    jobs.map(async (job, idx) => {
+      const jobNum = batchIndex * BATCH_SIZE + idx + 1;
+      console.log(`  Starting job ${jobNum}: "${job.title?.slice(0, 40)}..."`);
+
+      try {
+        const translations = await translateJob(job);
+        await saveToMongoDB(job, translations);
+        console.log(
+          `  ✓ Job ${jobNum}: Saved with ${translations.length} translations`,
+        );
+        return { success: true, job, translations };
+      } catch (err) {
+        console.error(`  ✗ Job ${jobNum}: ${err.message}`);
+        return { success: false, job, error: err.message };
+      }
+    }),
+  );
+
+  return results;
 }
 
 /**
@@ -271,11 +305,15 @@ async function disconnectDB() {
 }
 
 /**
- * Main translation pipeline
- * Reads jobs from latest pipeline file, translates, and saves to MongoDB
+ * Main translation pipeline with batch processing
+ * Reads jobs from latest pipeline file, translates in batches of 5, saves to MongoDB
  */
 export async function runTranslation() {
-  console.log("Starting translation pipeline...\n");
+  const startTime = Date.now();
+  console.log("Starting translation pipeline (batch mode)...\n");
+  console.log(
+    `Configuration: BATCH_SIZE=${BATCH_SIZE}, LANGUAGES=${TARGET_LANGUAGES.length}`,
+  );
 
   // Get latest pipeline file
   const pipelineFile = await getLatestPipelineFile();
@@ -289,7 +327,13 @@ export async function runTranslation() {
     throw new Error("Pipeline file must contain an array of jobs");
   }
 
-  console.log(`Loaded ${jobs.length} jobs for translation\n`);
+  console.log(`Loaded ${jobs.length} jobs for translation`);
+
+  // Calculate batches
+  const totalBatches = Math.ceil(jobs.length / BATCH_SIZE);
+  console.log(
+    `Will process in ${totalBatches} batches of up to ${BATCH_SIZE} jobs each\n`,
+  );
 
   // Connect to MongoDB
   await connectDB();
@@ -297,41 +341,43 @@ export async function runTranslation() {
   let successCount = 0;
   let errorCount = 0;
 
-  // Process each job
-  for (let i = 0; i < jobs.length; i++) {
-    const job = jobs[i];
+  // Process jobs in batches
+  for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
+    const start = batchIdx * BATCH_SIZE;
+    const end = Math.min(start + BATCH_SIZE, jobs.length);
+    const batchJobs = jobs.slice(start, end);
 
-    try {
-      console.log(`\n[${i + 1}/${jobs.length}] Processing job...`);
+    // Process batch in parallel
+    const results = await translateBatch(batchJobs, batchIdx, totalBatches);
 
-      // Translate to all target languages
-      const translations = await translateJob(job);
-
-      // Save to MongoDB with upsert
-      await saveToMongoDB(job, translations);
-
-      console.log(`  ✓ Saved with ${translations.length} translations`);
-      successCount++;
-    } catch (err) {
-      console.error(`  ✗ Failed: ${err.message}`);
-      errorCount++;
-      // Continue to next job (don't stop on single failure)
+    // Count results
+    for (const result of results) {
+      if (result.success) {
+        successCount++;
+      } else {
+        errorCount++;
+      }
     }
 
-    // Rate limiting between jobs
-    if (i < jobs.length - 1) {
-      await new Promise((r) => setTimeout(r, DELAY_BETWEEN_JOBS));
+    // Rate limiting between batches (except last batch)
+    if (batchIdx < totalBatches - 1) {
+      console.log(
+        `  Waiting ${DELAY_BETWEEN_BATCHES / 1000}s before next batch...`,
+      );
+      await new Promise((r) => setTimeout(r, DELAY_BETWEEN_BATCHES));
     }
   }
 
   // Disconnect from MongoDB
   await disconnectDB();
 
+  const duration = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(`\n========================================`);
-  console.log(`Translation complete!`);
+  console.log(`Translation complete! (${duration}s)`);
   console.log(`  Success: ${successCount}`);
   console.log(`  Errors: ${errorCount}`);
   console.log(`  Total: ${jobs.length}`);
+  console.log(`  Languages per job: ${TARGET_LANGUAGES.length}`);
   console.log(`========================================\n`);
 
   return { success: successCount, errors: errorCount, total: jobs.length };
@@ -341,6 +387,7 @@ export async function runTranslation() {
 export {
   translateJob,
   translateJobToLanguage,
+  translateBatch,
   saveToMongoDB,
   connectDB,
   disconnectDB,

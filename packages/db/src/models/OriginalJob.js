@@ -1,7 +1,4 @@
 import mongoose from "mongoose";
-import AutoIncrementFactory from "mongoose-sequence";
-
-const AutoIncrement = AutoIncrementFactory(mongoose);
 
 const originalJobSchema = new mongoose.Schema(
   {
@@ -58,8 +55,6 @@ const originalJobSchema = new mongoose.Schema(
     ],
 
     _metadata: { type: Object },
-
-    job_id: { type: Number, unique: true },
   },
   { timestamps: true },
 );
@@ -122,7 +117,5 @@ originalJobSchema.index(
     language_override: "language_override",
   },
 );
-
-originalJobSchema.plugin(AutoIncrement, { inc_field: "job_id" });
 
 export default mongoose.model("OriginalJob", originalJobSchema);
