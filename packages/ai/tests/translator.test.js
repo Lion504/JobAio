@@ -60,13 +60,11 @@ jest.unstable_mockModule("../../db/src/models/OriginalJob.js", () => ({
 }));
 
 // Mock TranslatedJob model
+const mockGetUntranslatedJobs = jest.fn();
 jest.unstable_mockModule("../../db/src/models/TranslatedJob.js", () => ({
-  default: {},
-}));
-
-// Mock db-utils
-jest.unstable_mockModule("../../db/src/models/db-utils.js", () => ({
-  getUntranslatedJobsFromDB: jest.fn(),
+  default: {
+    getUntranslatedJobs: mockGetUntranslatedJobs,
+  },
 }));
 
 // Mock dotenv
