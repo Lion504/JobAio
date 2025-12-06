@@ -5,16 +5,16 @@ import { JobCard, type Job } from '@/components/job-card'
 
 interface ApiJob {
   original_job: {
-    jobtitle: string
-    jobdescription: string
+    title: string
+    description: string
     industry?: string
     experience?: string
     job_original_language?: string
   }
   translations: Array<{
     translation_language: string
-    jobtitle: string
-    jobdescription: string
+    title: string
+    description: string
   }>
   languageMatch?: boolean
 }
@@ -39,17 +39,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const result: ApiResponse = await res.json()
     const data = result.jobs || []
 
-    const jobs: Job[] = data.map((job, index) => ({
-      id: String(index),
-      title: job.original_job?.jobtitle || 'Untitled',
-      company: 'Unknown Company',
-      location: 'Remote',
-      link: '',
+    const jobs: Job[] = data.map((job: any, index) => ({
+      id: job._id || String(index),
+      title: job.title || 'Untitled',
+      company: job.company || 'Unknown Company',
+      location: job.location || 'Remote',
+      link: job.url || '',
       salary: 'Competitive',
-      type: 'Full-time',
-      postedAt: new Date().toLocaleDateString(),
-      description: job.original_job?.jobdescription || '',
-      tags: job.original_job?.industry ? [job.original_job.industry] : [],
+      type: job.job_type?.[0] || 'Full-time',
+      postedAt: job.publish_date || new Date().toLocaleDateString(),
+      description: job.description || '',
+      tags: job.industry_category ? [job.industry_category] : [],
     }))
 
     return { jobs }
