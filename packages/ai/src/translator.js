@@ -1,22 +1,19 @@
 import { GoogleGenAI } from "@google/genai";
-import mongoose from "mongoose";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 
-// Import OriginalJob model from @jobaio/db (includes AutoIncrement plugin)
+// Import OriginalJob model directly
 import OriginalJob from "../../db/src/models/OriginalJob.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
-// Target languages (no "en" since pipeline outputs English)
 //export const TARGET_LANGUAGES = ["es", "fr", "pt", "de", "ur", "ta", "zh"];
 export const TARGET_LANGUAGES = ["es", "zh"];
-// Source language is always English (pipeline output)
-const SOURCE_LANG = "en";
 
 // Batch processing configuration
 const BATCH_SIZE = 5; // Process 5 jobs in parallel per language
@@ -27,7 +24,7 @@ const MAX_RETRIES = 3;
 
 // Paths
 const ROOT_DIR = path.resolve(__dirname, "../../..");
-const SCRAPER_LOGS_DIR = path.join(ROOT_DIR, "apps/scraper-py/logs");
+const TRANSLATED_DATA_DIR = path.join(ROOT_DIR, "packages/db/data/translated");
 
 // API Key validation
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -37,30 +34,6 @@ if (!GEMINI_API_KEY) {
 
 // Initialize Google AI SDK
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-
-// MongoDB connection string
-const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/jobaio";
-
-/**
- * Get latest pipeline results file from scraper logs
- */
-async function getLatestPipelineFile() {
-  try {
-    const files = await fs.readdir(SCRAPER_LOGS_DIR);
-    const pipelineFiles = files.filter(
-      (f) => f.startsWith("pipeline_results_") && f.endsWith(".json"),
-    );
-    if (pipelineFiles.length > 0) {
-      // Sort by timestamp (filename) and take latest
-      const latest = pipelineFiles.sort().reverse()[0];
-      return path.join(SCRAPER_LOGS_DIR, latest);
-    }
-  } catch (err) {
-    console.warn("Could not read scraper logs directory:", err.message);
-  }
-  throw new Error("No pipeline_results file found in logs directory");
-}
 
 /**
  * Clean JSON response from markdown code blocks
@@ -90,7 +63,10 @@ async function translateField(fieldData, targetLang, retries = MAX_RETRIES) {
     return fieldData;
   }
 
-  const prompt = `Translate the following text from ${SOURCE_LANG} to ${targetLang}:
+  // Source language is English (jobs are pretranslated to English before analysis)
+  const sourceLang = "en";
+
+  const prompt = `Translate the following text from ${sourceLang} to ${targetLang}:
 
 ${textToTranslate}
 
@@ -98,7 +74,7 @@ Provide only the translated text, no explanations:`;
 
   try {
     const response = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL_NAME || "gemini-2.0-flash",
+      model: process.env.GEMINI_MODEL_NAME,
       contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
 
@@ -146,8 +122,6 @@ Provide only the translated text, no explanations:`;
  * Returns lean translation object (no description fields)
  */
 async function translateJobToLanguage(job, targetLang) {
-  console.log(`  Translating to ${targetLang}...`);
-
   const translation = {
     lang: targetLang,
     title: await translateField(job.title, targetLang),
@@ -207,31 +181,54 @@ async function translateJob(job) {
 }
 
 /**
- * Process a batch of jobs in parallel - each job translates to all languages
+ * Process a batch of jobs in parallel - collect translation results
  * @param {Array} jobs - Array of jobs to translate
  * @param {number} batchIndex - Current batch number for logging
  * @param {number} totalBatches - Total number of batches
+ * @param {Array} allResults - Array to collect all results
+ * @param {Object} progress - Progress tracking object
  */
-async function translateBatch(jobs, batchIndex, totalBatches) {
+async function translateBatch(
+  jobs,
+  batchIndex,
+  totalBatches,
+  allResults,
+  progress,
+) {
   console.log(
-    `\n[Batch ${batchIndex + 1}/${totalBatches}] Processing ${jobs.length} jobs in parallel...`,
+    `\n[Batch ${batchIndex + 1}/${totalBatches}] Processing ${jobs.length} jobs...`,
   );
 
   const results = await Promise.all(
     jobs.map(async (job, idx) => {
       const jobNum = batchIndex * BATCH_SIZE + idx + 1;
-      console.log(`  Starting job ${jobNum}: "${job.title?.slice(0, 40)}..."`);
+      const globalJobNum = batchIndex * BATCH_SIZE + idx + 1;
+
+      // Progress logging every 5 jobs
+      if (globalJobNum % 5 === 0 || globalJobNum === progress.totalJobs) {
+        const percentage = Math.round(
+          (globalJobNum / progress.totalJobs) * 100,
+        );
+        console.log(
+          `  Progress: ${globalJobNum}/${progress.totalJobs} jobs (${percentage}%)`,
+        );
+      }
 
       try {
         const translations = await translateJob(job);
-        await saveToMongoDB(job, translations);
-        console.log(
-          `  ✓ Job ${jobNum}: Saved with ${translations.length} translations`,
-        );
-        return { success: true, job, translations };
+
+        // Collect successful results (lean format with just job_id)
+        allResults.push({
+          job_id: job._id,
+          translations: translations,
+        });
+
+        progress.successCount++;
+        return { success: true };
       } catch (err) {
-        console.error(`  ✗ Job ${jobNum}: ${err.message}`);
-        return { success: false, job, error: err.message };
+        console.error(`  ✗ Job ${jobNum} failed: ${err.message}`);
+        progress.errorCount++;
+        return { success: false, error: err.message };
       }
     }),
   );
@@ -240,94 +237,56 @@ async function translateBatch(jobs, batchIndex, totalBatches) {
 }
 
 /**
- * Save job with translations to MongoDB using upsert
+ * Output all translation results to a single file
+ * @param {Array} allResults - All translation results
+ * @param {Object} stats - Processing statistics
  */
-async function saveToMongoDB(job, translations) {
-  const filter = {
-    title: job.title,
-    company: job.company,
-    location: job.location,
+async function outputAllTranslations(allResults, stats) {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const filename = `translated_batch_${timestamp}.json`;
+  const filepath = path.join(TRANSLATED_DATA_DIR, filename);
+
+  const outputData = {
+    processed_at: new Date().toISOString(),
+    total_jobs: stats.totalJobs,
+    success_count: stats.successCount,
+    error_count: stats.errorCount,
+    target_languages: TARGET_LANGUAGES,
+    translations: allResults, // Array of { job_id, translations[] }
   };
 
-  const update = {
-    $set: {
-      title: job.title,
-      url: job.url,
-      company: job.company,
-      location: job.location,
-      publish_date: job.publish_date,
-      description: job.description,
-      original_title: job.original_title,
-      original_description: job.original_description,
-      source: job.source,
-      industry_category: job.industry_category,
-      job_type: job.job_type,
-      language: job.language,
-      experience_level: job.experience_level,
-      education_level: job.education_level,
-      skill_type: job.skill_type,
-      responsibilities: job.responsibilities,
-      translations: translations,
-      _metadata: job._metadata,
-    },
-  };
+  await fs.writeFile(filepath, JSON.stringify(outputData, null, 2));
+  console.log(`\n💾 Saved all translations to: ${filepath}`);
 
-  const result = await OriginalJob.findOneAndUpdate(filter, update, {
-    upsert: true,
-    new: true,
-  });
-
-  return result;
-}
-
-/**
- * Connect to MongoDB
- */
-async function connectDB() {
-  if (mongoose.connection.readyState === 1) {
-    console.log("MongoDB already connected");
-    return;
-  }
-
-  console.log("Connecting to MongoDB...");
-  await mongoose.connect(MONGODB_URI);
-  console.log("MongoDB connected");
-}
-
-/**
- * Disconnect from MongoDB
- */
-async function disconnectDB() {
-  if (mongoose.connection.readyState !== 0) {
-    await mongoose.disconnect();
-    console.log("MongoDB disconnected");
-  }
+  return filepath;
 }
 
 /**
  * Main translation pipeline with batch processing
- * Reads jobs from latest pipeline file, translates in batches of 5, saves to MongoDB
+ * Reads untranslated jobs from MongoDB, translates in batches, outputs single file
  */
 export async function runTranslation() {
+  await mongoose.connect(
+    process.env.MONGODB_URI || "mongodb://localhost:27017/jobaio",
+  );
+  console.log("Connected to MongoDB");
   const startTime = Date.now();
   console.log("Starting translation pipeline (batch mode)...\n");
   console.log(
     `Configuration: BATCH_SIZE=${BATCH_SIZE}, LANGUAGES=${TARGET_LANGUAGES.length}`,
   );
 
-  // Get latest pipeline file
-  const pipelineFile = await getLatestPipelineFile();
-  console.log(`Reading jobs from: ${pipelineFile}`);
+  // Ensure translated data directory exists
+  await fs.mkdir(TRANSLATED_DATA_DIR, { recursive: true });
 
-  // Read and parse jobs
-  const raw = await fs.readFile(pipelineFile, "utf-8");
-  const jobs = JSON.parse(raw);
-
-  if (!Array.isArray(jobs)) {
-    throw new Error("Pipeline file must contain an array of jobs");
-  }
-
+  // Get all jobs from DB for translation
+  const jobs = await OriginalJob.find({}).limit(1000);
   console.log(`Loaded ${jobs.length} jobs for translation`);
+
+  if (jobs.length === 0) {
+    console.log("No untranslated jobs found. Exiting.");
+    return { success: 0, errors: 0, total: 0 };
+  }
 
   // Calculate batches
   const totalBatches = Math.ceil(jobs.length / BATCH_SIZE);
@@ -335,11 +294,15 @@ export async function runTranslation() {
     `Will process in ${totalBatches} batches of up to ${BATCH_SIZE} jobs each\n`,
   );
 
-  // Connect to MongoDB
-  await connectDB();
+  // Progress tracking
+  const progress = {
+    totalJobs: jobs.length,
+    successCount: 0,
+    errorCount: 0,
+  };
 
-  let successCount = 0;
-  let errorCount = 0;
+  // Collect all translation results
+  const allResults = [];
 
   // Process jobs in batches
   for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
@@ -347,17 +310,14 @@ export async function runTranslation() {
     const end = Math.min(start + BATCH_SIZE, jobs.length);
     const batchJobs = jobs.slice(start, end);
 
-    // Process batch in parallel
-    const results = await translateBatch(batchJobs, batchIdx, totalBatches);
-
-    // Count results
-    for (const result of results) {
-      if (result.success) {
-        successCount++;
-      } else {
-        errorCount++;
-      }
-    }
+    // Process batch (collect results, no file output)
+    await translateBatch(
+      batchJobs,
+      batchIdx,
+      totalBatches,
+      allResults,
+      progress,
+    );
 
     // Rate limiting between batches (except last batch)
     if (batchIdx < totalBatches - 1) {
@@ -368,30 +328,29 @@ export async function runTranslation() {
     }
   }
 
-  // Disconnect from MongoDB
-  await disconnectDB();
+  // Output all results to single file
+  const outputFile = await outputAllTranslations(allResults, progress);
 
   const duration = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(`\n========================================`);
   console.log(`Translation complete! (${duration}s)`);
-  console.log(`  Success: ${successCount}`);
-  console.log(`  Errors: ${errorCount}`);
+  console.log(`  Success: ${progress.successCount}`);
+  console.log(`  Errors: ${progress.errorCount}`);
   console.log(`  Total: ${jobs.length}`);
   console.log(`  Languages per job: ${TARGET_LANGUAGES.length}`);
+  console.log(`  Output file: ${outputFile}`);
   console.log(`========================================\n`);
 
-  return { success: successCount, errors: errorCount, total: jobs.length };
+  return {
+    success: progress.successCount,
+    errors: progress.errorCount,
+    total: jobs.length,
+    outputFile: outputFile,
+  };
 }
 
 // Export for external use
-export {
-  translateJob,
-  translateJobToLanguage,
-  translateBatch,
-  saveToMongoDB,
-  connectDB,
-  disconnectDB,
-};
+export { translateJob, translateJobToLanguage };
 
 // CLI entry point
 if (
