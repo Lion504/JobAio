@@ -234,18 +234,28 @@ describe("TranslatedJob Model", () => {
     location: "Helsinki",
     publish_date: "2024-01-15",
     source: "duunitori",
-    job_title: "Desarrollador de Software",
-    job_description:
-      "Gran oportunidad de trabajo para desarrollador experimentado",
-    job_category: "Tecnología",
-    job_type: "tiempo completo",
-    language_required: "Inglés",
+    title: "Desarrollador de Software",
+    industry_category: "Tecnología",
+    job_type: ["tiempo completo"], // Array to match schema
+    language: {
+      required: ["Inglés"],
+      advantage: ["Finés"],
+    },
     experience_level: "intermedio",
-    skill_types: "JavaScript, React, Desarrollo Web",
-    responsibilities:
-      "Desarrollar software, Escribir pruebas, Colaborar con el equipo",
-    advantages: "Finés",
-    other: "",
+    education_level: ["Licenciatura"],
+    skill_type: {
+      technical: ["JavaScript", "React"],
+      domain_specific: ["Desarrollo Web"],
+      certifications: ["AWS Certified"],
+      soft_skills: ["Comunicación"],
+      other: [],
+    },
+    responsibilities: [
+      // Array to match schema
+      "Desarrollar software",
+      "Escribir pruebas",
+      "Colaborar con el equipo",
+    ],
   };
 
   test("creates translated job with valid data", async () => {
@@ -255,7 +265,7 @@ describe("TranslatedJob Model", () => {
     expect(translatedJob._id).toBeDefined();
     expect(translatedJob.job_id.toString()).toBe(originalJob._id.toString());
     expect(translatedJob.translation_lang).toBe("es");
-    expect(translatedJob.job_title).toBe("Desarrollador de Software");
+    expect(translatedJob.title).toBe("Desarrollador de Software");
     expect(translatedJob.company).toBe("Tech Corp");
     expect(translatedJob.createdAt).toBeDefined();
     expect(translatedJob.updatedAt).toBeDefined();
@@ -283,27 +293,32 @@ describe("TranslatedJob Model", () => {
     const minimalTranslation = {
       job_id: originalJob._id,
       translation_lang: "fi",
-      job_title: "Ohjelmistokehittäjä",
+      title: "Ohjelmistokehittäjä",
     };
 
     const saved = await TranslatedJob.create(minimalTranslation);
     expect(saved._id).toBeDefined();
     expect(saved.translation_lang).toBe("fi");
-    expect(saved.job_title).toBe("Ohjelmistokehittäjä");
+    expect(saved.title).toBe("Ohjelmistokehittäjä");
   });
 
   test("supports all translated fields", async () => {
     const translation = { ...sampleTranslation, job_id: originalJob._id };
     const translatedJob = await TranslatedJob.create(translation);
 
-    expect(translatedJob.job_description).toBe(
-      "Gran oportunidad de trabajo para desarrollador experimentado",
-    );
-    expect(translatedJob.skill_types).toBe("JavaScript, React, Desarrollo Web");
-    expect(translatedJob.responsibilities).toBe(
-      "Desarrollar software, Escribir pruebas, Colaborar con el equipo",
-    );
-    expect(translatedJob.advantages).toBe("Finés");
+    expect(translatedJob.title).toBe("Desarrollador de Software");
+    expect(translatedJob.industry_category).toBe("Tecnología");
+    expect(translatedJob.language.required).toEqual(["Inglés"]);
+    expect(translatedJob.language.advantage).toEqual(["Finés"]);
+    expect(translatedJob.skill_type.technical).toEqual(["JavaScript", "React"]);
+    expect(translatedJob.skill_type.domain_specific).toEqual([
+      "Desarrollo Web",
+    ]);
+    expect(translatedJob.responsibilities).toEqual([
+      "Desarrollar software",
+      "Escribir pruebas",
+      "Colaborar con el equipo",
+    ]);
   });
 
   test("supports non-translated reference fields", async () => {
@@ -353,7 +368,7 @@ describe("TranslatedJob Model", () => {
     await TranslatedJob.create({
       job_id: originalJob._id,
       translation_lang: "es",
-      job_title: "Desarrollador",
+      title: "Desarrollador",
     });
 
     // getUntranslatedJobs still returns ALL OriginalJob records

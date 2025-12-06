@@ -152,7 +152,10 @@ describe("Translator Module", () => {
       expect(result).toHaveProperty("industry_category");
       expect(result).toHaveProperty("job_type");
       expect(result).toHaveProperty("language");
+      expect(result).toHaveProperty("experience_level");
+      expect(result).toHaveProperty("education_level");
       expect(result).toHaveProperty("skill_type");
+      expect(result).toHaveProperty("responsibilities");
       expect(result).toHaveProperty("translated_at");
     });
 
