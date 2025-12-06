@@ -29,31 +29,6 @@ const originalJobSchema = new mongoose.Schema(
     },
     responsibilities: { type: [String] },
 
-    // Translations embedded in same document
-    translations: [
-      {
-        lang: { type: String, required: true },
-        title: { type: String },
-        industry_category: { type: String },
-        job_type: { type: [String] },
-        language: {
-          required: { type: [String] },
-          advantage: { type: [String] },
-        },
-        experience_level: { type: String },
-        education_level: { type: [String] },
-        skill_type: {
-          technical: { type: [String] },
-          domain_specific: { type: [String] },
-          certifications: { type: [String] },
-          soft_skills: { type: [String] },
-          other: { type: [String] },
-        },
-        responsibilities: { type: [String] },
-        translated_at: { type: Date, default: Date.now },
-      },
-    ],
-
     _metadata: { type: Object },
   },
   { timestamps: true },
@@ -70,9 +45,6 @@ originalJobSchema.index(
   { createdAt: 1 },
   { expireAfterSeconds: 60 * 60 * 24 * 14 },
 );
-
-// Index for translation language queries
-originalJobSchema.index({ "translations.lang": 1 });
 
 // 🚀 CORRECTED: Full-Text Search Index for $text queries
 originalJobSchema.index(
