@@ -21,6 +21,9 @@ jest.unstable_mockModule("mongoose", () => ({
     Schema: jest.fn().mockImplementation(() => ({
       index: jest.fn(),
       plugin: jest.fn(),
+      Types: {
+        ObjectId: jest.fn(),
+      },
     })),
   },
 }));
@@ -56,6 +59,16 @@ jest.unstable_mockModule("../../db/src/models/OriginalJob.js", () => ({
   },
 }));
 
+// Mock TranslatedJob model
+jest.unstable_mockModule("../../db/src/models/TranslatedJob.js", () => ({
+  default: {},
+}));
+
+// Mock db-utils
+jest.unstable_mockModule("../../db/src/models/db-utils.js", () => ({
+  getUntranslatedJobsFromDB: jest.fn(),
+}));
+
 // Mock dotenv
 jest.unstable_mockModule("dotenv", () => ({
   default: { config: jest.fn() },
@@ -63,13 +76,9 @@ jest.unstable_mockModule("dotenv", () => ({
 }));
 
 // Import AFTER setting up mocks
-const {
-  TARGET_LANGUAGES,
-  translateJob,
-  translateJobToLanguage,
-  connectDB,
-  disconnectDB,
-} = await import("../src/translator.js");
+const { TARGET_LANGUAGES, translateJob, translateJobToLanguage } = await import(
+  "../src/translator.js"
+);
 
 // Sample job data for testing
 const sampleJob = {
