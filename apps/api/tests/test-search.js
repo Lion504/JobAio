@@ -1,35 +1,44 @@
 // test-search.js
 
-// 1. Configuration (Make sure this matches your running server port!)
-const API_URL = "http://localhost:3000/api/jobs/search";
-const SEARCH_TERM = "hoitaja"; // Try terms like "Java", "Nurse", "Chef"
+// 1. Configuration (Matches default API port and route)
+const API_URL = "http://localhost:5001/api/jobs";
+const SEARCH_TERM = "Java"; // Try terms like "Java", "Nurse", "Chef"
 
 async function testSearch() {
   console.log(`🔎 Searching for: "${SEARCH_TERM}"...`);
 
   try {
     // 2. Send the request
-    const response = await fetch(`${API_URL}?term=${SEARCH_TERM}`);
+    // API uses 'search' query param for general text search
+    const response = await fetch(`${API_URL}?search=${SEARCH_TERM}`);
 
     if (!response.ok) {
       throw new Error(`HTTP Error! Status: ${response.status}`);
     }
 
-    const jobs = await response.json();
+    const data = await response.json();
 
-    console.log(`✅ Found ${jobs.length} jobs.\n`);
+    // 3. Handle response format { count, jobs, source, search }
+    const jobs = data.jobs || [];
+
+    console.log(`✅ Found ${jobs.length} jobs (Source: ${data.source}).\n`);
     console.log("--- TOP RESULTS (Ranked by Score) ---");
 
-    // 3. Display results to verify ranking
+    // 4. Display results to verify ranking
     jobs.slice(0, 5).forEach((job, index) => {
       console.log(`#${index + 1}: ${job.title}`);
-      console.log(`    Score: ${job.score}`); // This proves the aggregation works!
-      console.log(`    Posted: ${job.createdAt}`);
+      // Score might not be present in all response types, check if it exists
+      if (job.score !== undefined) {
+        console.log(`    Score: ${job.score}`);
+      }
+      console.log(`    Company: ${job.company}`);
+      console.log(`    Location: ${job.location}`);
       console.log("-------------------------------------");
     });
   } catch (error) {
     console.error("❌ Test Failed:", error.message);
-    console.error("Hint: Is your server running?");
+    if (error.cause) console.error("Cause:", error.cause);
+    console.error("Hint: Is your server running on port 5001?");
   }
 }
 
