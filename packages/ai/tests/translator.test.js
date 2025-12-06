@@ -121,15 +121,7 @@ describe("Translator Module", () => {
     });
 
     it("should include expected languages", () => {
-      expect(TARGET_LANGUAGES).toEqual([
-        "es",
-        "fr",
-        "pt",
-        "de",
-        "ur",
-        "ta",
-        "zh",
-      ]);
+      expect(TARGET_LANGUAGES).toEqual(["es", "zh"]);
     });
   });
 
