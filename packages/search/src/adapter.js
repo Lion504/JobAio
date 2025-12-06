@@ -6,17 +6,18 @@ import { expandQueryWithSynonyms } from "../../ai/src/embeddings.js";
 export async function rankedJobSearch(terms, filters = {}) {
   // Expand query with semantically similar terms using Gemini
   let searchTerms = terms;
-  try {
-    const expandedTerms = await expandQueryWithSynonyms(terms);
-    searchTerms = expandedTerms.join(" ");
-    console.log(
-      `🔍 Expanded search "${terms}" to: ${expandedTerms.join(", ")}`,
-    );
-  } catch (error) {
-    console.warn(`Query expansion failed, using original: ${error.message}`);
-    searchTerms = terms;
+  if (terms && terms.trim()) {
+    try {
+      const expandedTerms = await expandQueryWithSynonyms(terms);
+      searchTerms = expandedTerms.join(" ");
+      console.log(
+        `🔍 Expanded search "${terms}" to: ${expandedTerms.join(", ")}`,
+      );
+    } catch (error) {
+      console.warn(`Query expansion failed, using original: ${error.message}`);
+      searchTerms = terms;
+    }
   }
-
   const searchTerm = (searchTerms || "").trim();
   const hasSearchTerm = searchTerm.length > 0;
 

@@ -49,7 +49,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
       try {
         setIsLoadingSuggestions(true)
         const res = await fetch(
-          `http://localhost:5001/api/jobs?search=${encodeURIComponent(searchQuery)}`,
+          `http://localhost:5001/api/jobs/search?term=${encodeURIComponent(searchQuery)}`,
           { signal: controller.signal }
         )
         if (!res.ok) {

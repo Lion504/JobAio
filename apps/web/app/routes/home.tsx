@@ -25,8 +25,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const search = url.searchParams.get('search')
 
   let apiUrl = 'http://localhost:5001/api/jobs'
+  const params = new URLSearchParams()
   if (search) {
-    apiUrl += `?search=${encodeURIComponent(search)}`
+    // Use semantic search endpoint for search queries
+    apiUrl = 'http://localhost:5001/api/jobs/search'
+    params.append('term', search)
   }
 
   try {
