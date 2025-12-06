@@ -4,20 +4,17 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { JobCard, type Job } from '@/components/job-card'
 
 interface ApiJob {
-  original_job: {
-    title: string
-    description: string
-    industry?: string
-    experience?: string
-    job_original_language?: string
-  }
-  translations: Array<{
-    translation_language: string
-    title: string
-    description: string
-  }>
-  languageMatch?: boolean
+  _id: string
+  title: string
+  company: string
+  location: string
+  url: string
+  job_type: string[]
+  publish_date: string
+  description: string
+  industry_category: string
 }
+
 interface ApiResponse {
   count: number
   jobs: ApiJob[]
@@ -39,7 +36,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const result: ApiResponse = await res.json()
     const data = result.jobs || []
 
-    const jobs: Job[] = data.map((job: any, index) => ({
+    const jobs: Job[] = data.map((job, index) => ({
       id: job._id || String(index),
       title: job.title || 'Untitled',
       company: job.company || 'Unknown Company',
