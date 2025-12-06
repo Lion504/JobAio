@@ -2,7 +2,8 @@
 
 // 1. Configuration (Matches default API port and route)
 const API_URL = "http://localhost:5001/api/jobs";
-const SEARCH_TERM = "Java"; // Try terms like "Java", "Nurse", "Chef"
+//const SEARCH_TERM = "IT service development"; 
+const SEARCH_TERM = "Helsinki"; 
 
 async function testSearch() {
   console.log(`🔎 Searching for: "${SEARCH_TERM}"...`);

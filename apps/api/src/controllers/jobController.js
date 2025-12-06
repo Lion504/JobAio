@@ -87,17 +87,39 @@ export const createJobsBulkController = async (req, res, next) => {
 // GET /api/jobs
 export const getAllJobsController = async (req, res, next) => {
   try {
-    const { search, q } = req.query;
+    const {
+      search,
+      q,
+      location,
+      job_type,
+      experience_level,
+      company,
+      industry_category,
+      required_language,
+      education_level,
+    } = req.query;
+
     const searchTerm = search || q;
 
-    let jobs;
-    if (searchTerm) {
-      jobs = await rankedJobSearch(searchTerm);
-    } else {
-      jobs = await findAllJobs();
-    }
+    const filters = {
+      location,
+      job_type,
+      experience_level,
+      company,
+      industry_category,
+      required_language,
+      education_level,
+    };
 
-    return res.status(200).json(jobs);
+    // Use rankedJobSearch for both search and filtering
+    const jobs = await rankedJobSearch(searchTerm || "", filters);
+
+    return res.status(200).json({
+      count: jobs.length,
+      jobs: jobs,
+      source: "mongodb",
+      search: searchTerm || null,
+    });
   } catch (error) {
     next(error);
   }
