@@ -321,7 +321,7 @@ def main():
     print("\n🔬 [4/5] Analyzing jobs with hybrid engine...")
     try:
         analyzer = HybridJobAnalyzer()
-        analyzed_jobs = analyzer.analyze_batch(translated_jobs)
+        analyzed_jobs = analyzer.analyze_batch(categorized_jobs)
 
         # Validate the analyzed jobs
         if not analyzed_jobs or len(analyzed_jobs) == 0:
