@@ -1,11 +1,23 @@
-// packages/search/src/adapter.js
-
+// Search adapter/controller for job queries
 import OriginalJob from "../../db/src/models/OriginalJob.js";
 import TranslatedJob from "../../db/src/models/TranslatedJob.js"; // not used yet, but ready
+import { expandQueryWithSynonyms } from "../../ai/src/embeddings.js";
 
 export async function rankedJobSearch(terms, filters = {}) {
+  // Expand query with semantically similar terms using Gemini
+  let searchTerms = terms;
+  try {
+    const expandedTerms = await expandQueryWithSynonyms(terms);
+    searchTerms = expandedTerms.join(" ");
+    console.log(
+      `🔍 Expanded search "${terms}" to: ${expandedTerms.join(", ")}`,
+    );
+  } catch (error) {
+    console.warn(`Query expansion failed, using original: ${error.message}`);
+    searchTerms = terms;
+  }
 
-  const searchTerm = (terms || '').trim();
+  const searchTerm = (searchTerms || "").trim();
   const hasSearchTerm = searchTerm.length > 0;
 
   //Empty object for filter criteria
@@ -33,11 +45,17 @@ export async function rankedJobSearch(terms, filters = {}) {
   }
 
   if (filters.industry_category) {
-    filterCriteria.industry_category = new RegExp(filters.industry_category, "i");
+    filterCriteria.industry_category = new RegExp(
+      filters.industry_category,
+      "i",
+    );
   }
 
   if (filters.required_language) {
-    filterCriteria["language.required"] = new RegExp(filters.required_language, "i");
+    filterCriteria["language.required"] = new RegExp(
+      filters.required_language,
+      "i",
+    );
   }
 
   if (filters.education_level) {
@@ -55,25 +73,27 @@ export async function rankedJobSearch(terms, filters = {}) {
 
   // Filtering
   pipeline.push({
-    $match : {
-      $and: matchConditions
-    }
+    $match: {
+      $and: matchConditions,
+    },
   });
 
-  // Scoring: only scores is a searche term exists
+  // Scoring: only scores if a search term exists
   if (hasSearchTerm) {
     pipeline.push({
-      $addFields:{
-        score: { $meta: "textScore" }
-      }
+      $addFields: {
+        score: { $meta: "textScore" },
+      },
     });
   }
 
   // Sorting
-  const sortCriteria = hasSearchTerm ? { score: -1, createdAt: -1 } : { createdAt: -1 };
+  const sortCriteria = hasSearchTerm
+    ? { score: -1, createdAt: -1 }
+    : { createdAt: -1 };
 
   pipeline.push({
-    $sort : sortCriteria
+    $sort: sortCriteria,
   });
 
   const jobs = await OriginalJob.aggregate(pipeline);

@@ -22,6 +22,7 @@ const jobSchema = new mongoose.Schema(
 );
 
 jobSchema.index(
+jobSchema.index(
   //Fields to index
   {
     title: "text",
