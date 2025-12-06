@@ -5,24 +5,29 @@ const TranslatedJobSchema = new mongoose.Schema(
     job_id: { type: mongoose.Schema.Types.ObjectId, ref: "OriginalJob" },
     translation_lang: String,
 
-    // Non-translated fields (copied from OriginalJob)
+    // Core translated fields (matching OriginalJob structure)
+    title: { type: String, index: true },
     url: String,
-    company: String,
-    location: String,
-    publish_date: String,
+    company: { type: String, index: true },
+    location: { type: String, index: true },
+    publish_date: { type: String, index: true },
     source: String,
-
-    // Translated fields
-    job_description: String,
-    skill_types: String,
-    responsibilities: String,
-    other: String,
-    advantages: String,
-    job_title: String,
-    job_category: String,
-    job_type: String,
-    language_required: String,
-    experience_level: String,
+    industry_category: { type: String, index: true },
+    job_type: { type: [String], index: true },
+    language: {
+      required: { type: [String], index: true },
+      advantage: { type: [String], index: true },
+    },
+    experience_level: { type: String, index: true },
+    education_level: { type: [String], index: true },
+    skill_type: {
+      technical: { type: [String] },
+      domain_specific: { type: [String] },
+      certifications: { type: [String] },
+      soft_skills: { type: [String] },
+      other: { type: [String] },
+    },
+    responsibilities: { type: [String] },
   },
   { timestamps: true },
 );
