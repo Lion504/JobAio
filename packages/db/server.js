@@ -14,7 +14,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use("/api/jobs", jobRoutes);
 
 mongoose
-  .connect(process.env.MONGO_URL)
+  .connect(process.env.MONGODB_URI)
   .then(() => {
     app.listen(process.env.PORT, () => {
       console.log("Connected to DB & listening on port", process.env.PORT);
