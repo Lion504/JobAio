@@ -1,9 +1,20 @@
 // Search adapter/controller for job queries
 import Job from "../../db/src/models/jobModel.js";
+import { expandQueryWithSynonyms } from "../../ai/src/embeddings.js";
 
 async function rankedJobSearch(terms, filters = {}) {
-  //Case insensitive search term
-  //const expression = new RegExp(terms, "i");
+  // Expand query with semantically similar terms using Gemini
+  let searchTerms = terms;
+  try {
+    const expandedTerms = await expandQueryWithSynonyms(terms);
+    searchTerms = expandedTerms.join(" ");
+    console.log(
+      `🔍 Expanded search "${terms}" to: ${expandedTerms.join(", ")}`,
+    );
+  } catch (error) {
+    console.warn(`Query expansion failed, using original: ${error.message}`);
+    searchTerms = terms;
+  }
 
   //Empty object for filter criteria
   const filterCriteria = {};
@@ -28,6 +39,25 @@ async function rankedJobSearch(terms, filters = {}) {
     //Case insensitive
     filterCriteria.company = new RegExp(filters.company, "i");
   }
+
+  if (filters.industry_category) {
+    filterCriteria.industry_category = new RegExp(
+      filters.industry_category,
+      "i",
+    );
+  }
+
+  if (filters.required_language) {
+    filterCriteria["language.required"] = new RegExp(
+      filters.required_language,
+      "i",
+    );
+  }
+
+  if (filters.education_level) {
+    filterCriteria.education_level = new RegExp(filters.education_level, "i");
+  }
+
   // //Helper function to score array fields
   // const scoreArray = (fieldPath, points) => ({
   //   $cond: [
