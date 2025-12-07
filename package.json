@@ -11,6 +11,7 @@
     "dev:web": "pnpm --filter @jobaio/web dev",
     "dev:api": "pnpm --filter @jobaio/api dev",
     "dev:scraper": "pnpm --filter @jobaio/scraper-py run run",
+    "jobs": "cd apps/scraper-py && call venv\\Scripts\\python.exe src/main.py",
     "build": "echo 'Add build script later'",
     "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:ai": "pnpm --filter @jobaio/ai test",
