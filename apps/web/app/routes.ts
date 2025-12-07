@@ -12,5 +12,6 @@ export default [
     route('signup', 'routes/signup.tsx'),
     route('saved', 'routes/saved.tsx'),
     route('preferences', 'routes/preferences.tsx'),
+    route('*', 'routes/not-found.tsx'),
   ]),
 ] satisfies RouteConfig
