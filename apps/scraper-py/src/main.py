@@ -403,7 +403,7 @@ def main():
                 print(f"❌ Insert original jobs failed: {result.stderr}")
                 print("   Continuing with pipeline...")
             else:
-                print(f"✅ Original jobs insertion complete")
+                print("✅ Original jobs insertion complete")
 
     except Exception as e:
         print(f"❌ Insert original jobs failed: {e}")
@@ -443,7 +443,7 @@ def main():
                 print(f"❌ Translation failed: {result.stderr}")
                 print("   Continuing with pipeline...")
             else:
-                print(f"✅ Translation complete")
+                print("✅ Translation complete")
 
     except Exception as e:
         print(f"❌ Translation failed: {e}")
@@ -485,8 +485,8 @@ def main():
                 print(f"❌ Insert translated jobs failed: {result.stderr}")
                 print("   Pipeline finished with errors")
             else:
-                print(f"✅ Translated jobs insertion complete")
-                print(f"🎉 Full pipeline complete!")
+                print("✅ Translated jobs insertion complete")
+                print("🎉 Full pipeline complete!")
 
     except Exception as e:
         print(f"❌ Insert translated jobs failed: {e}")
