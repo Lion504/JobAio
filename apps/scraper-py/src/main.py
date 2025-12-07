@@ -435,7 +435,7 @@ def main():
                 capture_output=False,
                 text=True,
                 encoding="utf-8",
-                timeout=600,  # 10 minute timeout for translation
+                timeout=3000,  # 30 minute timeout for translation
                 cwd=translator_script.parent,
             )
 
