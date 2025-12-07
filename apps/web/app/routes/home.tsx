@@ -11,8 +11,24 @@ interface ApiJob {
   url: string
   job_type: string[]
   publish_date: string
+  updatedAt?: string
   description: string
   industry_category: string
+  experience_level?: string
+  education_level?: string[]
+  language?: {
+    required?: string[]
+    advantage?: string[]
+  }
+  responsibilities?: string[]
+  skill_type?: {
+    technical?: string[]
+    domain_specific?: string[]
+    certifications?: string[]
+    soft_skills?: string[]
+    other?: string[]
+  }
+  source?: string
 }
 
 interface ApiResponse {
@@ -35,9 +51,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   )
 
   if (search) {
-    // Use semantic search endpoint for search queries
-    apiUrl = 'http://localhost:5001/api/jobs/search'
-    params.append('term', search)
+    apiUrl.searchParams.append('term', search)
   }
 
   try {
@@ -55,11 +69,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
       link: job.url || '',
       salary: 'Competitive',
       type: job.job_type?.[0] || 'Full-time',
+      jobTypes: job.job_type || [],
+      experienceLevel: job.experience_level || 'Not specified',
+      educationLevels: job.education_level || [],
+      languagesRequired: job.language?.required || [],
+      languagesAdvantage: job.language?.advantage || [],
+      responsibilities: job.responsibilities || [],
+      skillType: {
+        technical: job.skill_type?.technical || [],
+        domainSpecific: job.skill_type?.domain_specific || [],
+        certifications: job.skill_type?.certifications || [],
+        softSkills: job.skill_type?.soft_skills || [],
+        other: job.skill_type?.other || [],
+      },
+      industryCategory: job.industry_category || '',
       postedAt: job.publish_date || new Date().toLocaleDateString(),
+      updatedAt: job.updatedAt || '',
       description: job.description || '',
+      source: job.source || '',
       tags: job.industry_category ? [job.industry_category] : [],
     }))
-
     return { jobs }
   } catch (error) {
     console.error('Error loading jobs:', error)
