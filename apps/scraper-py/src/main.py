@@ -392,10 +392,10 @@ def main():
 
             result = subprocess.run(
                 node_cmd,
-                capture_output=True,
+                capture_output=False,
                 text=True,
                 encoding="utf-8",
-                timeout=600,  # 10 minute timeout as requested
+                timeout=1200,  # 20 minute timeout as requested
                 cwd=insert_original_script.parent,
             )
 
