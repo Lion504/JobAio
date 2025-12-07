@@ -47,6 +47,9 @@ def main():
         "  →  🏷️ Step 3: Categorize by industry"
         "  →  🔬 Step 4: Analyze jobs"
         "  →  💾 Step 5: Save results"
+        "  →  🗄️ Step 6: Insert original jobs to database"
+        "  →  🌍 Step 7: Translate jobs to multiple languages"
+        "  →  🗃️ Step 8: Insert translated jobs to database"
     )
     print("=" * 70)
 
@@ -365,6 +368,129 @@ def main():
     except Exception as e:
         print(f"❌ Failed to save results: {e}")
         return
+
+    # Step 6: Insert original jobs to database
+    print("\n🗄️ [6/8] Inserting original jobs to database...")
+    try:
+        # Resolve path to Node.js insert original script
+        insert_original_script = (
+            project_root.parent.parent.parent
+            / "packages"
+            / "db"
+            / "src"
+            / "insert-original.js"
+        )
+        insert_original_script = Path(insert_original_script).resolve()
+
+        # Check script availability
+        if not insert_original_script.exists():
+            print(f"❌ Insert original script not found at {insert_original_script}")
+            print("   Continuing with pipeline...")
+        else:
+            # Run Node.js script
+            node_cmd = ["node", str(insert_original_script)]
+
+            result = subprocess.run(
+                node_cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=600,  # 10 minute timeout as requested
+                cwd=insert_original_script.parent,
+            )
+
+            if result.returncode != 0:
+                print(f"❌ Insert original jobs failed: {result.stderr}")
+                print("   Continuing with pipeline...")
+            else:
+                print(f"✅ Original jobs insertion complete")
+
+    except Exception as e:
+        print(f"❌ Insert original jobs failed: {e}")
+        print("   Continuing with pipeline...")
+
+    # Step 7: Translate jobs to multiple languages
+    print("\n🌍 [7/8] Translating jobs to multiple languages...")
+    try:
+        # Resolve path to Node.js translator script
+        translator_script = (
+            project_root.parent.parent.parent
+            / "packages"
+            / "ai"
+            / "src"
+            / "translator.js"
+        )
+        translator_script = Path(translator_script).resolve()
+
+        # Check script availability
+        if not translator_script.exists():
+            print(f"❌ Translator script not found at {translator_script}")
+            print("   Continuing with pipeline...")
+        else:
+            # Run Node.js script
+            node_cmd = ["node", str(translator_script)]
+
+            result = subprocess.run(
+                node_cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=600,  # 10 minute timeout for translation
+                cwd=translator_script.parent,
+            )
+
+            if result.returncode != 0:
+                print(f"❌ Translation failed: {result.stderr}")
+                print("   Continuing with pipeline...")
+            else:
+                print(f"✅ Translation complete")
+
+    except Exception as e:
+        print(f"❌ Translation failed: {e}")
+        print("   Continuing with pipeline...")
+
+    # Step 8: Insert translated jobs to database
+    print("\n🗃️ [8/8] Inserting translated jobs to database...")
+    try:
+        # Resolve path to Node.js insert translated script
+        insert_translated_script = (
+            project_root.parent.parent.parent
+            / "packages"
+            / "db"
+            / "src"
+            / "insert-translated.js"
+        )
+        insert_translated_script = Path(insert_translated_script).resolve()
+
+        # Check script availability
+        if not insert_translated_script.exists():
+            print(
+                f"❌ Insert translated script not found at {insert_translated_script}"
+            )
+            print("   Pipeline finished with warnings")
+        else:
+            # Run Node.js script
+            node_cmd = ["node", str(insert_translated_script)]
+
+            result = subprocess.run(
+                node_cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=300,  # 5 minute timeout for insert translated
+                cwd=insert_translated_script.parent,
+            )
+
+            if result.returncode != 0:
+                print(f"❌ Insert translated jobs failed: {result.stderr}")
+                print("   Pipeline finished with errors")
+            else:
+                print(f"✅ Translated jobs insertion complete")
+                print(f"🎉 Full pipeline complete!")
+
+    except Exception as e:
+        print(f"❌ Insert translated jobs failed: {e}")
+        print("   Pipeline finished with errors")
 
 
 if __name__ == "__main__":
