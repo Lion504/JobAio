@@ -24,8 +24,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const search = url.searchParams.get('search')
 
-  let apiUrl = 'http://localhost:5001/api/jobs'
-  const params = new URLSearchParams()
+  const backendEndpoint = import.meta.env.WEB_APP_BACKEND_ENDPOINT
+  if (!backendEndpoint) {
+    throw new Error('WEB_APP_BACKEND_ENDPOINT is not set')
+  }
+
+  const apiUrl = new URL(
+    search ? '/api/jobs/search' : '/api/jobs',
+    backendEndpoint
+  )
+
   if (search) {
     // Use semantic search endpoint for search queries
     apiUrl = 'http://localhost:5001/api/jobs/search'
