@@ -392,7 +392,7 @@ def main():
 
             result = subprocess.run(
                 node_cmd,
-                capture_output=False,
+                capture_output=True,
                 text=True,
                 encoding="utf-8",
                 timeout=1200,  # 20 minute timeout as requested
@@ -432,7 +432,7 @@ def main():
 
             result = subprocess.run(
                 node_cmd,
-                capture_output=True,
+                capture_output=False,
                 text=True,
                 encoding="utf-8",
                 timeout=600,  # 10 minute timeout for translation
