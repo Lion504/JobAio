@@ -5,7 +5,7 @@
 
 `OriginalJob` represents a single job entry used in POST (create), PUT (update), and returned in GET responses.
 
-### Fields (bullet list)
+### Fields:
 - **title** (string)
   - Description: Job title.
   - Indexing: B-Tree + Text (weight 10)
