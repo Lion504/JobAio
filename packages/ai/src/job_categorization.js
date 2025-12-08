@@ -150,31 +150,14 @@ async function processBatch(
   return results;
 }
 
-/**
- * Call Gemini API with minimal prompt for fast categorization
- * @param {string} prompt - The prompt to send
- * @param {number} maxTokens - Maximum tokens for response
- * @returns {Promise<string>} - Generated text
- */
-async function callGemini(prompt, maxTokens = 20) {
-  const result = await genAI.models.generateContent({
-    model: process.env.GEMINI_MODEL_NAME,
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: {
-      maxOutputTokens: maxTokens,
-      temperature: 0.1,
-    },
-  });
-  return result.text?.trim() || "";
-}
+
 
 /**
  * Categorize a company by its name
  * @param {string} companyName - The company name to categorize
- * @param {number} retries - Number of retries on failure
  * @returns {Promise<{category: string, cached: boolean}>}
  */
-async function categorizeByCompany(companyName, retries = 2) {
+async function categorizeByCompany(companyName) {
   // Handle empty/missing company name
   if (!companyName || companyName.trim() === "" || companyName === "N/A") {
     return { category: "Other", cached: false };
@@ -187,44 +170,82 @@ async function categorizeByCompany(companyName, retries = 2) {
     return { category: companyCache.get(normalizedName), cached: true };
   }
 
+  // by this way we can reduce the number of API calls.
+  await categorizeCompaniesBatch([companyName]);
+
+  // Check cache again
+  if (companyCache.has(normalizedName)) {
+    return { category: companyCache.get(normalizedName), cached: false };
+  }
+
+  return { category: "Other", cached: false };
+}
+
+/**
+ * Batch categorize a list of companies in one API call
+ * @param {Array<string>} companies - List of company names
+ */
+async function categorizeCompaniesBatch(companies) {
+  if (companies.length === 0) return;
+
+  console.log(`Batch categorizing ${companies.length} companies...`);
+
+  const prompt = `
+  You are an expert industry classifier.
+  Classify the following companies into exactly ONE of these categories:
+  ${INDUSTRY_CATEGORIES.join(", ")}
+
+  Companies to classify:
+  ${JSON.stringify(companies)}
+
+  Instructions:
+  1. Analyze each company name.
+  2. Assign the most appropriate category from the list above.
+  3. If unsure or not found, use "Other".
+  4. Return a strictly valid JSON object where keys are the exact company names provided and values are the categories.
+  5. Do NOT include markdown formatting (like \`\`\`json), just the raw JSON string.
+  `;
+
   try {
-    const prompt = `Categorize this company into ONE industry category.
-Company: ${companyName}
-Categories: ${INDUSTRY_CATEGORIES.join(", ")}
-Return only the category name, nothing else.`;
+    // Increase token limit for batch response
+    const result = await genAI.models.generateContent({
+      model: process.env.GEMINI_MODEL_NAME,
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        maxOutputTokens: 8192, // this can be higher
+        temperature: 0.1,
+      },
+    });
 
-    const response = await callGemini(prompt, 20);
+    const text = result.text;
+    // Clean up potential markdown code blocks if present
+    const jsonStr = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    
+    const mappings = JSON.parse(jsonStr);
 
-    // Validate response against known categories
-    let category = response.trim();
-
-    // Find matching category (case-insensitive)
-    const matchedCategory = INDUSTRY_CATEGORIES.find(
-      (c) => c.toLowerCase() === category.toLowerCase(),
-    );
-
-    category = matchedCategory || "Other";
-
-    // Cache the result
-    companyCache.set(normalizedName, category);
-
-    return { category, cached: false };
-  } catch (error) {
-    if (retries > 0) {
-      console.error(
-        `Categorization failed for "${companyName}", retrying... (${retries} retries left)`,
+    let matchCount = 0;
+    // Update cache
+    for (const [company, category] of Object.entries(mappings)) {
+      const normalizedName = company.trim().toLowerCase();
+      
+      // Validate category
+      const matchedCategory = INDUSTRY_CATEGORIES.find(
+        (c) => c.toLowerCase() === category.toLowerCase(),
       );
-      await new Promise((r) => setTimeout(r, 1000));
-      return categorizeByCompany(companyName, retries - 1);
+      
+      companyCache.set(normalizedName, matchedCategory || "Other");
+      matchCount++;
     }
+    console.log(`  ✓ Successfully cached ${matchCount} new companies from batch`);
 
-    console.error(`Categorization failed for "${companyName}":`, error.message);
-    return { category: "Other", cached: false };
+  } catch (err) {
+    console.error("  ✗ Batch categorization failed:", err.message);
+    // Fallback: processed individually later if not in cache, or assigned 'Other' by processJob logic
   }
 }
 
 /**
- * Batch categorize jobs by company name with parallel processing
+ * Batch categorize jobs by company name with parallel processing optimization
  * @param {Array} jobs
  * @param {number} concurrency
  * @returns {Promise<Array>}
@@ -234,12 +255,41 @@ export async function categorizeJobs(jobs, concurrency = 10) {
   let apiCallCount = 0;
 
   console.log(
-    `Categorizing ${jobs.length} jobs by company (concurrency: ${concurrency})...`,
+    `Categorizing ${jobs.length} jobs by company...`,
   );
 
-  // Process a single job
+  // --- Pre-process unknown companies in batches ---
+  const uniqueCompanies = [...new Set(jobs.map(j => j.company).filter(c => c && c.trim() !== '' && c !== 'N/A'))];
+  
+  // Identify which companies are NOT in cache
+  const unknownCompanies = uniqueCompanies.filter(c => !companyCache.has(c.trim().toLowerCase()));
+
+  if (unknownCompanies.length > 0) {
+    console.log(`Found ${unknownCompanies.length} unique companies not in cache.`);
+    
+    // Process in batches of 100
+    const BATCH_SIZE = 100; // this can be higher
+    for (let i = 0; i < unknownCompanies.length; i += BATCH_SIZE) {
+      const batch = unknownCompanies.slice(i, i + BATCH_SIZE);
+      await categorizeCompaniesBatch(batch);
+      
+      // Small delay between batches to be nice to API
+      if (i + BATCH_SIZE < unknownCompanies.length) {
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+    
+    // Save cache immediately after batch learning
+    saveCache(companyCache);
+  } else {
+    console.log("All companies already in cache!");
+  }
+  // --- END ---
+
+  // Process a single job (now mostly cache hits)
   const processJob = async (job) => {
     try {
+      // This will now likely hit the cache because we pre-warmed it
       const { category, cached } = await categorizeByCompany(job.company);
 
       if (cached) {
@@ -261,7 +311,6 @@ export async function categorizeJobs(jobs, concurrency = 10) {
         },
       };
     } catch (error) {
-      // On error, add job with "Other" category
       return {
         ...job,
         industry_category: "Other",
@@ -277,19 +326,20 @@ export async function categorizeJobs(jobs, concurrency = 10) {
     }
   };
 
-  // Process jobs in parallel batches
+  // Process jobs in parallel batches (fast since mostly cache memory lookups)
   const categorizedJobs = await processBatch(
     jobs,
     processJob,
-    concurrency,
-    100,
+    concurrency, // Can probably increase concurrency now, but 100 is enough
+    100, // 100 jobs per batch
+    10, // 10ms delay between batches 
   );
 
   // Save cache to disk after processing
   saveCache(companyCache);
 
   console.log(
-    `Categorization complete: ${apiCallCount} API calls, ${cachedCount} cached`,
+    `Categorization complete: ${apiCallCount} API calls, ${cachedCount} using cache/batch-cache`,
   );
 
   return categorizedJobs;
