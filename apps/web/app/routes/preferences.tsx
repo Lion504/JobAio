@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useEffect, useState } from 'react'
 import { MultiSelect } from '@/components/ui/multi-select'
@@ -26,6 +27,7 @@ type PreferencesState = {
   languages: string[]
   location: string[]
   interfaceLanguage: string
+  aiSearchEnabled: boolean
 }
 
 const defaultPreferences: PreferencesState = {
@@ -34,9 +36,19 @@ const defaultPreferences: PreferencesState = {
   languages: [],
   location: [],
   interfaceLanguage: 'en',
+  aiSearchEnabled: true,
 }
 
 const STORAGE_KEY = 'jobaio-preferences'
+
+const interfaceLanguageOptions = [
+  { label: 'English', value: 'en' },
+  { label: 'Finnish', value: 'fi' },
+  { label: 'Swedish', value: 'sv' },
+  { label: 'Spanish', value: 'es' },
+  { label: 'French', value: 'fr' },
+  { label: 'German', value: 'de' },
+]
 
 function normalizeLocationPreference(
   value: string[] | string | undefined,
@@ -140,6 +152,9 @@ export default function Preferences() {
   useEffect(() => {
     if (!isInitialized) return
     localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences))
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('preferences-updated'))
+    }
   }, [preferences, isInitialized])
 
   const updatePreferences = (updates: Partial<PreferencesState>) => {
@@ -246,11 +261,29 @@ export default function Preferences() {
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="fi">Finnish</SelectItem>
-                    <SelectItem value="sv">Swedish</SelectItem>
+                    {interfaceLanguageOptions.map((lang) => (
+                      <SelectItem key={lang.value} value={lang.value}>
+                        {lang.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="ai-search">AI-Enhanced Search</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Automatically expand search queries with related
+                    technologies and job titles for better results.
+                  </p>
+                </div>
+                <Switch
+                  id="ai-search"
+                  checked={preferences.aiSearchEnabled}
+                  onCheckedChange={(checked: boolean) =>
+                    updatePreferences({ aiSearchEnabled: checked })
+                  }
+                />
               </div>
             </CardContent>
           </Card>

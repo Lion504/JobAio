@@ -1,5 +1,10 @@
 import OriginalJob from "../../../../packages/db/src/models/OriginalJob.js";
-import { rankedJobSearch } from "../../../../packages/search/src/adapter.js";
+import {
+  rankedJobSearch,
+  quickSuggestionSearch,
+  applyTranslations,
+  getJobById,
+} from "../../../../packages/search/src/adapter.js";
 
 function normalizeScrapedJob(raw) {
   return {
@@ -82,95 +87,95 @@ export const createJobsBulkController = async (req, res, next) => {
 };
 
 // GET /api/jobs
+// Supports: ?q=searchTerm&filters={"location":"Helsinki"}&lang=fi&ai=true
 export const getAllJobsController = async (req, res, next) => {
   try {
-    const {
-      search,
-      q,
-      location,
-      job_type,
-      experience_level,
-      company,
-      industry_category,
-      required_language,
-      education_level,
-    } = req.query;
+    const { q, filters: filtersParam, lang, ai } = req.query;
 
-    const searchTerm = search || q;
+    const searchTerm = (q || "").trim();
 
-    const filters = {
-      location,
-      job_type,
-      experience_level,
-      company,
-      industry_category,
-      required_language,
-      education_level,
-    };
+    let filters = {};
+    if (filtersParam) {
+      try {
+        filters = JSON.parse(filtersParam);
+      } catch (parseError) {
+        console.error("failed to parse filters:", filtersParam, parseError);
+        return res.status(400).json({ error: "Invalid filters JSON format" });
+      }
+    }
+
+    const useAI = ai === "true";
 
     // Use rankedJobSearch for both search and filtering
-    const jobs = await rankedJobSearch(searchTerm || "", filters);
+    const { jobs: rawJobs, expandedSearchTerm } = await rankedJobSearch(
+      searchTerm,
+      filters,
+      useAI,
+    );
+    let jobs = rawJobs;
+    if (lang) {
+      jobs = await applyTranslations(jobs, lang);
+    }
 
     return res.status(200).json({
       count: jobs.length,
       jobs: jobs,
-      source: "mongodb",
-      search: searchTerm || null,
+      search:
+        useAI && expandedSearchTerm ? expandedSearchTerm : searchTerm || null,
+      originalSearch: searchTerm || null,
+      filters: filters,
+      lang: lang || "en",
+      ai: useAI,
     });
   } catch (error) {
     next(error);
   }
 };
 
-//GET /api/jobs/search?term=someTerm
-export const searchJobsController = async (req, res, next) => {
-  //Get the parameter from the request
-  const {
-    term,
-    location,
-    job_type,
-    experience_level,
-    company,
-    industry_category,
-    required_language,
-    education_level,
-  } = req.query;
-
-  const searchTerm = (term || "").trim();
-
-  const filters = {
-    location,
-    job_type,
-    experience_level,
-    company,
-    industry_category,
-    required_language,
-    education_level,
-  };
-
-  // Check if any filter value is non-empty
-  const hasFilters = Object.values(filters).some(
-    (value) => value && value.length > 0,
-  );
-
-  // Validation allows filter-only search
-  if (searchTerm.length === 0 && !hasFilters) {
-    return res
-      .status(400)
-      .json({ message: "Provide a search term or at least one filter." });
-  }
-
+// GET /api/jobs/suggestions?q=searchTerm&lang=fi
+// Fast autocomplete endpoint - no AI, minimal fields, optional translation
+export const getSuggestionsController = async (req, res, next) => {
   try {
-    const jobs = await rankedJobSearch(searchTerm, filters);
+    const { q, limit, lang } = req.query;
 
-    if (!jobs || jobs.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No jobs found matching the given parameters" });
+    const searchTerm = (q || "").trim();
+
+    if (searchTerm.length === 0) {
+      return res.status(400).json({ error: "query parameter 'q' is required" });
     }
 
-    return res.status(200).json(jobs);
+    const maxLimit = Math.min(parseInt(limit) || 10, 20); // Cap at 20
+    const suggestions = await quickSuggestionSearch(searchTerm, maxLimit, lang);
+
+    return res.status(200).json({
+      count: suggestions.length,
+      suggestions: suggestions,
+      lang: lang || "en",
+    });
   } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/jobs/:id?lang=fi
+// Get single job by ID with optional translation
+export const getJobByIdController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { lang } = req.query;
+
+    const job = await getJobById(id, lang);
+
+    if (!job) {
+      return res.status(404).json({ error: "Job not found" });
+    }
+
+    return res.status(200).json(job);
+  } catch (error) {
+    // Handle invalid ObjectId format
+    if (error.name === "CastError") {
+      return res.status(400).json({ error: "Invalid job ID format" });
+    }
     next(error);
   }
 };

@@ -25,7 +25,7 @@ const CONFIG = {
 
 // API Key Validation
 if (!process.env.GEMINI_API_KEY) {
-  console.warn("⚠️ GEMINI_API_KEY not set - query expansion will be disabled");
+  console.warn("GEMINI_API_KEY not set - query expansion will be disabled");
 }
 
 // Initialize Gemini API
@@ -68,7 +68,7 @@ function setCachedExpansion(query, terms) {
  */
 export function clearCache() {
   queryCache.clear();
-  console.log("🗑️ Query cache cleared");
+  console.log("Query cache cleared");
 }
 
 /**
@@ -118,7 +118,7 @@ export async function expandQueryWithSynonyms(query) {
   // Check cache first
   const cached = getCachedExpansion(sanitizedQuery);
   if (cached) {
-    console.log(`📦 Cache hit for query "${sanitizedQuery}"`);
+    console.log(`Cache hit for query "${sanitizedQuery}"`);
     return cached;
   }
 
@@ -193,12 +193,107 @@ Examples:
     setCachedExpansion(sanitizedQuery, validTerms);
 
     console.log(
-      `✅ Expanded query "${sanitizedQuery}" to ${validTerms.length} terms`,
+      `Expanded query "${sanitizedQuery}" to ${validTerms.length} terms`,
     );
     return validTerms;
   } catch (error) {
     console.error("Query expansion failed:", error.message);
     return [sanitizedQuery];
+  }
+}
+
+/**
+ * Expand user search query with related technologies, frameworks, and context using Gemini
+ * Returns a rich expanded search string for better job matching
+ * @param {string} query - User's search query
+ * @returns {Promise<{expandedQuery: string, originalQuery: string}>} Expanded query object
+ */
+export async function expandSearchQuery(query) {
+  if (!query || (typeof query === "string" && query.trim() === "")) {
+    return { expandedQuery: query, originalQuery: query };
+  }
+
+  const sanitizedQuery = sanitizeQuery(query);
+  if (!sanitizedQuery) {
+    return { expandedQuery: query, originalQuery: query };
+  }
+
+  const cacheKey = `expanded_${sanitizedQuery.toLowerCase()}`;
+  const cached = queryCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CONFIG.CACHE_TTL_MS) {
+    console.log(`cache hit for expanded query "${sanitizedQuery}"`);
+    return {
+      expandedQuery: cached.expandedQuery,
+      originalQuery: sanitizedQuery,
+    };
+  }
+
+  if (!genAI) {
+    console.warn("Query expansion disabled - no API key");
+    return { expandedQuery: sanitizedQuery, originalQuery: sanitizedQuery };
+  }
+
+  try {
+    const prompt = `You are a job search query expander. Take the user's search query and expand it with relevant technologies, frameworks, job titles, and related skills that would help find matching jobs.
+
+Rules:
+- Return a more descriptive and specific search query related to the job title or alternative names for the role
+- Add relevant technologies, frameworks, tools commonly associated with this role
+- Avoid adding general terms like "manager", "developer", "engineer", "system", "service" that could be too broad or generic
+- Keep it concise (max 7 additional terms)
+- Return ONLY a single line string of space-separated terms, no JSON, no quotes
+- Keep output in SAME LANGUAGE as input
+
+Query: "${sanitizedQuery}"
+
+Examples:
+"web dev" → "web dev web developer frontend backend react nextjs javascript typescript html css full stack"
+"data analyst" → "data analyst data analysis python sql excel tableau power bi analytics business intelligence"
+"kokki" → "kokki keittiömestari ravintolakokki ruoanlaitto keittiö sous chef"
+"UX designer" → "UX designer user experience UI design figma sketch prototype wireframe user research interaction design"
+"devops" → "devops engineer CI/CD kubernetes docker jenkins AWS azure cloud infrastructure automation"
+
+Output:`;
+
+    const result = await genAI.models.generateContent({
+      model: process.env.GEMINI_MODEL_NAME,
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        maxOutputTokens: 200,
+        temperature: 0.3,
+      },
+    });
+
+    const responseText = result.text?.trim();
+    if (!responseText) {
+      console.warn("Empty response from Gemini for query expansion");
+      return { expandedQuery: sanitizedQuery, originalQuery: sanitizedQuery };
+    }
+
+    let expandedQuery = responseText
+      .replace(/^["']|["']$/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!expandedQuery.toLowerCase().startsWith(sanitizedQuery.toLowerCase())) {
+      expandedQuery = `${sanitizedQuery} ${expandedQuery}`;
+    }
+
+    queryCache.set(cacheKey, {
+      expandedQuery,
+      timestamp: Date.now(),
+    });
+
+    if (queryCache.size > CONFIG.MAX_CACHE_SIZE) {
+      const firstKey = queryCache.keys().next().value;
+      queryCache.delete(firstKey);
+    }
+
+    console.log(`expanded query "${sanitizedQuery}" to: "${expandedQuery}"`);
+    return { expandedQuery, originalQuery: sanitizedQuery };
+  } catch (error) {
+    console.error("query expansion failed:", error.message);
+    return { expandedQuery: sanitizedQuery, originalQuery: sanitizedQuery };
   }
 }
 
@@ -239,7 +334,7 @@ export async function expandQueriesBatch(queries) {
     }
   }
 
-  console.log(`✅ Expanded ${results.length} queries`);
+  console.log(`expanded ${results.length} queries`);
   return results;
 }
 
