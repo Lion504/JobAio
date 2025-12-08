@@ -24,134 +24,172 @@ if (!process.env.GEMINI_MODEL_NAME) {
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 /**
- * Simple translation function for title and description only
+ * Batch translate a list of jobs in one API call
+ * @param {Array} jobsBatch - max 20 currently
+ * @returns {Promise<Array>} - List of jobs with translated fields
  */
-async function translateText(
-  text,
-  sourceLang = "auto",
-  targetLang = "en",
-  retries = 3,
-) {
-  if (!text || text.trim() === "") {
-    return text;
-  }
+async function translateBatch(jobsBatch) {
+  if (!jobsBatch || jobsBatch.length === 0) return [];
 
-  const prompt = `Translate the following text from ${sourceLang}
-  to ${targetLang}. Provide only the translated text without
-  any additional comments or formatting:
+  //console.log(`  Writing batch prompt for ${jobsBatch.length} jobs...`);
 
-${text}`;
+  // Prepare minimal input for translation (ID + text fields)
+  const inputForAi = jobsBatch.map((job, index) => ({
+    id: index,
+    title: job.title,
+    description: job.description,
+  }));
+
+  const prompt = `
+  You are a professional translator. 
+  Translate the "title" and "description" fields of the following jobs into English.
+  
+  Rules:
+  1. If the text is already English, keep it as is.
+  2. Return a STRICT JSON array of objects.
+  3. Each object must have: "id", "title", "description".
+  4. Do NOT include markdown formatting (like \`\`\`json). Just raw JSON.
+
+  Input Data:
+  ${JSON.stringify(inputForAi)}
+  `;
 
   try {
-    const response = await ai.models.generateContent({
+    const result = await ai.models.generateContent({
       model: process.env.GEMINI_MODEL_NAME,
+      generationConfig: {
+        responseMimeType: "application/json", // Force JSON
+        temperature: 0.1,
+      },
       contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
 
-    let translatedText = response.text?.trim();
-    if (!translatedText) {
-      console.error(`[translateText] Empty response received`);
-      return text;
-    }
+    const responseText = result.text;
+    const cleanJson = responseText
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+    const translatedData = JSON.parse(cleanJson);
 
-    // Remove any quotes that might wrap the response
-    translatedText = translatedText.replace(/^["']|["']$/g, "");
+    // Map results back to original job objects
+    return jobsBatch.map((originalJob, index) => {
+      const translatedItem = translatedData.find((t) => t.id === index);
 
-    return translatedText;
+      if (translatedItem) {
+        return {
+          ...originalJob,
+          title: translatedItem.title || originalJob.title,
+          description: translatedItem.description || originalJob.description,
+          original_title: originalJob.title,
+          original_description: originalJob.description,
+          _metadata: {
+            ...originalJob._metadata,
+            pretranslation: {
+              completed_at: new Date().toISOString(),
+              method: "batch_v1",
+              source_language: "auto",
+              target_language: "en",
+            },
+          },
+        };
+      } else {
+        // Fallback if item missing in response
+        console.warn(
+          `  ⚠️ Item ${index} missing in batch response, keeping original.`,
+        );
+        return {
+          ...originalJob,
+          _metadata: {
+            ...originalJob._metadata,
+            pretranslation: { error: "missing_in_batch" },
+          },
+        };
+      }
+    });
   } catch (err) {
-    if (retries > 0) {
-      console.error(
-        `Translation failed, retrying in 20s... (${retries} retries left)`,
-      );
-      await new Promise((r) => setTimeout(r, 20000));
-      return translateText(text, sourceLang, targetLang, retries - 1);
-    }
-
-    console.error(`[translateText] Translation failed:`, err.message);
-    return text; // Return original on failure
-  }
-}
-
-/**
- * Translate a single job's title and description to English
- */
-async function translateJob(job) {
-  try {
-    // Store original title and description
-    const originalTitle = job.title;
-    const originalDescription = job.description;
-
-    // Translate title and description to English
-    const translatedTitle = await translateText(job.title);
-    const translatedDescription = await translateText(job.description);
-
-    // Merge back with original non-translated fields
-    return {
-      ...job,
-      title: translatedTitle,
-      description: translatedDescription,
-      original_title: originalTitle,
-      original_description: originalDescription,
-      _metadata: {
-        ...job._metadata,
-        pretranslation: {
-          completed_at: new Date().toISOString(),
-          source_language: "auto",
-          target_language: "en",
-        },
-      },
-    };
-  } catch (error) {
-    // Return original job with error marker
-    return {
+    console.error(`  ❌ Batch translation failed: ${err.message}`);
+    // Fallback: Return originals with error metadata
+    return jobsBatch.map((job) => ({
       ...job,
       _metadata: {
         ...job._metadata,
         pretranslation: {
-          error: error.message,
+          error: err.message,
           failed_at: new Date().toISOString(),
-          source_language: "unknown",
         },
       },
-    };
+    }));
   }
 }
 
 /**
- * Batch translate multiple jobs to English with concurrent processing and rate limiting
+ * Helper to process arrays in parallel with a concurrency limit
+ */
+async function processInParallel(items, concurrency, fn) {
+  const results = [];
+  const executing = [];
+
+  for (const item of items) {
+    const p = fn(item).then((res) => {
+      executing.splice(executing.indexOf(p), 1);
+      return res;
+    });
+
+    results.push(p);
+    executing.push(p);
+
+    if (executing.length >= concurrency) {
+      await Promise.race(executing);
+    }
+  }
+
+  return Promise.all(results);
+}
+
+/**
+ * Batch translate multiple jobs to English with concurrent processing
  */
 export async function pretranslateJobsToEnglish(jobs) {
-  const translatedJobs = [];
-  const BATCH_SIZE = 5; // Process 5 jobs concurrently
-  const BATCH_DELAY = 1000; // 1 second between batches
+  // OPTIMIZATION: Reduced batch size to 10 for faster generation latency
+  // Increased concurrency to 5 to maintain throughput
+  const BATCH_SIZE = 10;
+  const CONCURRENCY = 5;
 
-  console.log(`Processing ${jobs.length} jobs in batches of ${BATCH_SIZE}...`);
+  console.log(
+    `Processing ${jobs.length} jobs with Batch Size ${BATCH_SIZE} and Concurrency ${CONCURRENCY}...`,
+  );
 
-  // Split jobs into batches
+  // Create batches
+  const batches = [];
   for (let i = 0; i < jobs.length; i += BATCH_SIZE) {
-    const batch = jobs.slice(i, i + BATCH_SIZE);
-    const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
-    const totalBatches = Math.ceil(jobs.length / BATCH_SIZE);
-
-    console.log(
-      `Processing batch ${batchNumber}/${totalBatches} (${batch.length} jobs)...`,
-    );
-
-    // Process batch concurrently
-    const batchPromises = batch.map((job) => translateJob(job));
-    const translatedBatch = await Promise.all(batchPromises);
-
-    translatedJobs.push(...translatedBatch);
-    console.log(`✅ Batch ${batchNumber}/${totalBatches} completed`);
-
-    // Rate limiting between batches (except for the last batch)
-    if (i + BATCH_SIZE < jobs.length) {
-      // console.log(`⏳ Waiting ${BATCH_DELAY}ms before next batch...`);
-      await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
-    }
+    batches.push({
+      index: Math.floor(i / BATCH_SIZE) + 1,
+      data: jobs.slice(i, i + BATCH_SIZE),
+    });
   }
 
-  console.log(`✅ All ${translatedJobs.length} jobs processed`);
+  const totalBatches = batches.length;
+  console.log(
+    `Created ${totalBatches} batches. Starting parallel execution...`,
+  );
+
+  const results = await processInParallel(
+    batches,
+    CONCURRENCY,
+    async (batch) => {
+      console.log(
+        `▶️ [Batch ${batch.index}/${totalBatches}] Starting translation for ${batch.data.length} jobs...`,
+      );
+      const batchResult = await translateBatch(batch.data);
+      console.log(`✅ [Batch ${batch.index}/${totalBatches}] Completed.`);
+      return batchResult;
+    },
+  );
+
+  // Flatten results
+  const translatedJobs = results.flat();
+
+  //console.log(`\n✨ All ${translatedJobs.length} jobs processed successfully.`);
   return translatedJobs;
 }
 
@@ -176,8 +214,6 @@ if (process.argv[1]?.endsWith("job_pretranslator.js")) {
       throw new Error("Input file must contain an array of jobs");
     }
 
-    // console.log(`Processing ${jobs.length} jobs...`);
-
     // Process jobs
     const translatedJobs = await pretranslateJobsToEnglish(jobs);
 
@@ -188,9 +224,9 @@ if (process.argv[1]?.endsWith("job_pretranslator.js")) {
       "utf-8",
     );
 
-    console.log(
-      `Successfully wrote ${translatedJobs.length} translated jobs to ${outputFile}`,
-    );
+    //console.log(
+    //  `Successfully wrote ${translatedJobs.length} translated jobs to ${outputFile}`,
+    //);
   } catch (error) {
     console.error("Pretranslation failed:", error.message);
     process.exit(1);
