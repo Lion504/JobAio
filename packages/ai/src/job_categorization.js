@@ -150,8 +150,6 @@ async function processBatch(
   return results;
 }
 
-
-
 /**
  * Categorize a company by its name
  * @param {string} companyName - The company name to categorize
@@ -219,25 +217,29 @@ async function categorizeCompaniesBatch(companies) {
 
     const text = result.text;
     // Clean up potential markdown code blocks if present
-    const jsonStr = text.replace(/```json/g, "").replace(/```/g, "").trim();
-    
+    const jsonStr = text
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
     const mappings = JSON.parse(jsonStr);
 
     let matchCount = 0;
     // Update cache
     for (const [company, category] of Object.entries(mappings)) {
       const normalizedName = company.trim().toLowerCase();
-      
+
       // Validate category
       const matchedCategory = INDUSTRY_CATEGORIES.find(
         (c) => c.toLowerCase() === category.toLowerCase(),
       );
-      
+
       companyCache.set(normalizedName, matchedCategory || "Other");
       matchCount++;
     }
-    console.log(`  ✓ Successfully cached ${matchCount} new companies from batch`);
-
+    console.log(
+      `  ✓ Successfully cached ${matchCount} new companies from batch`,
+    );
   } catch (err) {
     console.error("  ✗ Batch categorization failed:", err.message);
     // Fallback: processed individually later if not in cache, or assigned 'Other' by processJob logic
@@ -254,31 +256,39 @@ export async function categorizeJobs(jobs, concurrency = 10) {
   let cachedCount = 0;
   let apiCallCount = 0;
 
-  console.log(
-    `Categorizing ${jobs.length} jobs by company...`,
-  );
+  console.log(`Categorizing ${jobs.length} jobs by company...`);
 
   // --- Pre-process unknown companies in batches ---
-  const uniqueCompanies = [...new Set(jobs.map(j => j.company).filter(c => c && c.trim() !== '' && c !== 'N/A'))];
-  
+  const uniqueCompanies = [
+    ...new Set(
+      jobs
+        .map((j) => j.company)
+        .filter((c) => c && c.trim() !== "" && c !== "N/A"),
+    ),
+  ];
+
   // Identify which companies are NOT in cache
-  const unknownCompanies = uniqueCompanies.filter(c => !companyCache.has(c.trim().toLowerCase()));
+  const unknownCompanies = uniqueCompanies.filter(
+    (c) => !companyCache.has(c.trim().toLowerCase()),
+  );
 
   if (unknownCompanies.length > 0) {
-    console.log(`Found ${unknownCompanies.length} unique companies not in cache.`);
-    
+    console.log(
+      `Found ${unknownCompanies.length} unique companies not in cache.`,
+    );
+
     // Process in batches of 100
     const BATCH_SIZE = 100; // this can be higher
     for (let i = 0; i < unknownCompanies.length; i += BATCH_SIZE) {
       const batch = unknownCompanies.slice(i, i + BATCH_SIZE);
       await categorizeCompaniesBatch(batch);
-      
+
       // Small delay between batches to be nice to API
       if (i + BATCH_SIZE < unknownCompanies.length) {
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise((r) => setTimeout(r, 1000));
       }
     }
-    
+
     // Save cache immediately after batch learning
     saveCache(companyCache);
   } else {
@@ -292,15 +302,12 @@ export async function categorizeJobs(jobs, concurrency = 10) {
       // This will now likely hit the cache because we pre-warmed it
       const { category, cached } = await categorizeByCompany(job.company);
 
-      if (cached) {
-        cachedCount++;
-      } else {
-        apiCallCount++;
-      }
+      // Ensure category is never undefined (which would drop keys in JSON.stringify)
+      const finalCategory = category || "Other";
 
-      return {
+      const result = {
         ...job,
-        industry_category: category,
+        industry_category: finalCategory,
         _metadata: {
           ...job._metadata,
           categorization: {
@@ -310,6 +317,7 @@ export async function categorizeJobs(jobs, concurrency = 10) {
           },
         },
       };
+      return result;
     } catch (error) {
       return {
         ...job,
@@ -332,14 +340,26 @@ export async function categorizeJobs(jobs, concurrency = 10) {
     processJob,
     concurrency, // Can probably increase concurrency now, but 100 is enough
     100, // 100 jobs per batch
-    10, // 10ms delay between batches 
+    10, // 10ms delay between batches
   );
 
   // Save cache to disk after processing
   saveCache(companyCache);
 
+  const stats = categorizedJobs.reduce(
+    (acc, job) => {
+      if (job.industry_category === "Other") acc.other++;
+      else acc.categorized++;
+      return acc;
+    },
+    { other: 0, categorized: 0 },
+  );
+
   console.log(
-    `Categorization complete: ${apiCallCount} API calls, ${cachedCount} using cache/batch-cache`,
+    `Categorization complete: ${apiCallCount} API calls, ${cachedCount} cache hits.`,
+  );
+  console.log(
+    `Summary: ${stats.categorized} Categorized, ${stats.other} Other/Unknown.`,
   );
 
   return categorizedJobs;
