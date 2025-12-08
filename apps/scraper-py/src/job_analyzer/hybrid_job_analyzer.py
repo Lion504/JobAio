@@ -75,6 +75,4 @@ class HybridJobAnalyzer:
             enhanced_job = self.analyze_job(job, job_index, len(jobs))
             processed_jobs.append(enhanced_job)
 
-        print(f"✅ Analysis complete - {len(processed_jobs)} jobs processed")
-
         return processed_jobs
