@@ -11,7 +11,7 @@ import {
   Share2,
   Bookmark,
 } from 'lucide-react'
-import type { Job } from './job-card'
+import type { Job } from '@/types'
 
 interface JobDetailProps {
   job: Job | null

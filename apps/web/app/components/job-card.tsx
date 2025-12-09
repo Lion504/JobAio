@@ -27,37 +27,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useBookmarks } from '@/context/bookmarks-context'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ScrollArea } from '@/components/ui/scroll-area'
-
-export interface Job {
-  id: string
-  title: string
-  company: string
-  logo?: string
-  location: string
-  salary: string
-  type: string
-  jobTypes: string[]
-  experienceLevel: string
-  educationLevels: string[]
-  languagesRequired: string[]
-  languagesAdvantage: string[]
-  responsibilities: string[]
-  skillType: {
-    technical: string[]
-    domainSpecific: string[]
-    certifications: string[]
-    softSkills: string[]
-    other: string[]
-  }
-  industryCategory: string
-  postedAt: string
-  updatedAt?: string
-  description: string
-  tags: string[]
-  source?: string
-  link?: string
-}
+import { type Job } from '@/types'
 
 interface JobCardProps {
   job: Job
@@ -317,19 +287,6 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
 
               {/* Overview Tab */}
               <TabsContent value="overview" className="space-y-4">
-                {/* Description in scrollable area */}
-                <div className="space-y-2">
-                  <h4 className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Description
-                  </h4>
-                  <ScrollArea className="h-48 w-full rounded-md border bg-muted/30 p-3">
-                    <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap pr-3">
-                      {job.description || 'No description provided.'}
-                    </p>
-                  </ScrollArea>
-                </div>
-
                 {/* Responsibilities */}
                 {responsibilities.length > 0 && (
                   <div className="space-y-2">
