@@ -416,7 +416,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
                     </CommandList>
                   </Command>
                 </div>
-                <div className="w-full overflow-y-auto bg-card p-6 md:w-[320px]">
+                <div className="w-full overflow-y-auto bg-card p-6 md:w-[420px]">
                   <div className="mb-4 space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <h3 className="text-lg font-semibold">
