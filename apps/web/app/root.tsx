@@ -11,6 +11,7 @@ import type { Route } from './+types/root'
 import './app.css'
 import { AuthProvider } from './context/auth-context'
 import { BookmarksProvider } from './context/bookmarks-context'
+import { DisclaimerBanner } from './components/disclaimer-banner'
 
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -48,6 +49,7 @@ export default function App() {
     <AuthProvider>
       <BookmarksProvider>
         <Outlet />
+        <DisclaimerBanner />
       </BookmarksProvider>
     </AuthProvider>
   )
