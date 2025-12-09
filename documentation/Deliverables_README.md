@@ -9,14 +9,25 @@
 ## 2. Scrum Ceremony Insights
 
 ### Daily Scrum
-
-
+- Attendance was consistent, and updates were concise instead of drifting into long discussions.
+- For sprint 3 the team communicate and collaborated effectively.
+- Addressed the time managemnet issue and worked on improving them.
 
 ### Sprint Review
-
-
+- Team remained highly active and gave frequent feedbacks for improvements, resulting in speedily improvements.
+- For instant we have better search engine functionality or more optimized job scarapping to database entry flow.
 
 ### Sprint Retrospective
+ Discussed all 4L related question for retrospective and identified where we want to improve, we have written thought here in miro, details in the screenshot.
+
+![alt text](image.png)
+
+
+
+
+
+
+
 
 
 
