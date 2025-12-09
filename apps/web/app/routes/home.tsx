@@ -27,7 +27,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const aiParam = url.searchParams.get('ai')
 
   try {
-    const apiUrl = getApiUrl('/api/jobs')
+    const apiUrl = getApiUrl('/api/jobs', request)
 
     if (search) {
       apiUrl.searchParams.append('q', search)
@@ -74,7 +74,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         other: job.skill_type?.other || [],
       },
       industryCategory: job.industry_category || '',
-      postedAt: job.publish_date || new Date().toLocaleDateString(),
+      postedAt: job.publish_date || new Date().toISOString(),
       updatedAt: job.updatedAt || '',
       description: job.description || '',
       source: job.source || '',

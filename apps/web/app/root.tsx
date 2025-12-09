@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import {
   isRouteErrorResponse,
   Links,
@@ -10,6 +11,7 @@ import {
 import type { Route } from './+types/root'
 import './app.css'
 import './i18n'
+import { applyClientLanguagePreference } from './i18n'
 import { AuthProvider } from './context/auth-context'
 import { BookmarksProvider } from './context/bookmarks-context'
 import { DisclaimerBanner } from './components/disclaimer-banner'
@@ -29,7 +31,7 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -46,6 +48,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    applyClientLanguagePreference()
+  }, [])
+
   return (
     <AuthProvider>
       <BookmarksProvider>

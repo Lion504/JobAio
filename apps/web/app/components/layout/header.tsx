@@ -10,7 +10,12 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -329,6 +334,9 @@ export function Header({ children }: { children?: React.ReactNode }) {
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="max-w-4xl overflow-hidden p-0">
               <DialogTitle className="sr-only">Search and Filters</DialogTitle>
+              <DialogDescription className="sr-only">
+                Search jobs and adjust filters in this dialog.
+              </DialogDescription>
               <div className="flex h-[600px] flex-col md:h-[450px] md:flex-row">
                 <div className="flex-1 border-b md:border-b-0 md:border-r">
                   <Command className="h-full w-full rounded-none border-none">
