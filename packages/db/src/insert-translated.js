@@ -100,6 +100,21 @@ async function processTranslatedJobFile(filename) {
 
         // Create TranslatedJob documents for each language
         for (const translation of jobTranslations) {
+          // This prevents duplicates if the job was processed under a different ID
+          const existingTranslation = await TranslatedJob.findOne({
+            title: translation.title,
+            company: originalJob.company,
+            location: originalJob.location,
+            translation_lang: translation.lang,
+          });
+
+          if (existingTranslation) {
+            console.log(
+              `  - Skipping duplicate translation (found matching content in TranslatedJob ${existingTranslation._id})`,
+            );
+            continue;
+          }
+
           const translatedJobData = {
             job_id: job_id,
             translation_lang: translation.lang,

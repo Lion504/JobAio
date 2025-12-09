@@ -13,68 +13,71 @@ class HybridJobAnalyzer:
         self.base_analyzer = BaseJobAnalyzer()
         self.ai_analyzer = PureAIJobAnalyzer()
 
-    def analyze_job(
-        self, job: Dict[str, Any], job_index: int = None, total_jobs: int = None
-    ) -> Dict[str, Any]:
-        """Two-stage analysis with AI override
-
-        Process:
-        1. Base analyzer (regex) - fast foundation
-        2. AI analyzer (machine learning) - enhancement layer
-        3. Merge: AI results override base results
-
-        Benefits:
-        - Base provides quick, reliable baseline
-        - AI enhances with superior accuracy and fills gaps
-        - Simple override: no complex merger logic
-        """
-        jobs_get = job.get("title", "Unknown")
-        job_counter = f"{job_index + 1} / {total_jobs}"
-        print(f"🔍 Analyzing job {job_counter}: {jobs_get}")
-
-        # Stage 1: Base analysis foundation
-        base_result = self.base_analyzer.analyze_job(job.copy())
-
-        # Stage 2: AI analysis enhancement
-        ai_result = self.ai_analyzer.analyze_job(job.copy())
-
-        # Merge with AI override: base first, AI on top
-        # {**base_result, **ai_result} means AI fields replace base fields
-        merged = {**base_result, **ai_result}
-
-        # Ensure original job data is preserved in merge
-        merged.update(job)  # Put original job fields on top
-
-        # Enhanced metadata tracking both stages
-        merged["_metadata"] = {
-            "combined_analysis": True,
-            "rule_based_used": True,
-            "ai_used": self.ai_analyzer.ai_analyzer.ai_available,
-            "merge_strategy": "ai_override",
-            "pipeline_version": "hybrid_base_ai_v1",
-            "base_stage": {
-                "job_type_detected": len(base_result.get("job_type", [])) > 0,
-                "experience_known": base_result.get("experience_level") != "",
-                "skills_found": any(base_result.get("skill_type", {}).values()),
-            },
-            "ai_stage": {
-                "enhanced_job_type": len(ai_result.get("job_type", [])) > 0,
-                "enhanced_languages": any(ai_result.get("language", {}).values()),
-                "enhanced_skills": any(ai_result.get("skill_type", {}).values()),
-            },
-        }
-
-        return merged
-
     def analyze_batch(self, jobs: list[Dict[str, Any]]) -> list[Dict[str, Any]]:
-        """Analyze multiple jobs, terminal output only"""
-        print(f"\n🔄 Processing {len(jobs)} jobs with hybrid engine...")
+        # Analyze multiple jobs using parallel batch processing (Node.js unified)
+        from concurrent.futures import ThreadPoolExecutor, as_completed
 
-        processed_jobs = []
-        for job_index, job in enumerate(jobs):
-            enhanced_job = self.analyze_job(job, job_index, len(jobs))
-            processed_jobs.append(enhanced_job)
+        BATCH_SIZE = 10
+        MAX_WORKERS = 5
 
-        print(f"✅ Analysis complete - {len(processed_jobs)} jobs processed")
+        print(f"\n🔄 Hybrid Analyzer: Processing {len(jobs)} jobs...")
+        print(f"   - Batch Size: {BATCH_SIZE}")
+        print(f"   - Concurrency: {MAX_WORKERS} threads")
 
-        return processed_jobs
+        # Split jobs into batches
+        batches = [jobs[i : i + BATCH_SIZE] for i in range(0, len(jobs), BATCH_SIZE)]
+        total_batches = len(batches)
+
+        results_map = {}  # Map index -> result to preserve order
+
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            # Create a map of future -> (batch_index, batch_data)
+            future_to_batch = {
+                executor.submit(self.ai_analyzer.analyze_batch, batch): (i, batch)
+                for i, batch in enumerate(batches)
+            }
+
+            for future in as_completed(future_to_batch):
+                batch_idx, batch_data = future_to_batch[future]
+                try:
+                    # AI Results (Full override objects)
+                    analyzed_batch = future.result()
+
+                    print(f"   ✅ Batch {batch_idx + 1}/{total_batches} completed")
+
+                    for local_idx, analyzed_job in enumerate(analyzed_batch):
+                        original_job = batch_data[local_idx]
+
+                        base_result = self.base_analyzer.analyze_job(
+                            original_job.copy()
+                        )
+
+                        merged = {**base_result, **analyzed_job}
+
+                        merged.update(original_job)
+
+                        # Add metadata
+                        merged["_metadata"] = {
+                            "method": "hybrid_batch_parallel",
+                            "ai_enhanced": True,
+                        }
+
+                        global_idx = batch_idx * BATCH_SIZE + local_idx
+                        results_map[global_idx] = merged
+
+                except Exception as exc:
+                    print(f"   ❌ Batch {batch_idx + 1} generated an exception: {exc}")
+                    # Fallback: Just return original jobs for this batch
+                    for local_idx, job in enumerate(batch_data):
+                        global_idx = batch_idx * BATCH_SIZE + local_idx
+                        results_map[global_idx] = {**job, "_error": str(exc)}
+
+        # Reconstruct list in order
+        final_results = []
+        for i in range(len(jobs)):
+            if i in results_map:
+                final_results.append(results_map[i])
+            else:
+                final_results.append(jobs[i])
+
+        return final_results

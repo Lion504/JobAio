@@ -16,10 +16,9 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 export const TARGET_LANGUAGES = ["es", "zh"];
 
 // Batch processing configuration
-const BATCH_SIZE = 5; // Process 5 jobs in parallel per language
-const DELAY_BETWEEN_BATCHES = 2000; // 2 seconds between batches
-const DELAY_BETWEEN_LANGUAGES = 1000; // 1 second between language translations
-const RETRY_DELAY = 20000; // 20 seconds on rate limit
+const BATCH_SIZE = 10; // 10 jobs per API call (Unified mode)
+const CONCURRENCY = 5; // 5 batches in parallel
+const RETRY_DELAY = 10000;
 const MAX_RETRIES = 3;
 
 // Paths
@@ -36,7 +35,7 @@ if (!GEMINI_API_KEY) {
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
 /**
- * Clean JSON response from markdown code blocks
+ * Helper to clean JSON response
  */
 function cleanJsonResponse(text) {
   let cleaned = text.trim();
@@ -49,191 +48,141 @@ function cleanJsonResponse(text) {
 }
 
 /**
- * Translate a single field (string or array) with retry logic
+ * Helper to process items in parallel with concurrency limit
  */
-async function translateField(fieldData, targetLang, retries = MAX_RETRIES) {
-  // Handle empty/null
-  if (!fieldData) return fieldData;
-
-  const textToTranslate = Array.isArray(fieldData)
-    ? fieldData.join("\n")
-    : fieldData;
-
-  if (!textToTranslate || textToTranslate.trim() === "") {
-    return fieldData;
+async function processInParallel(items, concurrency, taskFn) {
+  const results = [];
+  const executing = [];
+  for (const item of items) {
+    const p = taskFn(item).then((res) => {
+      executing.splice(executing.indexOf(p), 1);
+      return res;
+    });
+    results.push(p);
+    executing.push(p);
+    if (executing.length >= concurrency) {
+      await Promise.race(executing);
+    }
   }
+  return Promise.all(results);
+}
 
-  // Source language is English (jobs are pretranslated to English before analysis)
-  const sourceLang = "en";
+/**
+ * Unified Batch Translation: Translates 10 jobs to 1 language in ONE prompt.
+ */
+async function translateBatchForLanguageUnified(
+  jobs,
+  targetLang,
+  retries = MAX_RETRIES,
+) {
+  // Minimal input for token efficiency
+  const inputForAi = jobs.map((job, idx) => ({
+    id: idx,
+    title: job.title,
+    industry: job.industry_category,
+    type: job.job_type,
+    exp: job.experience_level,
+    edu: job.education_level,
+    resp: job.responsibilities,
+    skills: job.skill_type,
+  }));
 
-  const prompt = `Translate the following text from ${sourceLang} to ${targetLang}:
-
-${textToTranslate}
-
-Provide only the translated text, no explanations:`;
+  const prompt = `
+  You are a professional technical translator.
+  Translate the following job data to '${targetLang}'.
+  
+  Input is a list of jobs. Return a STRICT JSON ARRAY of translated jobs.
+  Maintain the exact same structure and keys (id, title, industry, type, exp, edu, resp, skills).
+  Do NOT translate technical terms (e.g. "React", "Python").
+  
+  Input:
+  ${JSON.stringify(inputForAi)}
+  `;
 
   try {
-    const response = await ai.models.generateContent({
+    const result = await ai.models.generateContent({
       model: process.env.GEMINI_MODEL_NAME,
+      generationConfig: {
+        responseMimeType: "application/json",
+        temperature: 0.1,
+      },
       contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
 
-    let replyText = response.text?.trim();
-    if (!replyText) {
-      console.warn(`[translateField] Empty reply for ${targetLang}`);
-      return fieldData;
+    const responseText = result.text;
+    const cleanJson = cleanJsonResponse(responseText);
+    const translatedBatch = JSON.parse(cleanJson);
+
+    if (!Array.isArray(translatedBatch)) {
+      throw new Error("API response is not an array");
     }
 
-    // Clean response
-    replyText = cleanJsonResponse(replyText);
-    replyText = replyText.replace(/^"|^'|"$|'$/g, "").trim();
+    // Map back to full job objects
+    return jobs.map((originalJob, idx) => {
+      // Find matching translation by ID or index
+      const translation =
+        translatedBatch.find((t) => t.id === idx) || translatedBatch[idx];
 
-    // Split back into array if input was array
-    if (Array.isArray(fieldData)) {
-      return replyText
-        .split("\n")
-        .map((item) => item.trim())
-        .filter((item) => item.length > 0);
-    }
+      if (!translation) return null; // Partial failure
 
-    return replyText;
+      // Construct standard translation object
+      return {
+        lang: targetLang,
+        translated_at: new Date(),
+        title: translation.title,
+        industry_category: translation.industry,
+        job_type: translation.type,
+        experience_level: translation.exp,
+        education_level: translation.edu,
+        responsibilities: translation.resp,
+        skill_type: translation.skills,
+      };
+    });
   } catch (err) {
-    const isRateLimitError =
-      err.message.includes("429") ||
-      err.message.includes("Rate limit") ||
-      err.message.includes("Quota exceeded") ||
-      err.message.includes("overloaded");
-
-    if (isRateLimitError && retries > 0) {
-      console.warn(
-        `Rate limit hit. Retrying in ${RETRY_DELAY / 1000}s... (${retries} retries left)`,
-      );
+    if (retries > 0 && err.message.includes("429")) {
+      console.warn(`  ⚠️ Rate limit for ${targetLang}. Retrying...`);
       await new Promise((r) => setTimeout(r, RETRY_DELAY));
-      return translateField(fieldData, targetLang, retries - 1);
+      return translateBatchForLanguageUnified(jobs, targetLang, retries - 1);
     }
-
-    console.error(`[translateField] Translation failed:`, err.message);
-    return fieldData; // Return original on failure
+    console.error(
+      `  ❌ Batch translation to '${targetLang}' failed: ${err.message}`,
+    );
+    return null;
   }
 }
 
 /**
- * Translate a job to a single target language
- * Returns lean translation object (no description fields)
+ * Process a batch of jobs: Translate to ALL languages
  */
-async function translateJobToLanguage(job, targetLang) {
-  const translation = {
-    lang: targetLang,
-    title: await translateField(job.title, targetLang),
-    industry_category: await translateField(job.industry_category, targetLang),
-    job_type: await translateField(job.job_type, targetLang),
-    language: {
-      required: await translateField(job.language?.required, targetLang),
-      advantage: await translateField(job.language?.advantage, targetLang),
-    },
-    experience_level: await translateField(job.experience_level, targetLang),
-    education_level: await translateField(job.education_level, targetLang),
-    skill_type: {
-      technical: await translateField(job.skill_type?.technical, targetLang),
-      domain_specific: await translateField(
-        job.skill_type?.domain_specific,
-        targetLang,
-      ),
-      certifications: await translateField(
-        job.skill_type?.certifications,
-        targetLang,
-      ),
-      soft_skills: await translateField(
-        job.skill_type?.soft_skills,
-        targetLang,
-      ),
-      other: await translateField(job.skill_type?.other, targetLang),
-    },
-    responsibilities: await translateField(job.responsibilities, targetLang),
-    translated_at: new Date(),
-  };
+async function processBatchUnified(batchData) {
+  const { jobs } = batchData;
+  // Initialize result map
+  const jobResults = new Map();
+  jobs.forEach((job) => {
+    jobResults.set(job._id.toString(), {
+      job_id: job._id,
+      translations: [],
+    });
+  });
 
-  return translation;
-}
+  // Run translations for each language sequentially
+  for (const lang of TARGET_LANGUAGES) {
+    const translatedList = await translateBatchForLanguageUnified(jobs, lang);
 
-/**
- * Translate a single job to all target languages (sequential for this job)
- */
-async function translateJob(job) {
-  const translations = [];
-
-  for (const targetLang of TARGET_LANGUAGES) {
-    try {
-      const translation = await translateJobToLanguage(job, targetLang);
-      translations.push(translation);
-    } catch (err) {
-      console.error(
-        `    [${job.title?.slice(0, 30)}] Failed ${targetLang}:`,
-        err.message,
-      );
+    if (translatedList) {
+      translatedList.forEach((trans, idx) => {
+        if (trans) {
+          const jobId = jobs[idx]._id.toString();
+          const res = jobResults.get(jobId);
+          if (res) res.translations.push(trans);
+        }
+      });
     }
-
-    // Small delay between languages for same job
-    await new Promise((r) => setTimeout(r, DELAY_BETWEEN_LANGUAGES));
+    // Small delay between languages
+    await new Promise((r) => setTimeout(r, 500));
   }
 
-  return translations;
-}
-
-/**
- * Process a batch of jobs in parallel - collect translation results
- * @param {Array} jobs - Array of jobs to translate
- * @param {number} batchIndex - Current batch number for logging
- * @param {number} totalBatches - Total number of batches
- * @param {Array} allResults - Array to collect all results
- * @param {Object} progress - Progress tracking object
- */
-async function translateBatch(
-  jobs,
-  batchIndex,
-  totalBatches,
-  allResults,
-  progress,
-) {
-  console.log(
-    `\n[Batch ${batchIndex + 1}/${totalBatches}] Processing ${jobs.length} jobs...`,
-  );
-
-  const results = await Promise.all(
-    jobs.map(async (job, idx) => {
-      const jobNum = batchIndex * BATCH_SIZE + idx + 1;
-      const globalJobNum = batchIndex * BATCH_SIZE + idx + 1;
-
-      // Progress logging every 5 jobs
-      if (globalJobNum % 5 === 0 || globalJobNum === progress.totalJobs) {
-        const percentage = Math.round(
-          (globalJobNum / progress.totalJobs) * 100,
-        );
-        console.log(
-          `  Progress: ${globalJobNum}/${progress.totalJobs} jobs (${percentage}%)`,
-        );
-      }
-
-      try {
-        const translations = await translateJob(job);
-
-        // Collect successful results (lean format with just job_id)
-        allResults.push({
-          job_id: job._id,
-          translations: translations,
-        });
-
-        progress.successCount++;
-        return { success: true };
-      } catch (err) {
-        console.error(`  ✗ Job ${jobNum} failed: ${err.message}`);
-        progress.errorCount++;
-        return { success: false, error: err.message };
-      }
-    }),
-  );
-
-  return results;
+  return Array.from(jobResults.values());
 }
 
 /**
@@ -256,7 +205,6 @@ async function outputAllTranslations(allResults, stats) {
   };
 
   await fs.writeFile(filepath, JSON.stringify(outputData, null, 2));
-  console.log(`\n💾 Saved all translations to: ${filepath}`);
 
   return filepath;
 }
@@ -271,15 +219,16 @@ export async function runTranslation() {
   );
   console.log("Connected to MongoDB");
   const startTime = Date.now();
-  console.log("Starting translation pipeline (batch mode)...\n");
+  console.log("Starting translation pipeline (Unified Concurrent Mode)...\n");
   console.log(
-    `Configuration: BATCH_SIZE=${BATCH_SIZE}, LANGUAGES=${TARGET_LANGUAGES.length}`,
+    `Configuration: BATCH_SIZE=${BATCH_SIZE}, CONCURRENCY=${CONCURRENCY}, LANGUAGES=${TARGET_LANGUAGES.length}`,
   );
 
   // Ensure translated data directory exists
   await fs.mkdir(TRANSLATED_DATA_DIR, { recursive: true });
 
   // Get all jobs from DB for translation
+  // Increase limit if needed, 1000 currently
   const jobs = await OriginalJob.find({}).limit(1000);
   console.log(`Loaded ${jobs.length} jobs for translation`);
 
@@ -288,10 +237,19 @@ export async function runTranslation() {
     return { success: 0, errors: 0, total: 0 };
   }
 
-  // Calculate batches
+  // Create Batches
+  const batches = [];
   const totalBatches = Math.ceil(jobs.length / BATCH_SIZE);
+  for (let i = 0; i < jobs.length; i += BATCH_SIZE) {
+    batches.push({
+      jobs: jobs.slice(i, i + BATCH_SIZE),
+      index: Math.floor(i / BATCH_SIZE) + 1,
+      total: totalBatches,
+    });
+  }
+
   console.log(
-    `Will process in ${totalBatches} batches of up to ${BATCH_SIZE} jobs each\n`,
+    `Created ${batches.length} batches. Starting parallel execution...`,
   );
 
   // Progress tracking
@@ -301,45 +259,45 @@ export async function runTranslation() {
     errorCount: 0,
   };
 
-  // Collect all translation results
-  const allResults = [];
-
-  // Process jobs in batches
-  for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
-    const start = batchIdx * BATCH_SIZE;
-    const end = Math.min(start + BATCH_SIZE, jobs.length);
-    const batchJobs = jobs.slice(start, end);
-
-    // Process batch (collect results, no file output)
-    await translateBatch(
-      batchJobs,
-      batchIdx,
-      totalBatches,
-      allResults,
-      progress,
-    );
-
-    // Rate limiting between batches (except last batch)
-    if (batchIdx < totalBatches - 1) {
+  // EXECUTE IN PARALLEL
+  const batchResults = await processInParallel(
+    batches,
+    CONCURRENCY,
+    async (batch) => {
       console.log(
-        `  Waiting ${DELAY_BETWEEN_BATCHES / 1000}s before next batch...`,
+        `▶️ [Batch ${batch.index}/${batch.total}] Starting translation for ${batch.jobs.length} jobs...`,
       );
-      await new Promise((r) => setTimeout(r, DELAY_BETWEEN_BATCHES));
-    }
-  }
+      try {
+        const results = await processBatchUnified(batch);
+
+        // Update stats based on results
+        const succ = results.filter((r) => r.translations.length > 0).length;
+        progress.successCount += succ;
+        progress.errorCount += batch.jobs.length - succ; // Approximate error count (if translations missing)
+
+        console.log(
+          `✅ [Batch ${batch.index}/${batch.total}] Completed. (${succ}/${batch.jobs.length} jobs success)`,
+        );
+        return results;
+      } catch (e) {
+        console.error(
+          `❌ [Batch ${batch.index}/${batch.total}] Failed completely: ${e.message}`,
+        );
+        progress.errorCount += batch.jobs.length;
+        return [];
+      }
+    },
+  );
+
+  // Flatten results
+  const allResults = batchResults.flat();
 
   // Output all results to single file
   const outputFile = await outputAllTranslations(allResults, progress);
 
-  const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-  console.log(`\n========================================`);
-  console.log(`Translation complete! (${duration}s)`);
-  console.log(`  Success: ${progress.successCount}`);
-  console.log(`  Errors: ${progress.errorCount}`);
-  console.log(`  Total: ${jobs.length}`);
-  console.log(`  Languages per job: ${TARGET_LANGUAGES.length}`);
-  console.log(`  Output file: ${outputFile}`);
-  console.log(`========================================\n`);
+  console.log(
+    ` Saved ${progress.successCount} translated jobs to: ${outputFile}`,
+  );
 
   return {
     success: progress.successCount,
@@ -349,9 +307,6 @@ export async function runTranslation() {
   };
 }
 
-// Export for external use
-export { translateJob, translateJobToLanguage };
-
 // CLI entry point
 if (
   process.argv[1] &&
@@ -360,7 +315,6 @@ if (
 ) {
   runTranslation()
     .then((result) => {
-      console.log("Translation pipeline finished:", result);
       process.exit(0);
     })
     .catch((err) => {

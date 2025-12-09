@@ -42,19 +42,27 @@ jest.unstable_mockModule("@google/genai", () => ({
 // Mock fs/promises for pipeline file reading
 const mockReaddir = jest.fn();
 const mockReadFile = jest.fn();
+const mockMkdir = jest.fn();
+const mockWriteFile = jest.fn();
 
 jest.unstable_mockModule("fs/promises", () => ({
   default: {
     readdir: mockReaddir,
     readFile: mockReadFile,
+    mkdir: mockMkdir,
+    writeFile: mockWriteFile,
   },
   readdir: mockReaddir,
   readFile: mockReadFile,
+  mkdir: mockMkdir,
+  writeFile: mockWriteFile,
 }));
 
 // Mock OriginalJob model
+const mockFind = jest.fn();
 jest.unstable_mockModule("../../db/src/models/OriginalJob.js", () => ({
   default: {
+    find: mockFind,
     findOneAndUpdate: mockFindOneAndUpdate,
   },
 }));
@@ -74,7 +82,7 @@ jest.unstable_mockModule("dotenv", () => ({
 }));
 
 // Import AFTER setting up mocks
-const { TARGET_LANGUAGES, translateJob, translateJobToLanguage } = await import(
+const { TARGET_LANGUAGES, runTranslation } = await import(
   "../src/translator.js"
 );
 
@@ -132,115 +140,90 @@ describe("Translator Module", () => {
     });
   });
 
-  describe("translateJobToLanguage", () => {
-    it("should translate job title to target language", async () => {
-      mockTranslationResponse("Ingeniero de Software");
+  describe("runTranslation", () => {
+    it("should run the translation pipeline successfully", async () => {
+      // Mock database connection
+      mockConnect.mockResolvedValue();
+      mockDisconnect.mockResolvedValue();
 
-      const result = await translateJobToLanguage(sampleJob, "es");
-
-      expect(result.lang).toBe("es");
-      expect(result.title).toBe("Ingeniero de Software");
-    });
-
-    it("should include all required fields in translation", async () => {
-      mockTranslationResponse("Translated text");
-
-      const result = await translateJobToLanguage(sampleJob, "fr");
-
-      expect(result).toHaveProperty("lang");
-      expect(result).toHaveProperty("title");
-      expect(result).toHaveProperty("industry_category");
-      expect(result).toHaveProperty("job_type");
-      expect(result).toHaveProperty("language");
-      expect(result).toHaveProperty("experience_level");
-      expect(result).toHaveProperty("education_level");
-      expect(result).toHaveProperty("skill_type");
-      expect(result).toHaveProperty("responsibilities");
-      expect(result).toHaveProperty("translated_at");
-    });
-
-    it("should NOT include description fields (lean translation)", async () => {
-      mockTranslationResponse("Translated");
-
-      const result = await translateJobToLanguage(sampleJob, "de");
-
-      expect(result).not.toHaveProperty("description");
-      expect(result).not.toHaveProperty("url");
-      expect(result).not.toHaveProperty("company");
-    });
-
-    it("should set translated_at timestamp", async () => {
-      mockTranslationResponse("Translated");
-
-      const before = new Date();
-      const result = await translateJobToLanguage(sampleJob, "ta");
-
-      expect(result.translated_at).toBeInstanceOf(Date);
-      expect(result.translated_at.getTime()).toBeGreaterThanOrEqual(
-        before.getTime(),
-      );
-    });
-  });
-
-  describe("translateJob", () => {
-    it("should translate job to all target languages", async () => {
-      mockTranslationResponse("Translated");
-
-      const translations = await translateJob(sampleJob);
-
-      expect(translations.length).toBe(TARGET_LANGUAGES.length);
-    });
-
-    it("should include all target languages", async () => {
-      mockTranslationResponse("Translated");
-
-      const translations = await translateJob(sampleJob);
-      const langs = translations.map((t) => t.lang);
-
-      for (const targetLang of TARGET_LANGUAGES) {
-        expect(langs).toContain(targetLang);
-      }
-    });
-  });
-
-  describe("Edge cases", () => {
-    it("should handle empty arrays gracefully", async () => {
-      mockTranslationResponse("Translated");
-
-      const jobWithEmptyArrays = {
-        ...sampleJob,
-        job_type: [],
-        responsibilities: [],
-      };
-
-      const result = await translateJobToLanguage(jobWithEmptyArrays, "es");
-
-      expect(result.job_type).toEqual([]);
-    });
-
-    it("should handle null fields gracefully", async () => {
-      mockTranslationResponse("Translated");
-
-      const jobWithNulls = {
-        ...sampleJob,
-        industry_category: null,
-      };
-
-      const result = await translateJobToLanguage(jobWithNulls, "fr");
-
-      expect(result.industry_category).toBeNull();
-    });
-  });
-
-  describe("Response cleaning", () => {
-    it("should clean markdown code blocks from response", async () => {
-      mockGenerateContent.mockResolvedValue({
-        text: "```json\nTranslated text\n```",
+      // Mock finding jobs in database
+      mockFind.mockReturnValue({
+        limit: jest.fn().mockResolvedValue([
+          { ...sampleJob, _id: "job1" },
+          { ...sampleJob, _id: "job2" },
+        ]),
       });
 
-      const result = await translateJobToLanguage(sampleJob, "es");
+      // Mock successful API response for batch translation
+      const mockResponse = JSON.stringify([
+        {
+          id: 0,
+          title: "Ingeniero de Software",
+          industry: "Tecnología",
+          type: "Tiempo completo",
+          exp: "Junior",
+          edu: "Licenciatura",
+          resp: ["Diseñar sistemas"],
+          skills: {
+            technical: ["JavaScript"],
+            domain_specific: [],
+            certifications: [],
+            soft_skills: [],
+            other: [],
+          },
+        },
+        {
+          id: 1,
+          title: "Ingeniero de Software 2",
+          industry: "Tecnología",
+          type: "Tiempo completo",
+          exp: "Junior",
+          edu: "Licenciatura",
+          resp: ["Desarrollar aplicaciones"],
+          skills: {
+            technical: ["Python"],
+            domain_specific: [],
+            certifications: [],
+            soft_skills: [],
+            other: [],
+          },
+        },
+      ]);
+      mockTranslationResponse(mockResponse);
 
-      expect(result.title).not.toContain("```");
+      // Mock file system operations
+      mockReaddir.mockResolvedValue([]);
+      mockMkdir.mockResolvedValue();
+      mockWriteFile.mockResolvedValue();
+
+      const result = await runTranslation();
+
+      expect(result).toHaveProperty("success");
+      expect(result).toHaveProperty("errors");
+      expect(result).toHaveProperty("total");
+      expect(result).toHaveProperty("outputFile");
+      expect(mockConnect).toHaveBeenCalled();
+    });
+
+    it("should handle no jobs found", async () => {
+      mockConnect.mockResolvedValue();
+      mockDisconnect.mockResolvedValue();
+
+      mockFind.mockReturnValue({
+        limit: jest.fn().mockResolvedValue([]),
+      });
+
+      const result = await runTranslation();
+
+      expect(result.success).toBe(0);
+      expect(result.errors).toBe(0);
+      expect(result.total).toBe(0);
+    });
+
+    it("should handle database connection errors", async () => {
+      mockConnect.mockRejectedValue(new Error("DB Connection Failed"));
+
+      await expect(runTranslation()).rejects.toThrow("DB Connection Failed");
     });
   });
 });
