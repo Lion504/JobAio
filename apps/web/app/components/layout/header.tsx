@@ -254,11 +254,9 @@ export function Header({ children }: { children?: React.ReactNode }) {
 
   const handleSearch = (term?: string) => {
     setOpen(false)
-    const query = term || searchQuery
-    if (query.trim()) {
-      const params = buildNavigationParams(query, filters)
-      navigate(`/?${params.toString()}`)
-    }
+    const query = term ?? searchQuery
+    const params = buildNavigationParams(query, filters)
+    navigate(`/?${params.toString()}`)
   }
 
   return (
@@ -331,18 +329,38 @@ export function Header({ children }: { children?: React.ReactNode }) {
               </DialogDescription>
               <div className="flex h-[600px] flex-col md:h-[450px] md:flex-row">
                 <div className="flex-1 border-b md:border-b-0 md:border-r">
-                  <Command className="h-full w-full rounded-none border-none">
+                  <Command
+                    shouldFilter={false}
+                    className="h-full w-full rounded-none border-none"
+                  >
                     <CommandInput
                       placeholder={t('header.commandPlaceholder')}
                       value={searchQuery}
                       onValueChange={setSearchQuery}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
+                        if (
+                          e.key === 'Enter' &&
+                          searchQuery.trim().length === 0
+                        ) {
                           handleSearch()
                         }
                       }}
                     />
                     <CommandList>
+                      {searchQuery.trim().length > 0 && (
+                        <CommandGroup>
+                          <CommandItem
+                            key="search-action"
+                            value={`search-${searchQuery}`}
+                            onSelect={() => handleSearch(searchQuery)}
+                          >
+                            <Search className="mr-2 h-4 w-4" />
+                            <span className="font-medium">
+                              {t('common.search')} "{searchQuery}"
+                            </span>
+                          </CommandItem>
+                        </CommandGroup>
+                      )}
                       <CommandEmpty>
                         {searchQuery.trim().length < 2
                           ? t('header.typeToSearch')
