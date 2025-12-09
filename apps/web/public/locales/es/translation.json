@@ -14,7 +14,19 @@
     "jobs": "Trabajos",
     "preferences": "Preferencias",
     "saved": "Guardados",
-    "account": "Cuenta"
+    "account": "Cuenta",
+    "suggestions": "Sugerencias"
+  },
+  "suggestions": {
+    "title": "Recomendado para ti",
+    "subtitle": "Basado en tus preferencias de perfil",
+    "noPreferencesTitle": "Establece tus preferencias",
+    "noPreferencesDesc": "Cuéntanos sobre tus habilidades, ubicaciones preferidas e idiomas para obtener recomendaciones de trabajo personalizadas.",
+    "goToPreferences": "Ir a Preferencias",
+    "foundJobs": "{{count}} Trabajos sugeridos",
+    "noMatches": "Aún no se encontraron coincidencias",
+    "refinePreferences": "Intenta actualizar tus preferencias para ver más resultados.",
+    "updatePreferences": "Actualizar preferencias"
   },
   "header": {
     "filters": "Filtros",

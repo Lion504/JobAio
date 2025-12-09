@@ -14,7 +14,19 @@
     "jobs": "Emplois",
     "preferences": "Préférences",
     "saved": "Enregistrés",
-    "account": "Compte"
+    "account": "Compte",
+    "suggestions": "Suggestions"
+  },
+  "suggestions": {
+    "title": "Recommandé pour vous",
+    "subtitle": "Basé sur vos préférences de profil",
+    "noPreferencesTitle": "Définissez vos préférences",
+    "noPreferencesDesc": "Dites-nous-en plus sur vos compétences, lieux préférés et langues pour obtenir des recommandations d'emploi personnalisées.",
+    "goToPreferences": "Aller aux préférences",
+    "foundJobs": "{{count}} Emplois suggérés",
+    "noMatches": "Aucune correspondance trouvée pour le moment",
+    "refinePreferences": "Essayez de mettre à jour vos préférences pour voir plus de résultats.",
+    "updatePreferences": "Mettre à jour les préférences"
   },
   "header": {
     "filters": "Filtres",

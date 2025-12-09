@@ -14,7 +14,19 @@
     "jobs": "职位",
     "preferences": "偏好设置",
     "saved": "已保存",
-    "account": "账户"
+    "account": "账户",
+    "suggestions": "建议"
+  },
+  "suggestions": {
+    "title": "为您推荐",
+    "subtitle": "基于您的个人资料偏好",
+    "noPreferencesTitle": "设置您的偏好",
+    "noPreferencesDesc": "告诉我们您的技能、首选地点和语言，以获得个性化的职位推荐。",
+    "goToPreferences": "转到偏好设置",
+    "foundJobs": "{{count}} 个推荐职位",
+    "noMatches": "暂无匹配结果",
+    "refinePreferences": "尝试更新您的偏好设置以查看更多结果。",
+    "updatePreferences": "更新偏好设置"
   },
   "header": {
     "filters": "筛选",

@@ -14,7 +14,19 @@
     "jobs": "Jobs",
     "preferences": "Preferences",
     "saved": "Saved",
-    "account": "Account"
+    "account": "Account",
+    "suggestions": "Suggestions"
+  },
+  "suggestions": {
+    "title": "Recommended for You",
+    "subtitle": "Based on your profile preferences",
+    "noPreferencesTitle": "Set your preferences",
+    "noPreferencesDesc": "Tell us about your skills, preferred locations, and languages to get personalized job recommendations.",
+    "goToPreferences": "Go to Preferences",
+    "foundJobs": "{{count}} Suggested Jobs",
+    "noMatches": "No matches found yet",
+    "refinePreferences": "Try updating your preferences to see more results.",
+    "updatePreferences": "Update Preferences"
   },
   "header": {
     "filters": "Filters",

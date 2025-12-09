@@ -14,7 +14,19 @@
     "jobs": "Jobb",
     "preferences": "Inställningar",
     "saved": "Sparade",
-    "account": "Konto"
+    "account": "Konto",
+    "suggestions": "Förslag"
+  },
+  "suggestions": {
+    "title": "Rekommenderat för dig",
+    "subtitle": "Baserat på dina profilinställningar",
+    "noPreferencesTitle": "Ange dina preferenser",
+    "noPreferencesDesc": "Berätta om dina färdigheter, önskade platser och språk för att få personliga jobbrekommendationer.",
+    "goToPreferences": "Gå till Inställningar",
+    "foundJobs": "{{count}} Föreslagna jobb",
+    "noMatches": "Inga matchningar hittades än",
+    "refinePreferences": "Försök att uppdatera dina inställningar för att se fler resultat.",
+    "updatePreferences": "Uppdatera inställningar"
   },
   "header": {
     "filters": "Filter",

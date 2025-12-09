@@ -14,7 +14,19 @@
     "jobs": "Työpaikat",
     "preferences": "Asetukset",
     "saved": "Tallennetut",
-    "account": "Tili"
+    "account": "Tili",
+    "suggestions": "Suositukset"
+  },
+  "suggestions": {
+    "title": "Suositeltu sinulle",
+    "subtitle": "Perustuu profiilisi asetuksiin",
+    "noPreferencesTitle": "Määritä asetuksesi",
+    "noPreferencesDesc": "Kerro meille taidoistasi, toivotuista sijainneista ja kielistä saadaksesi personoituja työsuosituksia.",
+    "goToPreferences": "Mene asetuksiin",
+    "foundJobs": "{{count}} Ehdotettua työpaikkaa",
+    "noMatches": "Ei osumia",
+    "refinePreferences": "Kokeile päivittää asetuksiasi nähdäksesi enemmän tuloksia.",
+    "updatePreferences": "Päivitä asetukset"
   },
   "header": {
     "filters": "Suodattimet",

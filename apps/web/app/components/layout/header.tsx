@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useNavigate, useSearchParams, useLocation } from 'react-router'
 import { Search, MapPin, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -42,11 +42,13 @@ export function Header({ children }: { children?: React.ReactNode }) {
     searchParams.get('ai') === 'true'
   )
   const navigate = useNavigate()
+  const location = useLocation()
 
   const currentSearch = searchParams.get('search') || ''
 
   const isSyncingFromUrl = useRef(false)
   const filtersInitialized = useRef(false)
+  const showSearch = !location.pathname.startsWith('/suggestions')
 
   useEffect(() => {
     const loadPreferences = () => {
@@ -99,7 +101,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
     if (interfaceLang && currentLang !== interfaceLang) {
       const params = new URLSearchParams(searchParams)
       params.set('lang', interfaceLang)
-      navigate(`/?${params.toString()}`, { replace: true })
+      navigate(`${location.pathname}?${params.toString()}`, { replace: true })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [interfaceLang])
@@ -263,142 +265,150 @@ export function Header({ children }: { children?: React.ReactNode }) {
   }
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-background px-6">
+    <header
+      className={`flex h-14 items-center gap-4 border-b bg-background px-6 ${
+        !showSearch ? 'lg:hidden' : ''
+      }`}
+    >
       {children}
-      <div className="flex flex-1 items-center gap-4">
-        <Button
-          variant="outline"
-          className={`relative h-9 w-full justify-start text-sm sm:w-64 lg:w-80 ${
-            currentSearch ? 'text-foreground' : 'text-muted-foreground'
-          }`}
-          onClick={() => setOpen(true)}
-        >
-          <Search className="mr-2 h-4 w-4 flex-shrink-0" />
-          <span className="truncate">
-            {currentSearch || t('common.searchPlaceholder')}
-          </span>
-          <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-            <span className="text-xs">⌘</span>K
-          </kbd>
-        </Button>
+      {showSearch && (
+        <>
+          <div className="flex flex-1 items-center gap-4">
+            <Button
+              variant="outline"
+              className={`relative h-9 w-full justify-start text-sm sm:w-64 lg:w-80 ${
+                currentSearch ? 'text-foreground' : 'text-muted-foreground'
+              }`}
+              onClick={() => setOpen(true)}
+            >
+              <Search className="mr-2 h-4 w-4 flex-shrink-0" />
+              <span className="truncate">
+                {currentSearch || t('common.searchPlaceholder')}
+              </span>
+              <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+                <span className="text-xs">⌘</span>K
+              </kbd>
+            </Button>
 
-        <div className="hidden items-center gap-2 md:flex">
-          <div className="w-[200px]">
-            <LocationSelector
-              multiple
-              value={filters.location}
-              onChange={(value) => updateFilter('location', value)}
-              placeholder={t('preferences.preferredLocations')}
-              buttonClassName="h-9 justify-between overflow-hidden"
-              prefixIcon={
-                <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-              }
-            />
-          </div>
-          <Select
-            value={filters.jobType || 'any'}
-            onValueChange={(value) =>
-              updateFilter('jobType', value === 'any' ? '' : value)
-            }
-          >
-            <SelectTrigger className="h-9 w-[140px]">
-              <SelectValue placeholder={t('filters.jobType')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="any">{t('filters.any')}</SelectItem>
-              {jobTypeOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {t(`filters.jobTypeOption.${option.value}`, {
-                    defaultValue: option.label,
-                  })}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-4xl overflow-hidden p-0">
-          <DialogTitle className="sr-only">Search and Filters</DialogTitle>
-          <div className="flex h-[600px] flex-col md:h-[450px] md:flex-row">
-            <div className="flex-1 border-b md:border-b-0 md:border-r">
-              <Command className="h-full w-full rounded-none border-none">
-                <CommandInput
-                  placeholder={t('header.commandPlaceholder')}
-                  value={searchQuery}
-                  onValueChange={setSearchQuery}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSearch()
-                    }
-                  }}
+            <div className="hidden items-center gap-2 md:flex">
+              <div className="w-[200px]">
+                <LocationSelector
+                  multiple
+                  value={filters.location}
+                  onChange={(value) => updateFilter('location', value)}
+                  placeholder={t('preferences.preferredLocations')}
+                  buttonClassName="h-9 justify-between overflow-hidden"
+                  prefixIcon={
+                    <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                  }
                 />
-                <CommandList>
-                  <CommandEmpty>
-                    {searchQuery.trim().length < 2
-                      ? t('header.typeToSearch')
-                      : isLoadingSuggestions
-                        ? t('header.searching')
-                        : t('header.noResults')}
-                  </CommandEmpty>
-                  {suggestions.length > 0 && (
-                    <CommandGroup heading={t('header.suggestions')}>
-                      {suggestions.map((suggestion) => (
-                        <CommandItem
-                          key={suggestion.id}
-                          value={suggestion.title}
-                          onSelect={() => handleSearch(suggestion.title)}
-                        >
-                          <div className="flex flex-col">
-                            <span className="font-medium">
-                              {suggestion.title}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {suggestion.company}
-                              {suggestion.location
-                                ? ` • ${suggestion.location}`
-                                : ''}
-                            </span>
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  )}
-                </CommandList>
-              </Command>
-            </div>
-            <div className="w-full overflow-y-auto bg-card p-6 md:w-[320px]">
-              <div className="mb-4 space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h3 className="text-lg font-semibold">
-                    {t('header.filters')}
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <Label
-                      htmlFor="ai-search-toggle"
-                      className="text-sm font-medium"
-                    >
-                      {t('header.aiQueryExpansion')}
-                    </Label>
-                    <Switch
-                      id="ai-search-toggle"
-                      checked={aiSearchEnabled}
-                      onCheckedChange={setAiSearchEnabled}
-                      aria-label="Toggle AI query expansion"
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t('header.aiQueryDescription')}
-                </p>
               </div>
-              <FilterContent />
+              <Select
+                value={filters.jobType || 'any'}
+                onValueChange={(value) =>
+                  updateFilter('jobType', value === 'any' ? '' : value)
+                }
+              >
+                <SelectTrigger className="h-9 w-[140px]">
+                  <SelectValue placeholder={t('filters.jobType')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">{t('filters.any')}</SelectItem>
+                  {jobTypeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {t(`filters.jobTypeOption.${option.value}`, {
+                        defaultValue: option.label,
+                      })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent className="max-w-4xl overflow-hidden p-0">
+              <DialogTitle className="sr-only">Search and Filters</DialogTitle>
+              <div className="flex h-[600px] flex-col md:h-[450px] md:flex-row">
+                <div className="flex-1 border-b md:border-b-0 md:border-r">
+                  <Command className="h-full w-full rounded-none border-none">
+                    <CommandInput
+                      placeholder={t('header.commandPlaceholder')}
+                      value={searchQuery}
+                      onValueChange={setSearchQuery}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSearch()
+                        }
+                      }}
+                    />
+                    <CommandList>
+                      <CommandEmpty>
+                        {searchQuery.trim().length < 2
+                          ? t('header.typeToSearch')
+                          : isLoadingSuggestions
+                            ? t('header.searching')
+                            : t('header.noResults')}
+                      </CommandEmpty>
+                      {suggestions.length > 0 && (
+                        <CommandGroup heading={t('header.suggestions')}>
+                          {suggestions.map((suggestion) => (
+                            <CommandItem
+                              key={suggestion.id}
+                              value={suggestion.title}
+                              onSelect={() => handleSearch(suggestion.title)}
+                            >
+                              <div className="flex flex-col">
+                                <span className="font-medium">
+                                  {suggestion.title}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {suggestion.company}
+                                  {suggestion.location
+                                    ? ` • ${suggestion.location}`
+                                    : ''}
+                                </span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      )}
+                    </CommandList>
+                  </Command>
+                </div>
+                <div className="w-full overflow-y-auto bg-card p-6 md:w-[320px]">
+                  <div className="mb-4 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <h3 className="text-lg font-semibold">
+                        {t('header.filters')}
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        <Label
+                          htmlFor="ai-search-toggle"
+                          className="text-sm font-medium"
+                        >
+                          {t('header.aiQueryExpansion')}
+                        </Label>
+                        <Switch
+                          id="ai-search-toggle"
+                          checked={aiSearchEnabled}
+                          onCheckedChange={setAiSearchEnabled}
+                          aria-label="Toggle AI query expansion"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t('header.aiQueryDescription')}
+                    </p>
+                  </div>
+                  <FilterContent />
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </header>
   )
 }
