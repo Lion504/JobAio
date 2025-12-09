@@ -55,7 +55,8 @@
     "appSettings": "应用设置",
     "appSettingsDesc": "配置您的应用体验。",
     "interfaceLanguage": "界面语言",
-    "selectLanguage": "选择语言"
+    "selectLanguage": "选择语言",
+    "autoSave": "更改会自动保存"
   },
   "filters": {
     "title": "筛选职位",

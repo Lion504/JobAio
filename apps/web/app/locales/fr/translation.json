@@ -55,7 +55,8 @@
     "appSettings": "Paramètres de l'application",
     "appSettingsDesc": "Configurez votre expérience de l'application.",
     "interfaceLanguage": "Langue de l'interface",
-    "selectLanguage": "Sélectionner la langue"
+    "selectLanguage": "Sélectionner la langue",
+    "autoSave": "Les modifications sont enregistrées automatiquement"
   },
   "filters": {
     "title": "Filtrer les emplois",

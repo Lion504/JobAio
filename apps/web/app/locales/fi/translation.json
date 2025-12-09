@@ -55,7 +55,8 @@
     "appSettings": "Sovellusasetukset",
     "appSettingsDesc": "Määritä sovelluskokemuksesi.",
     "interfaceLanguage": "Käyttöliittymän kieli",
-    "selectLanguage": "Valitse kieli"
+    "selectLanguage": "Valitse kieli",
+    "autoSave": "Muutokset tallennetaan automaattisesti"
   },
   "filters": {
     "title": "Suodata työpaikkoja",

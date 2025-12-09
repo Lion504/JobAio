@@ -1,171 +1,204 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { useState } from 'react'
+import {
+  Link,
+  useLoaderData,
+  type LoaderFunctionArgs,
+  type HeadersFunction,
+  type MetaFunction,
+  type ShouldRevalidateFunction,
+} from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { Settings, Loader2 } from 'lucide-react'
+import { Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { JobCard } from '@/components/job-card'
 import { getApiUrl } from '@/lib/api'
 import { type ApiJob, type Job } from '@/types'
+import { detectRequestLanguage } from '@/i18n'
 
 type PreferencesState = {
-  jobTags: string
-  skills: string
-  languages: string[]
-  location: string[]
-  interfaceLanguage: string
+  jobTags?: string
+  skills?: string
+  languages?: string[]
+  location?: string[]
+  interfaceLanguage?: string
 }
 
-const STORAGE_KEY = 'jobaio-preferences'
+type SuggestionsResult = {
+  jobs: Job[]
+  hasPreferences: boolean
+  lang: string
+}
 
-export default function Suggestions() {
-  const { t, i18n } = useTranslation()
-  const [jobs, setJobs] = useState<Job[]>([])
-  const [loading, setLoading] = useState(true)
-  const [hasPreferences, setHasPreferences] = useState(false)
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
+const PREFERENCES_COOKIE = 'jobaio-preferences'
 
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      try {
-        setLoading(true)
-        const stored = localStorage.getItem(STORAGE_KEY)
-
-        if (!stored) {
-          setHasPreferences(false)
-          setLoading(false)
-          return
-        }
-
-        const preferences = JSON.parse(stored) as Partial<PreferencesState>
-
-        const hasTags = !!preferences.jobTags?.trim()
-        const hasSkills = !!preferences.skills?.trim()
-        const hasLocations =
-          Array.isArray(preferences.location) && preferences.location.length > 0
-        const hasLanguages =
-          Array.isArray(preferences.languages) &&
-          preferences.languages.length > 0
-
-        if (!hasTags && !hasSkills && !hasLocations && !hasLanguages) {
-          setHasPreferences(false)
-          setLoading(false)
-          return
-        }
-
-        setHasPreferences(true)
-
-        const searchTerms = [preferences.jobTags, preferences.skills]
-          .filter(Boolean)
-          .join(' ')
-          .trim()
-
-        const apiUrl = getApiUrl('/api/jobs')
-
-        if (searchTerms) {
-          apiUrl.searchParams.append('q', searchTerms)
-        }
-
-        const filters: Record<string, string> = {}
-
-        if (preferences.location && preferences.location.length > 0) {
-          filters.location = preferences.location.join('|')
-        }
-
-        if (preferences.languages && preferences.languages.length > 0) {
-          filters.required_language = preferences.languages.join('|')
-        }
-
-        if (Object.keys(filters).length > 0) {
-          apiUrl.searchParams.append('filters', JSON.stringify(filters))
-        }
-
-        apiUrl.searchParams.append('lang', i18n.language || 'en')
-        if (searchTerms) {
-          apiUrl.searchParams.append('ai', 'true')
-        }
-
-        const res = await fetch(apiUrl)
-        if (!res.ok) throw new Error('Failed to fetch suggestions')
-
-        const result = await res.json()
-        const data: ApiJob[] = result.jobs || []
-
-        const mappedJobs: Job[] = data.map((job, index) => ({
-          id: job._id || String(index),
-          title: job.title || 'Untitled',
-          company: job.company || 'Unknown Company',
-          location: job.location || 'Remote',
-          link: job.url || '',
-          salary: 'Competitive',
-          type: job.job_type?.[0] || 'Full-time',
-          jobTypes: job.job_type || [],
-          experienceLevel: job.experience_level || 'Not specified',
-          educationLevels: job.education_level || [],
-          languagesRequired: job.language?.required || [],
-          languagesAdvantage: job.language?.advantage || [],
-          responsibilities: job.responsibilities || [],
-          skillType: {
-            technical: job.skill_type?.technical || [],
-            domainSpecific: job.skill_type?.domain_specific || [],
-            certifications: job.skill_type?.certifications || [],
-            softSkills: job.skill_type?.soft_skills || [],
-            other: job.skill_type?.other || [],
-          },
-          industryCategory: job.industry_category || '',
-          postedAt: job.publish_date || new Date().toLocaleDateString(),
-          updatedAt: job.updatedAt || '',
-          description: job.description || '',
-          source: job.source || '',
-          tags: job.industry_category ? [job.industry_category] : [],
-        }))
-
-        mappedJobs.sort((a, b) => {
-          return new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime()
-        })
-
-        setJobs(mappedJobs)
-      } catch (error) {
-        console.error('Error fetching suggestions:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchSuggestions()
-  }, [i18n.language])
-
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    )
+function parsePreferencesCookie(request: Request): PreferencesState | null {
+  const cookie = request.headers.get('cookie') || ''
+  const raw = cookie
+    .split(';')
+    .map((c) => c.trim())
+    .find((c) => c.startsWith(`${PREFERENCES_COOKIE}=`))
+  if (!raw) return null
+  const [, value] = raw.split('=')
+  try {
+    return JSON.parse(decodeURIComponent(value)) as PreferencesState
+  } catch {
+    return null
   }
+}
 
+async function fetchSuggestions(request: Request): Promise<SuggestionsResult> {
+  const url = new URL(request.url)
+  const requestLang = detectRequestLanguage(request)
+  const cookiePrefs = parsePreferencesCookie(request)
+  const lang =
+    url.searchParams.get('lang') ||
+    cookiePrefs?.interfaceLanguage ||
+    requestLang ||
+    'en'
+
+  const hasTags = !!cookiePrefs?.jobTags?.trim()
+  const hasSkills = !!cookiePrefs?.skills?.trim()
+  const hasLocations =
+    Array.isArray(cookiePrefs?.location) && cookiePrefs.location.length > 0
+  const hasLanguages =
+    Array.isArray(cookiePrefs?.languages) && cookiePrefs.languages.length > 0
+
+  const hasPreferences = hasTags || hasSkills || hasLocations || hasLanguages
   if (!hasPreferences) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-        <div className="mb-4 rounded-full bg-muted p-4">
-          <Settings className="h-8 w-8 text-muted-foreground" />
-        </div>
-        <h2 className="mb-2 text-2xl font-semibold tracking-tight">
-          {t('suggestions.noPreferencesTitle', 'Set your preferences')}
-        </h2>
-        <p className="mb-6 max-w-sm text-muted-foreground">
-          {t(
-            'suggestions.noPreferencesDesc',
-            'Tell us about your skills, preferred locations, and languages to get personalized job recommendations.'
-          )}
-        </p>
-        <Button asChild>
-          <Link to="/preferences">
-            {t('suggestions.goToPreferences', 'Go to Preferences')}
-          </Link>
-        </Button>
-      </div>
-    )
+    return { jobs: [], hasPreferences: false, lang }
   }
+
+  const searchTerms = [cookiePrefs?.jobTags, cookiePrefs?.skills]
+    .filter(Boolean)
+    .join(' ')
+    .trim()
+
+  const apiUrl = getApiUrl('/api/jobs', request)
+
+  if (searchTerms) {
+    apiUrl.searchParams.append('q', searchTerms)
+  }
+
+  const filters: Record<string, string> = {}
+
+  if (cookiePrefs?.location && cookiePrefs.location.length > 0) {
+    filters.location = cookiePrefs.location.join('|')
+  }
+
+  if (cookiePrefs?.languages && cookiePrefs.languages.length > 0) {
+    filters.required_language = cookiePrefs.languages.join('|')
+  }
+
+  if (Object.keys(filters).length > 0) {
+    apiUrl.searchParams.append('filters', JSON.stringify(filters))
+  }
+
+  apiUrl.searchParams.append('lang', lang || 'en')
+  if (searchTerms) {
+    apiUrl.searchParams.append('ai', 'true')
+  }
+
+  const res = await fetch(apiUrl)
+  if (!res.ok) throw new Error('Failed to fetch suggestions')
+
+  const result = await res.json()
+  const data: ApiJob[] = result.jobs || []
+
+  const mappedJobs: Job[] = data.map((job, index) => ({
+    id: job._id || String(index),
+    title: job.title || 'Untitled',
+    company: job.company || 'Unknown Company',
+    location: job.location || 'Remote',
+    link: job.url || '',
+    salary: 'Competitive',
+    type: job.job_type?.[0] || 'Full-time',
+    jobTypes: job.job_type || [],
+    experienceLevel: job.experience_level || 'Not specified',
+    educationLevels: job.education_level || [],
+    languagesRequired: job.language?.required || [],
+    languagesAdvantage: job.language?.advantage || [],
+    responsibilities: job.responsibilities || [],
+    skillType: {
+      technical: job.skill_type?.technical || [],
+      domainSpecific: job.skill_type?.domain_specific || [],
+      certifications: job.skill_type?.certifications || [],
+      softSkills: job.skill_type?.soft_skills || [],
+      other: job.skill_type?.other || [],
+    },
+    industryCategory: job.industry_category || '',
+    postedAt: job.publish_date || new Date().toISOString(),
+    updatedAt: job.updatedAt || '',
+    description: job.description || '',
+    source: job.source || '',
+    tags: job.industry_category ? [job.industry_category] : [],
+  }))
+
+  mappedJobs.sort((a, b) => {
+    return new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime()
+  })
+
+  return {
+    jobs: mappedJobs,
+    hasPreferences: true,
+    lang,
+  }
+}
+
+export const meta: MetaFunction = () => [
+  { title: 'JobAio | Suggestions' },
+  {
+    name: 'description',
+    content: 'AI-assisted job suggestions based on your preferences.',
+  },
+]
+
+export const headers: HeadersFunction = () => ({
+  'Cache-Control': 'public, max-age=30, s-maxage=60',
+})
+
+export const shouldRevalidate: ShouldRevalidateFunction = ({
+  currentUrl,
+  nextUrl,
+}) => {
+  const currentLang = currentUrl.searchParams.get('lang')
+  const nextLang = nextUrl.searchParams.get('lang')
+  return currentUrl.search !== nextUrl.search || currentLang !== nextLang
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  return fetchSuggestions(request)
+}
+
+function NoPreferences() {
+  const { t } = useTranslation()
+  return (
+    <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+      <div className="mb-4 rounded-full bg-muted p-4">
+        <Settings className="h-8 w-8 text-muted-foreground" />
+      </div>
+      <h2 className="mb-2 text-2xl font-semibold tracking-tight">
+        {t('suggestions.noPreferencesTitle', 'Set your preferences')}
+      </h2>
+      <p className="mb-6 max-w-sm text-muted-foreground">
+        {t(
+          'suggestions.noPreferencesDesc',
+          'Tell us about your skills, preferred locations, and languages to get personalized job recommendations.'
+        )}
+      </p>
+      <Button asChild>
+        <Link to="/preferences">
+          {t('suggestions.goToPreferences', 'Go to Preferences')}
+        </Link>
+      </Button>
+    </div>
+  )
+}
+
+function SuggestionsList({ data }: { data: SuggestionsResult }) {
+  const { t } = useTranslation()
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
+  const { jobs } = data
 
   return (
     <div className="flex h-full flex-col">
@@ -220,5 +253,14 @@ export default function Suggestions() {
         </ScrollArea>
       </div>
     </div>
+  )
+}
+
+export default function Suggestions() {
+  const data = useLoaderData<typeof loader>()
+  return data.hasPreferences ? (
+    <SuggestionsList data={data} />
+  ) : (
+    <NoPreferences />
   )
 }

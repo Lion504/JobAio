@@ -55,7 +55,8 @@
     "appSettings": "Appinställningar",
     "appSettingsDesc": "Konfigurera din appupplevelse.",
     "interfaceLanguage": "Gränssnittsspråk",
-    "selectLanguage": "Välj språk"
+    "selectLanguage": "Välj språk",
+    "autoSave": "Ändringar sparas automatiskt"
   },
   "filters": {
     "title": "Filtrera jobb",

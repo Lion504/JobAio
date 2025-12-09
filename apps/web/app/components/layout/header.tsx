@@ -10,7 +10,12 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -33,6 +38,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
+  const [shortcutSymbol, setShortcutSymbol] = useState('⌘')
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const { filters, updateFilter, setFilters } = useFilters()
   const interfaceLang = i18n.language
@@ -48,7 +54,9 @@ export function Header({ children }: { children?: React.ReactNode }) {
 
   const isSyncingFromUrl = useRef(false)
   const filtersInitialized = useRef(false)
-  const showSearch = !location.pathname.startsWith('/suggestions')
+  const showSearch = !['/suggestions', '/preferences', '/saved'].some((path) =>
+    location.pathname.startsWith(path)
+  )
 
   useEffect(() => {
     const loadPreferences = () => {
@@ -93,18 +101,29 @@ export function Header({ children }: { children?: React.ReactNode }) {
   }, [i18n])
 
   useEffect(() => {
-    setAiSearchEnabled(searchParams.get('ai') === 'true')
-  }, [searchParams])
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        if (!showSearch) return
+        e.preventDefault()
+        setOpen((open) => !open)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [showSearch])
 
   useEffect(() => {
-    const currentLang = searchParams.get('lang')
-    if (interfaceLang && currentLang !== interfaceLang) {
-      const params = new URLSearchParams(searchParams)
-      params.set('lang', interfaceLang)
-      navigate(`${location.pathname}?${params.toString()}`, { replace: true })
+    if (
+      typeof navigator !== 'undefined' &&
+      navigator.platform.toLowerCase().includes('win')
+    ) {
+      setShortcutSymbol('Ctrl +')
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [interfaceLang])
+  }, [])
+
+  useEffect(() => {
+    setAiSearchEnabled(searchParams.get('ai') === 'true')
+  }, [searchParams])
 
   useEffect(() => {
     const filtersParam = searchParams.get('filters')
@@ -257,11 +276,9 @@ export function Header({ children }: { children?: React.ReactNode }) {
 
   const handleSearch = (term?: string) => {
     setOpen(false)
-    const query = term || searchQuery
-    if (query.trim()) {
-      const params = buildNavigationParams(query, filters)
-      navigate(`/?${params.toString()}`)
-    }
+    const query = term ?? searchQuery
+    const params = buildNavigationParams(query, filters)
+    navigate(`/?${params.toString()}`)
   }
 
   return (
@@ -286,7 +303,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
                 {currentSearch || t('common.searchPlaceholder')}
               </span>
               <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-                <span className="text-xs">⌘</span>K
+                <span className="text-xs">{shortcutSymbol}</span>K
               </kbd>
             </Button>
 
@@ -329,20 +346,43 @@ export function Header({ children }: { children?: React.ReactNode }) {
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="max-w-4xl overflow-hidden p-0">
               <DialogTitle className="sr-only">Search and Filters</DialogTitle>
+              <DialogDescription className="sr-only">
+                Search jobs and adjust filters in this dialog.
+              </DialogDescription>
               <div className="flex h-[600px] flex-col md:h-[450px] md:flex-row">
                 <div className="flex-1 border-b md:border-b-0 md:border-r">
-                  <Command className="h-full w-full rounded-none border-none">
+                  <Command
+                    shouldFilter={false}
+                    className="h-full w-full rounded-none border-none"
+                  >
                     <CommandInput
                       placeholder={t('header.commandPlaceholder')}
                       value={searchQuery}
                       onValueChange={setSearchQuery}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
+                        if (
+                          e.key === 'Enter' &&
+                          searchQuery.trim().length === 0
+                        ) {
                           handleSearch()
                         }
                       }}
                     />
                     <CommandList>
+                      {searchQuery.trim().length > 0 && (
+                        <CommandGroup>
+                          <CommandItem
+                            key="search-action"
+                            value={`search-${searchQuery}`}
+                            onSelect={() => handleSearch(searchQuery)}
+                          >
+                            <Search className="mr-2 h-4 w-4" />
+                            <span className="font-medium">
+                              {t('common.search')} &quot;{searchQuery}&quot;
+                            </span>
+                          </CommandItem>
+                        </CommandGroup>
+                      )}
                       <CommandEmpty>
                         {searchQuery.trim().length < 2
                           ? t('header.typeToSearch')
@@ -376,7 +416,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
                     </CommandList>
                   </Command>
                 </div>
-                <div className="w-full overflow-y-auto bg-card p-6 md:w-[320px]">
+                <div className="w-full overflow-y-auto bg-card p-6 md:w-[420px]">
                   <div className="mb-4 space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <h3 className="text-lg font-semibold">

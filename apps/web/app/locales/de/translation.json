@@ -55,7 +55,8 @@
     "appSettings": "App-Einstellungen",
     "appSettingsDesc": "Konfigurieren Sie Ihr App-Erlebnis.",
     "interfaceLanguage": "Schnittstellensprache",
-    "selectLanguage": "Sprache wählen"
+    "selectLanguage": "Sprache wählen",
+    "autoSave": "Änderungen werden automatisch gespeichert"
   },
   "filters": {
     "title": "Jobs filtern",
