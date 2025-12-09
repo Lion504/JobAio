@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { LocationSelector } from '@/components/location-selector'
 import { useTranslation } from 'react-i18next'
+import { Check } from 'lucide-react'
 
 type PreferencesState = {
   jobTags: string
@@ -62,6 +63,7 @@ function normalizeLocationPreference(
 export default function Preferences() {
   const { t, i18n } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
   const [preferences, setPreferences] =
     useState<PreferencesState>(defaultPreferences)
   const [isInitialized, setIsInitialized] = useState(false)
@@ -197,9 +199,11 @@ export default function Preferences() {
 
   const handleSave = () => {
     setIsLoading(true)
+    setShowSuccess(false)
     setTimeout(() => {
       setIsLoading(false)
-      alert(t('common.saved'))
+      setShowSuccess(true)
+      setTimeout(() => setShowSuccess(false), 3000)
     }, 1000)
   }
 
@@ -312,7 +316,13 @@ export default function Preferences() {
             </CardContent>
           </Card>
 
-          <div className="flex justify-end">
+          <div className="flex items-center justify-end gap-4">
+            {showSuccess && (
+              <div className="flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-500 animate-in fade-in slide-in-from-right-2">
+                <Check className="h-4 w-4" />
+                {t('common.saved')}
+              </div>
+            )}
             <Button onClick={handleSave} disabled={isLoading}>
               {isLoading ? t('common.saving') : t('common.save')}
             </Button>
