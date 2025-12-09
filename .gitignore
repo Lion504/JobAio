@@ -90,6 +90,7 @@ apps/scraper-py/tests/test_output/
 backend_process_flow.gif
 packages/db/data/pipeline_results_*.json
 packages/db/data/translated/translated_batch_*.json
+apps/process-map/
 
 # MCP history
 .git-mcp-history/
