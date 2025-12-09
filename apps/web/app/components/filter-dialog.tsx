@@ -16,10 +16,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 import { SlidersHorizontal } from 'lucide-react'
 
 import { useFilters } from '@/context/filter-context'
 import { LocationSelector } from '@/components/location-selector'
+import {
+  educationLevelOptions,
+  experienceLevelOptions,
+  industryCategoryOptions,
+  jobTypeOptions,
+  languageOptions,
+} from '@/data/filter-options'
 
 export function FilterContent({ className }: { className?: string }) {
   const { filters, updateFilter, resetFilters } = useFilters()
@@ -34,63 +42,135 @@ export function FilterContent({ className }: { className?: string }) {
             id="filters-location"
             value={filters.location}
             onChange={(value) => updateFilter('location', value)}
-            placeholder="Search cities or Remote work"
+            placeholder="Select location"
           />
-          <p className="text-xs text-muted-foreground">
-            Pick one or more Finnish cities, including Remote work.
-          </p>
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="type">Job Type</Label>
-          <Select
-            value={filters.type}
-            onValueChange={(value) => updateFilter('type', value)}
-          >
-            <SelectTrigger id="type">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="full-time">Full-time</SelectItem>
-              <SelectItem value="part-time">Part-time</SelectItem>
-              <SelectItem value="contract">Contract</SelectItem>
-              <SelectItem value="freelance">Freelance</SelectItem>
-            </SelectContent>
-          </Select>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <Label htmlFor="job-type">Job Type</Label>
+            <Select
+              value={filters.jobType || 'any'}
+              onValueChange={(value) =>
+                updateFilter('jobType', value === 'any' ? '' : value)
+              }
+            >
+              <SelectTrigger id="job-type">
+                <SelectValue placeholder="Any job type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any</SelectItem>
+                {jobTypeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="experience">Experience Level</Label>
+            <Select
+              value={filters.experienceLevel || 'any'}
+              onValueChange={(value) =>
+                updateFilter('experienceLevel', value === 'any' ? '' : value)
+              }
+            >
+              <SelectTrigger id="experience">
+                <SelectValue placeholder="Any experience" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any</SelectItem>
+                {experienceLevelOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="experience">Experience Level</Label>
-          <Select
-            value={filters.experience}
-            onValueChange={(value) => updateFilter('experience', value)}
-          >
-            <SelectTrigger id="experience">
-              <SelectValue placeholder="Select level" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="entry">Entry Level</SelectItem>
-              <SelectItem value="mid">Mid Level</SelectItem>
-              <SelectItem value="senior">Senior Level</SelectItem>
-              <SelectItem value="lead">Lead / Manager</SelectItem>
-            </SelectContent>
-          </Select>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <Label htmlFor="company">Company</Label>
+            <Input
+              id="company"
+              placeholder="e.g. Google"
+              value={filters.company}
+              onChange={(event) => updateFilter('company', event.target.value)}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="industry">Industry</Label>
+            <Select
+              value={filters.industryCategory || 'any'}
+              onValueChange={(value) =>
+                updateFilter('industryCategory', value === 'any' ? '' : value)
+              }
+            >
+              <SelectTrigger id="industry">
+                <SelectValue placeholder="Any industry" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any</SelectItem>
+                {industryCategoryOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="salary">Salary Range</Label>
-          <Select
-            value={filters.salary}
-            onValueChange={(value) => updateFilter('salary', value)}
-          >
-            <SelectTrigger id="salary">
-              <SelectValue placeholder="Select range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0-50k">$0 - $50k</SelectItem>
-              <SelectItem value="50k-100k">$50k - $100k</SelectItem>
-              <SelectItem value="100k-150k">$100k - $150k</SelectItem>
-              <SelectItem value="150k+">$150k+</SelectItem>
-            </SelectContent>
-          </Select>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <Label htmlFor="required-language">Required Language</Label>
+            <Select
+              value={filters.requiredLanguage || 'any'}
+              onValueChange={(value) =>
+                updateFilter('requiredLanguage', value === 'any' ? '' : value)
+              }
+            >
+              <SelectTrigger id="required-language">
+                <SelectValue placeholder="Any language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any</SelectItem>
+                {languageOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="education-level">Education Level</Label>
+            <Select
+              value={filters.educationLevel || 'any'}
+              onValueChange={(value) =>
+                updateFilter('educationLevel', value === 'any' ? '' : value)
+              }
+            >
+              <SelectTrigger id="education-level">
+                <SelectValue placeholder="Any education level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any</SelectItem>
+                {educationLevelOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+
         <div className="flex items-center gap-2 mt-2">
           <Button variant="outline" onClick={resetFilters} className="flex-1">
             Reset

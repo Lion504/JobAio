@@ -1,10 +1,13 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 
-interface FilterState {
+export interface FilterState {
   location: string[]
-  type: string
-  experience: string
-  salary: string
+  jobType: string
+  experienceLevel: string
+  company: string
+  industryCategory: string
+  requiredLanguage: string
+  educationLevel: string
 }
 
 interface FilterContextType {
@@ -17,11 +20,14 @@ interface FilterContextType {
   resetFilters: () => void
 }
 
-const defaultFilters: FilterState = {
+export const defaultFilters: FilterState = {
   location: [],
-  type: '',
-  experience: '',
-  salary: '',
+  jobType: '',
+  experienceLevel: '',
+  company: '',
+  industryCategory: '',
+  requiredLanguage: '',
+  educationLevel: '',
 }
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined)
