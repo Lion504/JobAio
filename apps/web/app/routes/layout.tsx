@@ -43,11 +43,7 @@ export default function Layout() {
           <Header>
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="lg:hidden -ml-2"
-                >
+                <Button variant="ghost" size="icon" className="lg:hidden -ml-2">
                   <Menu className="h-5 w-5" />
                   <span className="sr-only">Toggle menu</span>
                 </Button>
