@@ -60,7 +60,9 @@ function formatDate(dateString: string): string {
           day: 'numeric',
         })
       }
-    } catch {}
+    } catch {
+      // ignore
+    }
   }
 
   return dateString
@@ -81,7 +83,7 @@ function getJobTypeBadgeColor(type: string) {
   return 'bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-500/30'
 }
 
-export function JobCard({ job, isSelected, onClick }: JobCardProps) {
+export function JobCard({ job, onClick }: JobCardProps) {
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks()

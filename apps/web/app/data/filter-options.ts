@@ -50,4 +50,3 @@ export const educationLevelOptions: FilterOption[] = [
   { label: "Master's degree", value: 'master' },
   { label: 'Doctorate / PhD', value: 'doctorate' },
 ]
-

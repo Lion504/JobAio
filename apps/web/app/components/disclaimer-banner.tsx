@@ -38,12 +38,15 @@ export function DisclaimerBanner() {
   return (
     <div className="pointer-events-none fixed inset-x-3 bottom-4 z-50 flex justify-center sm:inset-x-6">
       <div className="pointer-events-auto flex w-full max-w-4xl items-start gap-3 rounded-lg border bg-card p-4 shadow-lg">
-        <AlertCircle className="mt-0.5 h-5 w-5 text-amber-500" aria-hidden="true" />
+        <AlertCircle
+          className="mt-0.5 h-5 w-5 text-amber-500"
+          aria-hidden="true"
+        />
         <div className="flex-1 text-sm text-muted-foreground">
           <p className="font-medium text-foreground">Disclaimer</p>
           <p>
-            We are not responsible for outdated or inaccurate job listings. Always check the
-            original listing.
+            We are not responsible for outdated or inaccurate job listings.
+            Always check the original listing.
           </p>
         </div>
         <Button
@@ -59,4 +62,3 @@ export function DisclaimerBanner() {
     </div>
   )
 }
-

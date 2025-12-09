@@ -140,6 +140,7 @@ export default function Preferences() {
         }
         const {
           location: storedLocation,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           aiSearchEnabled: _legacyAi,
           ...rest
         } = parsed
@@ -170,6 +171,7 @@ export default function Preferences() {
     } finally {
       setIsInitialized(true)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
