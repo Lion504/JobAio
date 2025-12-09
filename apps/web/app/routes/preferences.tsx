@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { LocationSelector } from '@/components/location-selector'
 import { useTranslation } from 'react-i18next'
@@ -105,6 +105,7 @@ export default function Preferences() {
   const [preferences, setPreferences] =
     useState<PreferencesState>(defaultPreferences)
   const [isInitialized, setIsInitialized] = useState(false)
+  const isFirstSave = useRef(true)
 
   const interfaceLanguageOptions = [
     { label: 'English', value: 'en' },
@@ -224,6 +225,11 @@ export default function Preferences() {
     writePreferencesCookie(preferences)
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('preferences-updated'))
+    }
+
+    if (isFirstSave.current) {
+      isFirstSave.current = false
+      return
     }
 
     setShowSuccess(true)
