@@ -47,11 +47,18 @@ def main():
         "  →  🏷️ Step 3: Categorize by industry"
         "  →  🔬 Step 4: Analyze jobs"
         "  →  💾 Step 5: Save results"
+        "  →  🗄️ Step 6: Insert original jobs to database"
+        "  →  🌍 Step 7: Translate jobs to multiple languages"
+        "  →  🗃️ Step 8: Insert translated jobs to database"
     )
     print("=" * 70)
 
+    # Pipeline Execution Timer
+    pipeline_start_time = time.time()
+
     # Step 1a: Scrape jobs from jobly.fi
     print("\n🕷️ [1a/5] Scraping jobs from jobly.fi...")
+    step_start = time.time()
     try:
         # Create JoblyExtractor and modify to return jobs instead of saving
         scraper = jobly_scraper.JoblyScraper()
@@ -106,7 +113,10 @@ def main():
         scraped_jobs = extractor.jobs.copy()
 
         jobly_jobs = scraped_jobs.copy()  # Keep all for now, dedup later
-        print(f"✅ Scraped {len(jobly_jobs)} jobs from jobly.fi")
+        print(
+            f"✅ Scraped {len(jobly_jobs)} jobs from jobly.fi "
+            f"took {time.time() - step_start:.2f}s"
+        )
 
     except Exception as e:
         print(f"❌ Jobly scraping failed: {e}")
@@ -114,6 +124,7 @@ def main():
 
     # Step 1b: Scrape jobs from duunitori.fi
     print("\n🕷️ [1b/5] Scraping jobs from duunitori.fi...")
+    step_start = time.time()
     try:
         # Create DuunitoriExtractor
         duunitori_scraper = DuunitoriScraper()
@@ -168,7 +179,10 @@ def main():
                 break
 
         duunitori_jobs = duunitori_extractor.jobs.copy()
-        print(f"✅ Scraped {len(duunitori_jobs)} jobs from duunitori.fi")
+        print(
+            f"✅ Scraped {len(duunitori_jobs)} jobs from duunitori.fi"
+            f" (took {time.time() - step_start:.2f}s)"
+        )
 
     except Exception as e:
         print(f"❌ Duunitori scraping failed: {e}")
@@ -176,13 +190,17 @@ def main():
 
     # Step 1c: Combine and deduplicate across both sources
     print("\n🔄 [1c/5] Combining and deduplicating jobs...")
+    step_start = time.time()
     try:
         all_scraped_jobs = jobly_jobs + duunitori_jobs
 
         # Advanced content-based deduplication (company + title + location)
         scraped_jobs = deduplicate_jobs(all_scraped_jobs)
 
-        print(f"✅ Combined: {len(scraped_jobs)} jobs")
+        print(
+            f"✅ Combined: {len(scraped_jobs)} jobs"
+            f" (took {time.time() - step_start:.2f}s)"
+        )
 
     except Exception as e:
         print(f"❌ Deduplication failed: {e}")
@@ -190,6 +208,7 @@ def main():
 
     # Step 2: Pre-translate jobs to English
     print("\n🌐 [2/5] Pre-translating jobs to English...")
+    step_start = time.time()
     try:
         # Resolve path to Node.js pretranslation script
         pretranslate_script = (
@@ -236,7 +255,10 @@ def main():
         with open(output_file_path, "r", encoding="utf-8") as f:
             translated_jobs = json.load(f)
 
-        print(f"✅ Pretranslation complete - processed {len(translated_jobs)} jobs")
+        print(
+            f"✅ Pretranslation complete - processed {len(translated_jobs)} jobs"
+            f" (took {time.time() - step_start:.2f}s)"
+        )
 
         # Clean up temp files
         try:
@@ -251,6 +273,7 @@ def main():
 
     # Step 3: Categorize jobs by industry
     print("\n🏷️ [3/5] Categorizing jobs by industry...")
+    step_start = time.time()
     try:
         # Resolve path to Node.js categorization script
         categorize_script = (
@@ -304,7 +327,10 @@ def main():
         with open(cat_output_file_path, "r", encoding="utf-8") as f:
             categorized_jobs = json.load(f)
 
-        print(f"✅ Categorization complete - processed {len(categorized_jobs)} jobs")
+        print(
+            f"✅ Categorization complete - processed {len(categorized_jobs)} jobs"
+            f" (took {time.time() - step_start:.2f}s)"
+        )
 
         # Clean up temp files
         try:
@@ -319,9 +345,10 @@ def main():
 
     # Step 4: Analyze jobs with hybrid analyzer
     print("\n🔬 [4/5] Analyzing jobs with hybrid engine...")
+    step_start = time.time()
     try:
         analyzer = HybridJobAnalyzer()
-        analyzed_jobs = analyzer.analyze_batch(translated_jobs)
+        analyzed_jobs = analyzer.analyze_batch(categorized_jobs)
 
         # Validate the analyzed jobs
         if not analyzed_jobs or len(analyzed_jobs) == 0:
@@ -333,7 +360,10 @@ def main():
         if jobs_with_errors:
             print(f"⚠️ Warning: {len(jobs_with_errors)} jobs had analysis errors")
 
-        print(f"✅ Analysis complete - processed {len(analyzed_jobs)} jobs")
+        print(
+            f"✅ Analysis complete - processed {len(analyzed_jobs)} jobs "
+            f" (took {time.time() - step_start:.2f}s)"
+        )
 
     except Exception as e:
         print(f"❌ Analysis failed: {e}")
@@ -341,6 +371,7 @@ def main():
 
     # Step 5: Save enhanced results to packages/db/data
     print("\n💾 [5/5] Saving enhanced results to database data folder...")
+    step_start = time.time()
     try:
         # Create data directory if not exists
         data_dir = (
@@ -361,12 +392,147 @@ def main():
 
         print(f"💾 Pipeline complete! Saved {len(analyzed_jobs)} enhanced jobs to:")
         print(f"   {output_file}")
+        print(f"   (Saving took {time.time() - step_start:.2f}s)")
 
     except Exception as e:
         print(f"❌ Failed to save results: {e}")
         return
 
+    # Step 6: Insert original jobs to database
+    print("\n🗄️ [6/8] Inserting original jobs to database...")
+    step_start = time.time()
+    try:
+        # Resolve path to Node.js insert original script
+        insert_original_script = (
+            project_root.parent.parent.parent
+            / "packages"
+            / "db"
+            / "src"
+            / "insert-original.js"
+        )
+        insert_original_script = Path(insert_original_script).resolve()
+
+        # Check script availability
+        if not insert_original_script.exists():
+            print(f"❌ Insert original script not found at {insert_original_script}")
+            print("   Continuing with pipeline...")
+        else:
+            # Run Node.js script
+            node_cmd = ["node", str(insert_original_script)]
+
+            result = subprocess.run(
+                node_cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=1200,  # 20 minute timeout as requested
+                cwd=insert_original_script.parent,
+            )
+
+            if result.returncode != 0:
+                print(f"❌ Insert original jobs failed: {result.stderr}")
+                print("   Continuing with pipeline...")
+            else:
+                print(
+                    f"✅ Original jobs insertion complete "
+                    f"(took {time.time() - step_start:.2f}s)"
+                )
+
+    except Exception as e:
+        print(f"❌ Insert original jobs failed: {e}")
+        print("   Continuing with pipeline...")
+
+    # Step 7: Translate jobs to multiple languages
+    print("\n🌍 [7/8] Translating jobs to multiple languages...")
+    step_start = time.time()
+    try:
+        # Resolve path to Node.js translator script
+        translator_script = (
+            project_root.parent.parent.parent
+            / "packages"
+            / "ai"
+            / "src"
+            / "translator.js"
+        )
+        translator_script = Path(translator_script).resolve()
+
+        # Check script availability
+        if not translator_script.exists():
+            print(f"❌ Translator script not found at {translator_script}")
+            print("   Continuing with pipeline...")
+        else:
+            # Run Node.js script
+            node_cmd = ["node", str(translator_script)]
+
+            result = subprocess.run(
+                node_cmd,
+                capture_output=False,
+                text=True,
+                encoding="utf-8",
+                timeout=3000,  # 30 minute timeout for translation
+                cwd=translator_script.parent,
+            )
+
+            if result.returncode != 0:
+                print(f"❌ Translation failed: {result.stderr}")
+                print("   Continuing with pipeline...")
+            else:
+                print(f"✅ Translation complete (took {time.time() - step_start:.2f}s)")
+
+    except Exception as e:
+        print(f"❌ Translation failed: {e}")
+        print("   Continuing with pipeline...")
+
+    # Step 8: Insert translated jobs to database
+    print("\n🗃️ [8/8] Inserting translated jobs to database...")
+    step_start = time.time()
+    try:
+        # Resolve path to Node.js insert translated script
+        insert_translated_script = (
+            project_root.parent.parent.parent
+            / "packages"
+            / "db"
+            / "src"
+            / "insert-translated.js"
+        )
+        insert_translated_script = Path(insert_translated_script).resolve()
+
+        # Check script availability
+        if not insert_translated_script.exists():
+            print(
+                f"❌ Insert translated script not found at {insert_translated_script}"
+            )
+            print("   Pipeline finished with warnings")
+        else:
+            # Run Node.js script
+            node_cmd = ["node", str(insert_translated_script)]
+
+            result = subprocess.run(
+                node_cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=300,  # 5 minute timeout for insert translated
+                cwd=insert_translated_script.parent,
+            )
+
+            if result.returncode != 0:
+                print(f"❌ Insert translated jobs failed: {result.stderr}")
+                print("   Pipeline finished with errors")
+            else:
+                print(
+                    f"✅ Translated jobs insertion complete"
+                    f" (took {time.time() - step_start:.2f}s)"
+                )
+
+                total_duration = time.time() - pipeline_start_time
+
+                print(f"🎉 Full pipeline complete in {total_duration/60:.2f} minutes!")
+
+    except Exception as e:
+        print(f"❌ Insert translated jobs failed: {e}")
+        print("   Pipeline finished with errors")
+
 
 if __name__ == "__main__":
-
     main()

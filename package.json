@@ -2,17 +2,22 @@
   "name": "jobaio",
   "private": true,
   "packageManager": "pnpm@9.15.3",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
     "dev": "pnpm --filter @jobaio/web dev",
     "dev:web": "pnpm --filter @jobaio/web dev",
-    "dev:api": "pnpm --filter jobaio-api dev",
+    "dev:api": "pnpm --filter @jobaio/api dev",
     "dev:scraper": "pnpm --filter @jobaio/scraper-py run run",
+    "jobs": "cd apps/scraper-py && call venv\\Scripts\\python.exe src/main.py",
     "build": "echo 'Add build script later'",
     "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:ai": "pnpm --filter @jobaio/ai test",
     "test:py": "cd apps/scraper-py && call venv\\Scripts\\python.exe -m pytest",
     "lint:web": "pnpm --filter @jobaio/web lint",
-    "lint:api": "pnpm --filter jobaio-api lint",
+    "lint:api": "pnpm --filter @jobaio/api lint",
     "lint": "pnpm --parallel lint",
     "lint:fix": "pnpm --parallel lint:fix",
     "format": "pnpm --parallel format",
@@ -25,11 +30,14 @@
     "express": "^5.1.0",
     "franc": "^6.2.0",
     "mongoose": "^8.19.4",
+    "mongoose-sequence": "^6.0.1",
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.4.1",
+    "supertest": "^7.1.4"
   }
 }

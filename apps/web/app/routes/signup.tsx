@@ -9,9 +9,32 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Link, useNavigate } from 'react-router'
+import {
+  Link,
+  type HeadersFunction,
+  type MetaFunction,
+  useLoaderData,
+  useNavigate,
+} from 'react-router'
+
+export const meta: MetaFunction = () => [
+  { title: 'JobAio | Sign Up' },
+  {
+    name: 'description',
+    content: 'Create a JobAio account to sync preferences.',
+  },
+]
+
+export const headers: HeadersFunction = () => ({
+  'Cache-Control': 'private, max-age=0, must-revalidate',
+})
+
+export async function loader() {
+  return { ok: true }
+}
 
 export default function Signup() {
+  useLoaderData<typeof loader>()
   const { login } = useAuth()
   const navigate = useNavigate()
 

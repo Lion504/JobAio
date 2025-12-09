@@ -19,6 +19,7 @@
   },
   "scripts": {
     "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest --config ../../jest.config.js --testPathPattern=packages/ai",
-    "test:watch": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest --config ../../jest.config.js --testPathPattern=packages/ai --watch"
+    "test:watch": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest --config ../../jest.config.js --testPathPattern=packages/ai --watch",
+    "translate": "node src/translator.js"
   }
 }

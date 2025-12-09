@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Briefcase,
+  Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { ModeToggle } from '@/components/mode-toggle'
+import { useTranslation } from 'react-i18next'
 
 interface SidebarProps {
   isCollapsed?: boolean
@@ -33,11 +35,13 @@ export function Sidebar({
   onClose,
 }: SidebarProps) {
   const location = useLocation()
+  const { t } = useTranslation()
 
   const navItems = [
-    { icon: Briefcase, label: 'Jobs', href: '/' },
-    { icon: Settings, label: 'Preferences', href: '/preferences' },
-    { icon: Bookmark, label: 'Saved', href: '/saved' },
+    { icon: Briefcase, label: t('sidebar.jobs'), href: '/' },
+    { icon: Sparkles, label: t('sidebar.suggestions'), href: '/suggestions' },
+    { icon: Bookmark, label: t('sidebar.saved'), href: '/saved' },
+    { icon: Settings, label: t('sidebar.preferences'), href: '/preferences' },
   ]
 
   return (
@@ -83,7 +87,7 @@ export function Sidebar({
             onClick={onClose}
           >
             <ChevronLeft className="h-4 w-4" />
-            <span className="sr-only">Close sidebar</span>
+            <span className="sr-only">{t('common.closeSidebar')}</span>
           </Button>
         )}
       </div>
@@ -96,6 +100,7 @@ export function Sidebar({
                 <TooltipTrigger asChild>
                   <Link
                     to={item.href}
+                    prefetch="intent"
                     onClick={mobile ? onClose : undefined}
                     className={cn(
                       'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
@@ -129,21 +134,27 @@ export function Sidebar({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
-                  <Link to="/account">
+                  <Link to="/account" prefetch="intent">
                     <User className="h-4 w-4" />
-                    <span className="sr-only">Account</span>
+                    <span className="sr-only">{t('sidebar.account')}</span>
                   </Link>
                 </Button>
               </TooltipTrigger>
               {isCollapsed && (
-                <TooltipContent side="right">Account</TooltipContent>
+                <TooltipContent side="right">
+                  {t('sidebar.account')}
+                </TooltipContent>
               )}
             </Tooltip>
           </TooltipProvider>
 
           {!isCollapsed && (
-            <Link to="/account" className="text-sm font-medium hover:underline">
-              Account
+            <Link
+              to="/account"
+              prefetch="intent"
+              className="text-sm font-medium hover:underline"
+            >
+              {t('sidebar.account')}
             </Link>
           )}
 

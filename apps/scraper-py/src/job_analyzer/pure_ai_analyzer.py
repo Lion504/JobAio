@@ -29,22 +29,21 @@ class AIAnalyzer:
         else:
             self.ai_available = True
 
-    def _call_batch_analysis(self, jobs: list) -> list:
-        """Call Node.js batch analysis for multiple jobs"""
+    def _call_node_process(self, payload: str) -> Any:
         try:
-            # Convert jobs to JSON string
-            jobs_json = json.dumps(jobs)
+            # Pass "-" as argument to tell Node script to read from stdin
+            # logic: node job_analysis.js "-"
+            cmd = ["node", self.ai_script, "-"]
 
-            cmd = ["node", self.ai_script, "batch", jobs_json]
-
-            # Force UTF-8 encoding to handle Node.js Unicode output (emojis)
+            # Force UTF-8 encoding
             env = os.environ.copy()
             env["PYTHONIOENCODING"] = "utf-8"
 
             result = subprocess.run(
                 cmd,
+                input=payload,
                 capture_output=True,
-                timeout=15,
+                timeout=60,
                 cwd=os.path.dirname(self.ai_script),
                 text=True,
                 encoding="utf-8",
@@ -55,143 +54,53 @@ class AIAnalyzer:
                 try:
                     response_text = result.stdout.strip()
                     if not response_text:
-                        print("⚠️ Warning: Empty response from batch AI analysis")
+                        print("⚠️ Warning: Empty response from AI analysis")
                         return []
                     return json.loads(response_text)
                 except json.JSONDecodeError as e:
-                    print(f"❌ Failed to parse batch AI response: {e}")
+                    print(f"❌ Failed to parse AI response: {e}")
                     return []
             else:
                 print(
-                    f"❌ Batch AI analysis failed: "
-                    f"(exit code {result.returncode}): {result.stderr}"
+                    f"❌ AI analysis failed (code {result.returncode}): {result.stderr}"
                 )
                 return []
 
         except subprocess.TimeoutExpired:
-            print("Batch AI analysis timed out")
-            return []
-        except json.JSONDecodeError as e:
-            print(f"Failed to parse batch AI response: {e}")
+            print("AI analysis timed out")
             return []
         except Exception as e:
-            print(f"Error calling batch AI analysis: {e}")
+            print(f"Error calling AI analysis: {e}")
             return []
 
+    def analyze_batch_unified(self, jobs: list) -> list:
+        """Call Node.js unified batch analysis for multiple jobs"""
+        if not self.ai_available:
+            return jobs  # Return unprocessed
+
+        # Convert jobs to JSON string
+        jobs_json = json.dumps(jobs)
+
+        # Call Node script (function name implicit in JS now)
+        analyzed_jobs = self._call_node_process(jobs_json)
+
+        if not analyzed_jobs or not isinstance(analyzed_jobs, list):
+            print("❌ Unified batch analysis returned invalid data")
+            return jobs
+
+        return analyzed_jobs
+
     def analyze_pure_ai(self, description: str) -> Dict[str, Any]:
-        """Perform full AI analysis using batch processing"""
+        """Legacy single analysis (wraps into batch)"""
+        # implementation for single job backward compatibility
         if not self.ai_available:
             return {"error": "AI not available"}
 
-        # Create a single-job batch for analysis
-        job_batch = [{"description": description}]
-        analyzed_jobs = self._call_batch_analysis(job_batch)
-
-        if not analyzed_jobs or len(analyzed_jobs) == 0:
-            return {"error": "Batch analysis failed"}
-
-        # Extract the single job result
-        result = analyzed_jobs[0]
-
-        # Process and format the results to match expected structure
-        # 1. Job Type
-        job_type = result.get("job_type", [])
-        if isinstance(job_type, dict) and "job_type" in job_type:
-            job_type = (
-                [job_type["job_type"]]
-                if isinstance(job_type["job_type"], str)
-                else job_type["job_type"]
-            )
-        elif isinstance(job_type, str):
-            job_type = [job_type]
-        elif not isinstance(job_type, list):
-            job_type = []
-
-        # 2. Language
-        language_data = result.get("language", {})
-        if isinstance(language_data, dict) and "languages" in language_data:
-            language_data = language_data["languages"]
-        if not isinstance(language_data, dict):
-            language_data = {"required": [], "advantage": []}
-
-        # 3. Experience Level
-        experience_level = result.get("experience_level", "unknown")
-        if isinstance(experience_level, dict) and "level" in experience_level:
-            experience_level = experience_level["level"]
-        if not isinstance(experience_level, str):
-            experience_level = "unknown"
-
-        # 4. Education Level
-        education_level = result.get("education_level", [])
-        if isinstance(education_level, dict) and "education_level" in education_level:
-            education_level = (
-                [education_level["education_level"]]
-                if isinstance(education_level["education_level"], str)
-                else education_level["education_level"]
-            )
-        elif isinstance(education_level, str):
-            education_level = [education_level]
-        elif not isinstance(education_level, list):
-            education_level = []
-
-        # 5. Skills
-        skill_type_data = result.get("skill_type", {})
-        if isinstance(skill_type_data, dict) and "skills" in skill_type_data:
-            skill_type_data = skill_type_data["skills"]
-
-        # Map to expected structure
-        skill_type = {
-            "technical": (
-                skill_type_data.get("technical", [])
-                if isinstance(skill_type_data, dict)
-                else []
-            ),
-            "domain_specific": (
-                skill_type_data.get("domain_specific", [])
-                if isinstance(skill_type_data, dict)
-                else []
-            ),
-            "certifications": (
-                skill_type_data.get("certifications", [])
-                if isinstance(skill_type_data, dict)
-                else []
-            ),
-            "soft_skills": (
-                skill_type_data.get("soft_skills", [])
-                if isinstance(skill_type_data, dict)
-                else []
-            ),
-            "other": (
-                skill_type_data.get("other", [])
-                if isinstance(skill_type_data, dict)
-                else []
-            ),
-        }
-
-        # Ensure all values are lists
-        for key in skill_type:
-            if not isinstance(skill_type[key], list):
-                skill_type[key] = []
-
-        # 6. Responsibilities
-        responsibilities = result.get("responsibilities", [])
-        if (
-            isinstance(responsibilities, dict)
-            and "responsibilities" in responsibilities
-        ):
-            responsibilities = responsibilities["responsibilities"]
-        if not isinstance(responsibilities, list):
-            responsibilities = []
-
-        return {
-            "job_type": job_type,
-            "language": language_data,
-            "experience_level": experience_level,
-            "education_level": education_level,
-            "skill_type": skill_type,
-            "responsibilities": responsibilities,
-            "_metadata": {"analysis_method": "pure_ai_batch", "ai_available": True},
-        }
+        # Reuse batch logic for consistency
+        result_list = self.analyze_batch_unified([{"description": description}])
+        if result_list and len(result_list) > 0:
+            return result_list[0]
+        return {}
 
 
 class PureAIJobAnalyzer:
@@ -211,6 +120,11 @@ class PureAIJobAnalyzer:
     def analyze_job(self, job: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze job using only AI and merge analysis into original job data"""
         description = job.get("description", "")
+        # Use the legacy wrapper
         analysis = self.ai_analyzer.analyze_pure_ai(description)
         # Merge analysis into the original job data
         return {**job, **analysis}
+
+    def analyze_batch(self, jobs: list[Dict[str, Any]]) -> list[Dict[str, Any]]:
+        """Analyze a batch of jobs efficiently"""
+        return self.ai_analyzer.analyze_batch_unified(jobs)

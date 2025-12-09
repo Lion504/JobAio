@@ -16,84 +16,172 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 import { SlidersHorizontal } from 'lucide-react'
 
 import { useFilters } from '@/context/filter-context'
 import { LocationSelector } from '@/components/location-selector'
+import {
+  educationLevelOptions,
+  experienceLevelOptions,
+  industryCategoryOptions,
+  jobTypeOptions,
+  languageOptions,
+} from '@/data/filter-options'
+import { useTranslation } from 'react-i18next'
 
 export function FilterContent({ className }: { className?: string }) {
+  const { t } = useTranslation()
   const { filters, updateFilter, resetFilters } = useFilters()
 
   return (
     <div className={className}>
       <div className="grid gap-4 py-4">
         <div className="grid gap-2">
-          <Label htmlFor="filters-location">Location</Label>
+          <Label htmlFor="filters-location">{t('filters.location')}</Label>
           <LocationSelector
             multiple
             id="filters-location"
             value={filters.location}
             onChange={(value) => updateFilter('location', value)}
-            placeholder="Search cities or Remote work"
+            placeholder={t('filters.selectLocation')}
           />
-          <p className="text-xs text-muted-foreground">
-            Pick one or more Finnish cities, including Remote work.
-          </p>
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="type">Job Type</Label>
-          <Select
-            value={filters.type}
-            onValueChange={(value) => updateFilter('type', value)}
-          >
-            <SelectTrigger id="type">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="full-time">Full-time</SelectItem>
-              <SelectItem value="part-time">Part-time</SelectItem>
-              <SelectItem value="contract">Contract</SelectItem>
-              <SelectItem value="freelance">Freelance</SelectItem>
-            </SelectContent>
-          </Select>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <Label htmlFor="job-type">{t('filters.jobType')}</Label>
+            <Select
+              value={filters.jobType || 'any'}
+              onValueChange={(value) =>
+                updateFilter('jobType', value === 'any' ? '' : value)
+              }
+            >
+              <SelectTrigger id="job-type">
+                <SelectValue placeholder={t('filters.anyJobType')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">{t('filters.any')}</SelectItem>
+                {jobTypeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {t(`filters.jobTypeOption.${option.value}`, {
+                      defaultValue: option.label,
+                    })}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="experience">{t('filters.experienceLevel')}</Label>
+            <Select
+              value={filters.experienceLevel || 'any'}
+              onValueChange={(value) =>
+                updateFilter('experienceLevel', value === 'any' ? '' : value)
+              }
+            >
+              <SelectTrigger id="experience">
+                <SelectValue placeholder={t('filters.anyExperience')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">{t('filters.any')}</SelectItem>
+                {experienceLevelOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="experience">Experience Level</Label>
-          <Select
-            value={filters.experience}
-            onValueChange={(value) => updateFilter('experience', value)}
-          >
-            <SelectTrigger id="experience">
-              <SelectValue placeholder="Select level" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="entry">Entry Level</SelectItem>
-              <SelectItem value="mid">Mid Level</SelectItem>
-              <SelectItem value="senior">Senior Level</SelectItem>
-              <SelectItem value="lead">Lead / Manager</SelectItem>
-            </SelectContent>
-          </Select>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <Label htmlFor="company">{t('filters.company')}</Label>
+            <Input
+              id="company"
+              placeholder={t('filters.companyPlaceholder')}
+              value={filters.company}
+              onChange={(event) => updateFilter('company', event.target.value)}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="industry">{t('filters.industry')}</Label>
+            <Select
+              value={filters.industryCategory || 'any'}
+              onValueChange={(value) =>
+                updateFilter('industryCategory', value === 'any' ? '' : value)
+              }
+            >
+              <SelectTrigger id="industry">
+                <SelectValue placeholder={t('filters.anyIndustry')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">{t('filters.any')}</SelectItem>
+                {industryCategoryOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="salary">Salary Range</Label>
-          <Select
-            value={filters.salary}
-            onValueChange={(value) => updateFilter('salary', value)}
-          >
-            <SelectTrigger id="salary">
-              <SelectValue placeholder="Select range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0-50k">$0 - $50k</SelectItem>
-              <SelectItem value="50k-100k">$50k - $100k</SelectItem>
-              <SelectItem value="100k-150k">$100k - $150k</SelectItem>
-              <SelectItem value="150k+">$150k+</SelectItem>
-            </SelectContent>
-          </Select>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <Label htmlFor="required-language">
+              {t('filters.requiredLanguage')}
+            </Label>
+            <Select
+              value={filters.requiredLanguage || 'any'}
+              onValueChange={(value) =>
+                updateFilter('requiredLanguage', value === 'any' ? '' : value)
+              }
+            >
+              <SelectTrigger id="required-language">
+                <SelectValue placeholder={t('filters.anyLanguage')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">{t('filters.any')}</SelectItem>
+                {languageOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="education-level">
+              {t('filters.educationLevel')}
+            </Label>
+            <Select
+              value={filters.educationLevel || 'any'}
+              onValueChange={(value) =>
+                updateFilter('educationLevel', value === 'any' ? '' : value)
+              }
+            >
+              <SelectTrigger id="education-level">
+                <SelectValue placeholder={t('filters.anyEducationLevel')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">{t('filters.any')}</SelectItem>
+                {educationLevelOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+
         <div className="flex items-center gap-2 mt-2">
           <Button variant="outline" onClick={resetFilters} className="flex-1">
-            Reset
+            {t('filters.reset')}
           </Button>
         </div>
       </div>
@@ -102,24 +190,23 @@ export function FilterContent({ className }: { className?: string }) {
 }
 
 export function FilterDialog() {
+  const { t } = useTranslation()
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-9">
           <SlidersHorizontal className="mr-2 h-3 w-3" />
-          Filters
+          {t('header.filters')}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Filter Jobs</DialogTitle>
-          <DialogDescription>
-            Refine your job search with specific criteria.
-          </DialogDescription>
+          <DialogTitle>{t('filters.title')}</DialogTitle>
+          <DialogDescription>{t('filters.description')}</DialogDescription>
         </DialogHeader>
         <FilterContent />
         <DialogFooter>
-          <Button type="submit">Apply Filters</Button>
+          <Button type="submit">{t('filters.applyFilters')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

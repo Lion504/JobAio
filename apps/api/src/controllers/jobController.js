@@ -1,153 +1,201 @@
+import OriginalJob from "../../../../packages/db/src/models/OriginalJob.js";
 import {
   rankedJobSearch,
-  findAllJobs,
-  //findJobsByField,
-  //searchJobs,
-} from "../../../../packages/search/src/adapter";
+  quickSuggestionSearch,
+  applyTranslations,
+  getJobById,
+} from "../../../../packages/search/src/adapter.js";
 
-//GET /api/jobs/search?term=someTerm
-const searchJobs = async (req, res, next) => {
-  //Get the parameter from the request
-  const {
-    term,
-    location,
-    job_type,
-    experience_level,
-    company,
-    industry_category,
-    required_language,
-    education_level,
-  } = req.query;
+function normalizeScrapedJob(raw) {
+  return {
+    title: raw.title || "",
+    url: raw.url || "",
+    company: raw.company || "",
+    location: raw.location || "",
+    publish_date: raw.publish_date || "",
+    description: raw.description || "",
+    original_title: raw.original_title || "",
+    original_description: raw.original_description || "",
+    source: raw.source || "",
 
-  //Check if it's a string or if it's empty
-  if (!term || typeof term !== "string" || term.trim().length === 0) {
-    return res.status(400).json({ message: "Invalid search parameters" });
-  }
+    industry_category: raw.industry_category || "",
+    job_type: raw.job_type || [],
+    language: {
+      required: raw.language?.required || [],
+      advantage: raw.language?.advantage || [],
+    },
+    experience_level: raw.experience_level || "",
+    education_level: raw.education_level || [],
+    skill_type: {
+      technical: raw.skill_type?.technical || [],
+      domain_specific: raw.skill_type?.domain_specific || [],
+      certifications: raw.skill_type?.certifications || [],
+      soft_skills: raw.skill_type?.soft_skills || [],
+      other: raw.skill_type?.other || [],
+    },
+    responsibilities: raw.responsibilities || [],
 
+    _metadata: raw._metadata || {},
+  };
+}
+
+// Insert a single job
+export const createJobController = async (req, res, next) => {
   try {
-    const filters = {
-      location,
-      job_type,
-      experience_level,
-      company,
-      industry_category,
-      required_language,
-      education_level,
+    await OriginalJob.init();
+    const normalized = normalizeScrapedJob(req.body);
+    const createdJob = await OriginalJob.create(normalized);
+    return res.status(201).json(createdJob);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Insert multiple jobs safely
+export const createJobsBulkController = async (req, res, next) => {
+  try {
+    if (!Array.isArray(req.body)) {
+      return res.status(400).json({ error: "Expected an array of jobs" });
+    }
+
+    await OriginalJob.init();
+
+    const insertedDocs = [];
+    const errors = [];
+
+    for (let i = 0; i < req.body.length; i++) {
+      try {
+        const normalized = normalizeScrapedJob(req.body[i]);
+        const createdJob = await OriginalJob.create(normalized);
+        insertedDocs.push(createdJob);
+      } catch (err) {
+        errors.push({ index: i, err: err.message });
+      }
+    }
+
+    const response = {
+      message: "Jobs insertion complete",
+      insertedCount: insertedDocs.length,
+      insertedDocs,
+      errors,
     };
-    const jobs = await rankedJobSearch(term, filters);
 
-    if (!jobs || jobs.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No jobs found matching the given parameters" });
-    }
-
-    return res.status(200).json(jobs);
+    return res.status(201).json(response);
   } catch (error) {
     next(error);
   }
 };
 
-//GET /api/jobs
-const getAllJobs = async (req, res, next) => {
+// GET /api/jobs
+// Supports: ?q=searchTerm&filters={"location":"Helsinki"}&lang=fi&ai=true
+export const getAllJobsController = async (req, res, next) => {
   try {
-    const { search, q } = req.query;
-    const searchTerm = search || q;
+    const { q, filters: filtersParam, lang, ai } = req.query;
 
-    let jobs;
-    if (searchTerm) {
-      jobs = await rankedJobSearch(searchTerm);
-    } else {
-      jobs = await findAllJobs();
+    const searchTerm = (q || "").trim();
+
+    let filters = {};
+    if (filtersParam) {
+      try {
+        filters = JSON.parse(filtersParam);
+      } catch (parseError) {
+        console.error("failed to parse filters:", filtersParam, parseError);
+        return res.status(400).json({ error: "Invalid filters JSON format" });
+      }
     }
 
-    return res.status(200).json(jobs);
+    const useAI = ai === "true";
+
+    // Use rankedJobSearch for both search and filtering
+    const { jobs: rawJobs, expandedSearchTerm } = await rankedJobSearch(
+      searchTerm,
+      filters,
+      useAI,
+    );
+    let jobs = rawJobs;
+    if (lang) {
+      jobs = await applyTranslations(jobs, lang);
+    }
+
+    return res.status(200).json({
+      count: jobs.length,
+      jobs: jobs,
+      search:
+        useAI && expandedSearchTerm ? expandedSearchTerm : searchTerm || null,
+      originalSearch: searchTerm || null,
+      filters: filters,
+      lang: lang || "en",
+      ai: useAI,
+    });
   } catch (error) {
     next(error);
   }
 };
 
-// //GET /api/jobs/title/:jobTitle
-// const getJobByTitle = async (req, res, next) => {
-//   const { jobTitle } = req.params;
+// GET /api/jobs/suggestions?q=searchTerm&lang=fi
+// Fast autocomplete endpoint - no AI, minimal fields, optional translation
+export const getSuggestionsController = async (req, res, next) => {
+  try {
+    const { q, limit, lang } = req.query;
 
-//   if (!jobTitle || typeof jobTitle !== "string" || jobTitle.trim().length < 2) {
-//     return res.status(400).json({ message: "Invalid title parameter" });
-//   }
+    const searchTerm = (q || "").trim();
 
-//   try {
-//     const jobs = await findJobsByField("title", jobTitle);
+    if (searchTerm.length === 0) {
+      return res.status(400).json({ error: "query parameter 'q' is required" });
+    }
 
-//     if (!jobs || jobs.length === 0) {
-//       return res
-//         .status(404)
-//         .json({ message: "No jobs found with given parameters" });
-//     }
+    const maxLimit = Math.min(parseInt(limit) || 10, 20); // Cap at 20
+    const suggestions = await quickSuggestionSearch(searchTerm, maxLimit, lang);
 
-//     return res.status(200).json(jobs);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+    return res.status(200).json({
+      count: suggestions.length,
+      suggestions: suggestions,
+      lang: lang || "en",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-// //GET /api/jobs/company/:jobCompany
-// const getJobByCompany = async (req, res, next) => {
-//   const { jobCompany } = req.params;
+// GET /api/jobs/:id?lang=fi
+// Get single job by ID with optional translation
+export const getJobByIdController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { lang } = req.query;
 
-//   if (
-//     !jobCompany ||
-//     typeof jobCompany !== "string" ||
-//     jobCompany.trim().length < 2
-//   ) {
-//     return res.status(400).json({ message: "Invalid Company name parameter" });
-//   }
+    const job = await getJobById(id, lang);
 
-//   try {
-//     const jobs = await findJobsByField("company", jobCompany);
+    if (!job) {
+      return res.status(404).json({ error: "Job not found" });
+    }
 
-//     if (!jobs || jobs.length === 0) {
-//       return res
-//         .status(404)
-//         .json({ message: "No jobs found with given parameters" });
-//     }
+    return res.status(200).json(job);
+  } catch (error) {
+    // Handle invalid ObjectId format
+    if (error.name === "CastError") {
+      return res.status(400).json({ error: "Invalid job ID format" });
+    }
+    next(error);
+  }
+};
 
-//     return res.status(200).json(jobs);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+// UPDATE /api/jobs/:id
+export const updateJobController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
 
-// //GET /api/jobs/location/:jobLocation
-// const getJobByLocation = async (req, res, next) => {
-//   const { jobLocation } = req.params;
+    const updatedJob = await OriginalJob.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
 
-//   if (
-//     !jobLocation ||
-//     typeof jobLocation !== "string" ||
-//     jobLocation.trim().length < 2
-//   ) {
-//     return res.status(400).json({ message: "Invalid location parameter" });
-//   }
+    if (!updatedJob) {
+      return res.status(404).json({ message: "Job not found" });
+    }
 
-//   try {
-//     const jobs = await findJobsByField("location", jobLocation);
-
-//     if (!jobs || jobs.length === 0) {
-//       return res
-//         .status(404)
-//         .json({ message: "No jobs found with given parameters" });
-//     }
-
-//     return res.status(200).json(jobs);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
-export {
-  searchJobs,
-  getAllJobs,
-  //getJobByTitle,
-  //getJobByCompany,
-  //getJobByLocation,
+    return res.status(200).json(updatedJob);
+  } catch (error) {
+    next(error);
+  }
 };
