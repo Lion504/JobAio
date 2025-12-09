@@ -38,6 +38,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
+  const [shortcutSymbol, setShortcutSymbol] = useState('⌘')
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const { filters, updateFilter, setFilters } = useFilters()
   const interfaceLang = i18n.language
@@ -98,6 +99,27 @@ export function Header({ children }: { children?: React.ReactNode }) {
       window.removeEventListener('preferences-updated', onCustomUpdate)
     }
   }, [i18n])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        if (!showSearch) return
+        e.preventDefault()
+        setOpen((open) => !open)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [showSearch])
+
+  useEffect(() => {
+    if (
+      typeof navigator !== 'undefined' &&
+      navigator.platform.toLowerCase().includes('win')
+    ) {
+      setShortcutSymbol('Ctrl ')
+    }
+  }, [])
 
   useEffect(() => {
     setAiSearchEnabled(searchParams.get('ai') === 'true')
@@ -281,7 +303,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
                 {currentSearch || t('common.searchPlaceholder')}
               </span>
               <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-                <span className="text-xs">⌘</span>K
+                <span className="text-xs">{shortcutSymbol}</span>K
               </kbd>
             </Button>
 
