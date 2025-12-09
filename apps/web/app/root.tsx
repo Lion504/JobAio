@@ -20,6 +20,7 @@ import i18n, {
 import { AuthProvider } from './context/auth-context'
 import { BookmarksProvider } from './context/bookmarks-context'
 import { DisclaimerBanner } from './components/disclaimer-banner'
+import { ThemeProvider } from './components/theme-provider'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const lang = detectRequestLanguage(request)
@@ -57,7 +58,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <Suspense fallback={null}>{children}</Suspense>
+        <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+          <div>
+            <Suspense fallback={null}>{children}</Suspense>
+          </div>
+        </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
