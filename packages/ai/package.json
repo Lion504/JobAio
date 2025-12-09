@@ -2,10 +2,24 @@
   "name": "@jobaio/ai",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "main": "src/index.js",
   "dependencies": {
-    "@huggingface/inference": "^2.6.0",
-    "openai": "^4.0.0",
-    "@jobaio/shared": "workspace:*"
+    "@google/genai": "^1.30.0",
+    "@google-ai/generativelanguage": "^3.5.0",
+    "@huggingface/inference": "^4.13.3",
+    "@jobaio/shared": "workspace:*",
+    "dotenv": "^16.4.5",
+    "openai": "^4.0.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "jest": "^29.7.0",
+    "jest-environment-node": "^29.7.0"
+  },
+  "scripts": {
+    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest --config ../../jest.config.js --testPathPattern=packages/ai",
+    "test:watch": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest --config ../../jest.config.js --testPathPattern=packages/ai --watch",
+    "translate": "node src/translator.js"
   }
 }

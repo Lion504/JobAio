@@ -2,6 +2,7 @@
 node_modules/
 .pnp
 .pnp.js
+.react-router
 
 # Testing
 coverage/
@@ -81,3 +82,16 @@ Instruction.md
 #example files
 packages/shared/src/index.js.example
 packages/db/prisma/schema.prisma.example
+
+#test files
+apps/scraper-py/src/process.py
+apps/scraper-py/backend_process_flow.gif
+apps/scraper-py/tests/test_output/
+backend_process_flow.gif
+packages/db/data/pipeline_results_*.json
+packages/db/data/translated/translated_batch_*.json
+apps/process-map/
+
+# MCP history
+.git-mcp-history/
+
