@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Briefcase,
   Sparkles,
+  BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -40,6 +41,7 @@ export function Sidebar({
   const navItems = [
     { icon: Briefcase, label: t('sidebar.jobs'), href: '/' },
     { icon: Sparkles, label: t('sidebar.suggestions'), href: '/suggestions' },
+    { icon: BarChart3, label: 'Market Insights', href: '/insights' },
     { icon: Bookmark, label: t('sidebar.saved'), href: '/saved' },
     { icon: Settings, label: t('sidebar.preferences'), href: '/preferences' },
   ]

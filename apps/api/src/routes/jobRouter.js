@@ -7,6 +7,7 @@ import {
   getJobByIdController,
   updateJobController,
 } from "../controllers/jobController.js";
+import { getJobStatsController } from "../controllers/statsController.js";
 
 const router = express.Router();
 
@@ -23,6 +24,9 @@ router.get("/", getAllJobsController);
 // GET /api/jobs/suggestions - fast autocomplete (must be before /:id)
 // Query params: ?q=term&limit=10&lang=fi
 router.get("/suggestions", getSuggestionsController);
+
+// GET /api/jobs/stats - get job market statistics
+router.get("/stats", getJobStatsController);
 
 // GET /api/jobs/:id - get single job by ID with optional translation
 // Query params: ?lang=fi

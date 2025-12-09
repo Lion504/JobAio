@@ -13,6 +13,7 @@ export default [
     route('saved', 'routes/saved.tsx'),
     route('suggestions', 'routes/suggestions.tsx'),
     route('preferences', 'routes/preferences.tsx'),
+    route('insights', 'routes/insights.tsx'),
     route('*', 'routes/not-found.tsx'),
   ]),
 ] satisfies RouteConfig
