@@ -16,7 +16,8 @@ import { FilterProvider } from '@/context/filter-context'
 import { useTranslation } from 'react-i18next'
 
 export default function Layout() {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { i18n } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
@@ -34,13 +35,13 @@ export default function Layout() {
     <FilterProvider>
       <div className="flex h-screen overflow-hidden bg-background text-foreground">
         <Sidebar
-          isCollapsed={isCollapsed}
-          toggleCollapse={() => setIsCollapsed(!isCollapsed)}
+          isCollapsed={isSidebarCollapsed}
+          toggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           className="hidden lg:flex"
         />
         <div className="flex flex-1 flex-col overflow-hidden">
           <Header>
-            <Sheet open={isCollapsed} onOpenChange={setIsCollapsed}>
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button
                   variant="ghost"
@@ -56,7 +57,7 @@ export default function Layout() {
                 <SheetDescription className="sr-only">
                   App navigation menu
                 </SheetDescription>
-                <Sidebar mobile onClose={() => setIsCollapsed(false)} />
+                <Sidebar mobile onClose={() => setIsMobileMenuOpen(false)} />
               </SheetContent>
             </Sheet>
           </Header>
