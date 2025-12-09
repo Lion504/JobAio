@@ -6,35 +6,10 @@ import {
   type LoaderFunctionArgs,
 } from 'react-router'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { JobCard, type Job } from '@/components/job-card'
-
-interface ApiJob {
-  _id: string
-  title: string
-  company: string
-  location: string
-  url: string
-  job_type: string[]
-  publish_date: string
-  updatedAt?: string
-  description: string
-  industry_category: string
-  experience_level?: string
-  education_level?: string[]
-  language?: {
-    required?: string[]
-    advantage?: string[]
-  }
-  responsibilities?: string[]
-  skill_type?: {
-    technical?: string[]
-    domain_specific?: string[]
-    certifications?: string[]
-    soft_skills?: string[]
-    other?: string[]
-  }
-  source?: string
-}
+import { JobCard } from '@/components/job-card'
+import { getApiUrl } from '@/lib/api'
+import { type ApiJob, type Job } from '@/types'
+import { useTranslation } from 'react-i18next'
 
 interface ApiResponse {
   count: number
@@ -51,30 +26,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const langParam = url.searchParams.get('lang')
   const aiParam = url.searchParams.get('ai')
 
-  const backendEndpoint = import.meta.env.WEB_APP_BACKEND_ENDPOINT
-  if (!backendEndpoint) {
-    throw new Error('WEB_APP_BACKEND_ENDPOINT is not set')
-  }
+  try {
+    const apiUrl = getApiUrl('/api/jobs')
 
-  const apiUrl = new URL('/api/jobs', backendEndpoint)
+    if (search) {
+      apiUrl.searchParams.append('q', search)
+    }
 
-  if (search) {
-    apiUrl.searchParams.append('q', search)
-  }
+    if (filtersParam) {
+      apiUrl.searchParams.append('filters', filtersParam)
+    }
 
-  if (filtersParam) {
-    apiUrl.searchParams.append('filters', filtersParam)
-  }
+    const lang = langParam || 'en'
+    if (lang) {
+      apiUrl.searchParams.append('lang', lang)
+    }
 
-  const lang = langParam || 'en'
-  if (lang) {
-    apiUrl.searchParams.append('lang', lang)
-  }
-
-  // Enable AI search expansion when ai=true
-  if (aiParam === 'true') {
-    apiUrl.searchParams.append('ai', 'true')
-  }
+    // Enable AI search expansion when ai=true
+    if (aiParam === 'true') {
+      apiUrl.searchParams.append('ai', 'true')
+    }
 
   try {
     const res = await fetch(apiUrl)

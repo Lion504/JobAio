@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-import { Search, MapPin } from 'lucide-react'
+import { Search, MapPin, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -18,16 +18,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { FilterContent } from '@/components/filter-dialog'
-import { useFilters } from '@/context/filter-context'
+import { defaultFilters, useFilters } from '@/context/filter-context'
 import { LocationSelector } from '@/components/location-selector'
-
-type SearchSuggestion = {
-  id: string
-  title: string
-  company?: string
-  location?: string
-}
+import { type SearchSuggestion, type ApiJob } from '@/types'
+import { getApiUrl } from '@/lib/api'
+import { jobTypeOptions } from '@/data/filter-options'
+import { useTranslation } from 'react-i18next'
 
 export function Header({ children }: { children?: React.ReactNode }) {
   const [open, setOpen] = useState(false)
@@ -39,6 +38,10 @@ export function Header({ children }: { children?: React.ReactNode }) {
   const [aiSearchEnabled, setAiSearchEnabled] = useState<boolean>(true)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const [aiSearchEnabled, setAiSearchEnabled] = useState<boolean>(
+    searchParams.get('ai') === 'true'
+  )
+  const navigate = useNavigate()
 
   const currentSearch = searchParams.get('search') || ''
 
@@ -100,22 +103,21 @@ export function Header({ children }: { children?: React.ReactNode }) {
       try {
         const parsed = JSON.parse(filtersParam)
         setFilters({
-          location: parsed.location ? parsed.location.split('|') : [],
-          type: parsed.job_type || '',
-          experience: parsed.experience_level || '',
-          salary: '',
+          location: parsed.location ? String(parsed.location).split('|') : [],
+          jobType: parsed.job_type || '',
+          experienceLevel: parsed.experience_level || '',
+          company: parsed.company || '',
+          industryCategory: parsed.industry_category || '',
+          requiredLanguage: parsed.required_language || '',
+          educationLevel: parsed.education_level || '',
         })
       } catch {
         // Invalid JSON, ignore
+        setFilters({ ...defaultFilters })
       }
     } else {
       // No filters in URL, reset to defaults
-      setFilters({
-        location: [],
-        type: '',
-        experience: '',
-        salary: '',
-      })
+      setFilters({ ...defaultFilters })
     }
     // Mark filters as initialized after first sync
     filtersInitialized.current = true
@@ -138,12 +140,19 @@ export function Header({ children }: { children?: React.ReactNode }) {
       if (currentFilters.location.length > 0) {
         filtersPayload.location = currentFilters.location.join('|')
       }
-      if (currentFilters.type) {
-        filtersPayload.job_type = currentFilters.type
+      const appendIfPresent = (key: string, value: string) => {
+        const trimmed = value.trim()
+        if (trimmed) {
+          filtersPayload[key] = trimmed
+        }
       }
-      if (currentFilters.experience) {
-        filtersPayload.experience_level = currentFilters.experience
-      }
+
+      appendIfPresent('job_type', currentFilters.jobType)
+      appendIfPresent('experience_level', currentFilters.experienceLevel)
+      appendIfPresent('company', currentFilters.company)
+      appendIfPresent('industry_category', currentFilters.industryCategory)
+      appendIfPresent('required_language', currentFilters.requiredLanguage)
+      appendIfPresent('education_level', currentFilters.educationLevel)
 
       if (Object.keys(filtersPayload).length > 0) {
         params.set('filters', JSON.stringify(filtersPayload))
@@ -196,7 +205,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
     const timeout = setTimeout(async () => {
       try {
         setIsLoadingSuggestions(true)
-        const apiUrl = new URL('/api/jobs/suggestions', backendEndpoint)
+        const apiUrl = getApiUrl('/api/jobs/suggestions')
         apiUrl.searchParams.set('q', searchQuery)
         apiUrl.searchParams.set('limit', '8')
         apiUrl.searchParams.set('lang', interfaceLang || 'en')
@@ -210,18 +219,22 @@ export function Header({ children }: { children?: React.ReactNode }) {
         const source = Array.isArray(data) ? data : data?.suggestions || []
         const mapped: SearchSuggestion[] = source
           .slice(0, 8)
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .map((job: any, index: number) => ({
-            id: String(
-              job._id ??
-                job.id ??
-                job.job_id ??
-                `${job.title ?? 'job'}-${index}`
-            ),
-            title: job.title ?? 'Untitled role',
-            company: job.company ?? 'Unknown company',
-            location: job.location ?? 'Remote',
-          }))
+          .map(
+            (
+              job: Partial<ApiJob> & { id?: string; job_id?: string },
+              index: number
+            ) => ({
+              id: String(
+                job._id ??
+                  job.id ??
+                  job.job_id ??
+                  `${job.title ?? 'job'}-${index}`
+              ),
+              title: job.title ?? 'Untitled role',
+              company: job.company ?? 'Unknown company',
+              location: job.location ?? 'Remote',
+            })
+          )
 
         setSuggestions(mapped)
       } catch (error) {
@@ -239,7 +252,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
       controller.abort()
       clearTimeout(timeout)
     }
-  }, [open, searchQuery, backendEndpoint, interfaceLang])
+  }, [open, searchQuery, interfaceLang])
 
   const handleSearch = (term?: string) => {
     setOpen(false)
@@ -284,20 +297,21 @@ export function Header({ children }: { children?: React.ReactNode }) {
             />
           </div>
           <Select
-            value={filters.type || 'all'}
+            value={filters.jobType || 'any'}
             onValueChange={(value) =>
-              updateFilter('type', value === 'all' ? '' : value)
+              updateFilter('jobType', value === 'any' ? '' : value)
             }
           >
             <SelectTrigger className="h-9 w-[140px]">
               <SelectValue placeholder="Job Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="full-time">Full-time</SelectItem>
-              <SelectItem value="part-time">Part-time</SelectItem>
-              <SelectItem value="contract">Contract</SelectItem>
-              <SelectItem value="freelance">Freelance</SelectItem>
+              <SelectItem value="any">All Types</SelectItem>
+              {jobTypeOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
