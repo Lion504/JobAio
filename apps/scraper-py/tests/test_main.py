@@ -8,7 +8,6 @@ import json
 import sys
 import argparse
 import random
-import tempfile
 from pathlib import Path
 
 # Add src directory to path
