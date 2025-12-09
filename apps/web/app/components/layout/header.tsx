@@ -53,7 +53,9 @@ export function Header({ children }: { children?: React.ReactNode }) {
 
   const isSyncingFromUrl = useRef(false)
   const filtersInitialized = useRef(false)
-  const showSearch = !location.pathname.startsWith('/suggestions')
+  const showSearch = !['/suggestions', '/preferences', '/saved'].some((path) =>
+    location.pathname.startsWith(path)
+  )
 
   useEffect(() => {
     const loadPreferences = () => {

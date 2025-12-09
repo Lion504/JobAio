@@ -21,6 +21,7 @@ import { MultiSelect } from '@/components/ui/multi-select'
 import { LocationSelector } from '@/components/location-selector'
 import { useTranslation } from 'react-i18next'
 import { Check } from 'lucide-react'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { LANGUAGE_COOKIE } from '@/i18n'
 import {
   type HeadersFunction,
@@ -242,126 +243,132 @@ export default function Preferences() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-muted/50">
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="mx-auto max-w-2xl space-y-6">
-          <div>
-            <h1 className="text-2xl font-bold">{t('preferences.title')}</h1>
-            <p className="text-muted-foreground">
-              {t('preferences.description')}
-            </p>
-          </div>
+    <div className="flex h-full flex-col">
+      <div className="flex flex-1 overflow-hidden bg-muted/50 relative">
+        <ScrollArea className="h-full w-full">
+          <div className="mx-auto max-w-3xl space-y-6 p-6 pt-12">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold tracking-tight">
+                {t('preferences.title')}
+              </h1>
+              <p className="text-muted-foreground">
+                {t('preferences.description')}
+              </p>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('preferences.jobPreferences')}</CardTitle>
-              <CardDescription>
-                {t('preferences.jobPreferencesDesc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="tags">{t('preferences.jobTags')}</Label>
-                <Input
-                  id="tags"
-                  value={preferences.jobTags}
-                  onChange={(event) =>
-                    updatePreferences({ jobTags: event.target.value })
-                  }
-                  placeholder={t('preferences.jobTagsPlaceholder')}
-                />
-                <p className="text-xs text-muted-foreground">
-                  {t('preferences.jobTagsDesc')}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="skills">{t('preferences.skills')}</Label>
-                <Textarea
-                  id="skills"
-                  value={preferences.skills}
-                  onChange={(event) =>
-                    updatePreferences({ skills: event.target.value })
-                  }
-                  placeholder={t('preferences.skillsPlaceholder')}
-                />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('preferences.jobPreferences')}</CardTitle>
+                <CardDescription>
+                  {t('preferences.jobPreferencesDesc')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="job-language">
-                    {t('preferences.jobLanguage')}
-                  </Label>
-                  <MultiSelect
-                    options={languageOptions}
-                    selected={preferences.languages}
-                    onChange={(languages) => updatePreferences({ languages })}
-                    placeholder={t('preferences.selectLanguages')}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="preferred-location">
-                    {t('preferences.preferredLocations')}
-                  </Label>
-                  <LocationSelector
-                    multiple
-                    id="preferred-location"
-                    value={preferences.location}
-                    onChange={(value) => updatePreferences({ location: value })}
+                  <Label htmlFor="tags">{t('preferences.jobTags')}</Label>
+                  <Input
+                    id="tags"
+                    value={preferences.jobTags}
+                    onChange={(event) =>
+                      updatePreferences({ jobTags: event.target.value })
+                    }
+                    placeholder={t('preferences.jobTagsPlaceholder')}
                   />
                   <p className="text-xs text-muted-foreground">
-                    {t('preferences.preferredLocationsDesc')}
+                    {t('preferences.jobTagsDesc')}
                   </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('preferences.appSettings')}</CardTitle>
-              <CardDescription>
-                {t('preferences.appSettingsDesc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="interface-language">
-                  {t('preferences.interfaceLanguage')}
-                </Label>
-                <Select
-                  value={preferences.interfaceLanguage}
-                  onValueChange={(value) =>
-                    updatePreferences({ interfaceLanguage: value })
-                  }
-                >
-                  <SelectTrigger id="interface-language">
-                    <SelectValue
-                      placeholder={t('preferences.selectLanguage')}
+                <div className="space-y-2">
+                  <Label htmlFor="skills">{t('preferences.skills')}</Label>
+                  <Textarea
+                    id="skills"
+                    value={preferences.skills}
+                    onChange={(event) =>
+                      updatePreferences({ skills: event.target.value })
+                    }
+                    placeholder={t('preferences.skillsPlaceholder')}
+                  />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="job-language">
+                      {t('preferences.jobLanguage')}
+                    </Label>
+                    <MultiSelect
+                      options={languageOptions}
+                      selected={preferences.languages}
+                      onChange={(languages) => updatePreferences({ languages })}
+                      placeholder={t('preferences.selectLanguages')}
                     />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {interfaceLanguageOptions.map((lang) => (
-                      <SelectItem key={lang.value} value={lang.value}>
-                        {lang.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="preferred-location">
+                      {t('preferences.preferredLocations')}
+                    </Label>
+                    <LocationSelector
+                      multiple
+                      id="preferred-location"
+                      value={preferences.location}
+                      onChange={(value) =>
+                        updatePreferences({ location: value })
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {t('preferences.preferredLocationsDesc')}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          {showSuccess && (
-            <div className="flex items-center justify-end gap-2 text-sm font-medium text-green-600 dark:text-green-500 animate-in fade-in slide-in-from-right-2">
-              <Check className="h-4 w-4" />
-              {t('common.saved', 'Saved')}
-            </div>
-          )}
-          {!showSuccess && (
-            <div className="flex justify-end text-xs text-muted-foreground">
-              {t('preferences.autoSave', 'Changes are saved automatically')}
-            </div>
-          )}
-        </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('preferences.appSettings')}</CardTitle>
+                <CardDescription>
+                  {t('preferences.appSettingsDesc')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="interface-language">
+                    {t('preferences.interfaceLanguage')}
+                  </Label>
+                  <Select
+                    value={preferences.interfaceLanguage}
+                    onValueChange={(value) =>
+                      updatePreferences({ interfaceLanguage: value })
+                    }
+                  >
+                    <SelectTrigger id="interface-language">
+                      <SelectValue
+                        placeholder={t('preferences.selectLanguage')}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {interfaceLanguageOptions.map((lang) => (
+                        <SelectItem key={lang.value} value={lang.value}>
+                          {lang.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {showSuccess && (
+              <div className="flex items-center justify-end gap-2 text-sm font-medium text-green-600 dark:text-green-500 animate-in fade-in slide-in-from-right-2">
+                <Check className="h-4 w-4" />
+                {t('common.saved', 'Saved')}
+              </div>
+            )}
+            {!showSuccess && (
+              <div className="flex justify-end text-xs text-muted-foreground">
+                {t('preferences.autoSave', 'Changes are saved automatically')}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
       </div>
     </div>
   )

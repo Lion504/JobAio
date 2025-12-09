@@ -23,15 +23,20 @@ export default function Saved() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b px-6 py-4">
-        <h1 className="text-lg font-semibold">Saved Jobs</h1>
-        <span className="text-sm text-muted-foreground">
-          {count} jobs
-        </span>
-      </div>
-      <div className="flex flex-1 overflow-hidden bg-muted/50">
+      <div className="flex flex-1 overflow-hidden bg-muted/50 relative">
+        <div className="absolute top-4 right-6 z-10">
+          <span className="text-sm text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md border shadow-sm">
+            {count} Saved Jobs
+          </span>
+        </div>
         <ScrollArea className="h-full w-full">
-          <div className="mx-auto max-w-3xl space-y-4 p-6">
+          <div className="mx-auto max-w-3xl space-y-4 p-6 pt-12">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold tracking-tight">Saved Jobs</h1>
+              <p className="text-muted-foreground">
+                Your bookmarked roles in one place.
+              </p>
+            </div>
             {savedJobs.length > 0 ? (
               savedJobs.map((job) => <JobCard key={job.id} job={job} />)
             ) : (
