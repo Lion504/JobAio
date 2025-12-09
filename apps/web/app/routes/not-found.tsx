@@ -20,7 +20,9 @@ export default function NotFound() {
         </div>
         <div className="flex items-center justify-center gap-3">
           <Button asChild>
-            <Link to="/">Go back home</Link>
+            <Link to="/" prefetch="intent">
+              Go back home
+            </Link>
           </Button>
         </div>
       </div>

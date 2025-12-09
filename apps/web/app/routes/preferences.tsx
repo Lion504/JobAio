@@ -21,6 +21,28 @@ import { MultiSelect } from '@/components/ui/multi-select'
 import { LocationSelector } from '@/components/location-selector'
 import { useTranslation } from 'react-i18next'
 import { Check } from 'lucide-react'
+import { LANGUAGE_COOKIE } from '@/i18n'
+import {
+  type HeadersFunction,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+} from 'react-router'
+
+export const meta: MetaFunction = () => [
+  { title: 'JobAio | Preferences' },
+  {
+    name: 'description',
+    content: 'Set your job preferences, languages, and locations.',
+  },
+]
+
+export const headers: HeadersFunction = () => ({
+  'Cache-Control': 'private, max-age=0, must-revalidate',
+})
+
+export function loader(_args: LoaderFunctionArgs) {
+  return { ok: true }
+}
 
 type PreferencesState = {
   jobTags: string
@@ -39,6 +61,7 @@ const defaultPreferences: PreferencesState = {
 }
 
 const STORAGE_KEY = 'jobaio-preferences'
+const PREFERENCES_COOKIE = 'jobaio-preferences'
 
 function normalizeLocationPreference(
   value: string[] | string | undefined,
@@ -60,9 +83,23 @@ function normalizeLocationPreference(
   return fallback
 }
 
+function writePreferencesCookie(preferences: PreferencesState) {
+  const { jobTags, skills, languages, location, interfaceLanguage } =
+    preferences
+  const payload: PreferencesState = {
+    jobTags,
+    skills,
+    languages,
+    location,
+    interfaceLanguage,
+  }
+  const maxAge = 60 * 60 * 24 * 30 // 30 days
+  document.cookie = `${PREFERENCES_COOKIE}=${encodeURIComponent(JSON.stringify(payload))}; Path=/; Max-Age=${maxAge}; SameSite=Lax`
+  document.cookie = `${LANGUAGE_COOKIE}=${interfaceLanguage}; Path=/; Max-Age=${maxAge}; SameSite=Lax`
+}
+
 export default function Preferences() {
   const { t, i18n } = useTranslation()
-  const [isLoading, setIsLoading] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [preferences, setPreferences] =
     useState<PreferencesState>(defaultPreferences)
@@ -183,9 +220,14 @@ export default function Preferences() {
         preferences.interfaceLanguage
       )
     }
+    writePreferencesCookie(preferences)
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('preferences-updated'))
     }
+
+    setShowSuccess(true)
+    const timeout = setTimeout(() => setShowSuccess(false), 1800)
+    return () => clearTimeout(timeout)
   }, [preferences, isInitialized])
 
   const updatePreferences = (updates: Partial<PreferencesState>) => {
@@ -197,16 +239,6 @@ export default function Preferences() {
     ) {
       i18n.changeLanguage(updates.interfaceLanguage)
     }
-  }
-
-  const handleSave = () => {
-    setIsLoading(true)
-    setShowSuccess(false)
-    setTimeout(() => {
-      setIsLoading(false)
-      setShowSuccess(true)
-      setTimeout(() => setShowSuccess(false), 3000)
-    }, 1000)
   }
 
   return (
@@ -318,17 +350,17 @@ export default function Preferences() {
             </CardContent>
           </Card>
 
-          <div className="flex items-center justify-end gap-4">
-            {showSuccess && (
-              <div className="flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-500 animate-in fade-in slide-in-from-right-2">
-                <Check className="h-4 w-4" />
-                {t('common.saved')}
-              </div>
-            )}
-            <Button onClick={handleSave} disabled={isLoading}>
-              {isLoading ? t('common.saving') : t('common.save')}
-            </Button>
-          </div>
+          {showSuccess && (
+            <div className="flex items-center justify-end gap-2 text-sm font-medium text-green-600 dark:text-green-500 animate-in fade-in slide-in-from-right-2">
+              <Check className="h-4 w-4" />
+              {t('common.saved', 'Saved')}
+            </div>
+          )}
+          {!showSuccess && (
+            <div className="flex justify-end text-xs text-muted-foreground">
+              {t('preferences.autoSave', 'Changes are saved automatically')}
+            </div>
+          )}
         </div>
       </div>
     </div>

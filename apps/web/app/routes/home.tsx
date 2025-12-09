@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react'
 import {
-  useLoaderData,
   useSearchParams,
   useNavigate,
   type LoaderFunctionArgs,
+  type MetaFunction,
+  type HeadersFunction,
+  useLoaderData,
+  type ShouldRevalidateFunction,
 } from 'react-router'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { JobCard } from '@/components/job-card'
 import { getApiUrl } from '@/lib/api'
 import { type ApiJob, type Job } from '@/types'
 import { useTranslation } from 'react-i18next'
+import { detectRequestLanguage } from '@/i18n'
 
 interface ApiResponse {
   count: number
@@ -19,12 +23,20 @@ interface ApiResponse {
   ai?: boolean
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+type JobsResult = {
+  jobs: Job[]
+  search: string | null
+  originalSearch: string | null
+  aiEnabled: boolean
+}
+
+async function fetchJobs(request: Request): Promise<JobsResult> {
   const url = new URL(request.url)
   const search = url.searchParams.get('search')
   const filtersParam = url.searchParams.get('filters')
   const langParam = url.searchParams.get('lang')
   const aiParam = url.searchParams.get('ai')
+  const requestLang = detectRequestLanguage(request)
 
   try {
     const apiUrl = getApiUrl('/api/jobs', request)
@@ -37,7 +49,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       apiUrl.searchParams.append('filters', filtersParam)
     }
 
-    const lang = langParam || 'en'
+    const lang = langParam || requestLang || 'en'
     if (lang) {
       apiUrl.searchParams.append('lang', lang)
     }
@@ -93,13 +105,37 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 }
 
-export default function Home() {
+export const meta: MetaFunction = () => [
+  { title: 'JobAio | Jobs' },
+  {
+    name: 'description',
+    content: 'Browse the latest roles personalized to your search and filters.',
+  },
+]
+
+export const headers: HeadersFunction = () => ({
+  'Cache-Control': 'public, max-age=30, s-maxage=60',
+})
+
+export const shouldRevalidate: ShouldRevalidateFunction = ({
+  currentUrl,
+  nextUrl,
+}) => {
+  const currentLang = currentUrl.searchParams.get('lang')
+  const nextLang = nextUrl.searchParams.get('lang')
+  return currentUrl.search !== nextUrl.search || currentLang !== nextLang
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  return fetchJobs(request)
+}
+
+function JobsView({ data }: { data: JobsResult }) {
   const { t } = useTranslation()
-  const { jobs, search, originalSearch, aiEnabled } =
-    useLoaderData<typeof loader>()
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { jobs, search, originalSearch, aiEnabled } = data
 
   useEffect(() => {
     if (aiEnabled && search && originalSearch && search !== originalSearch) {
@@ -113,31 +149,40 @@ export default function Home() {
   }, [search, originalSearch, aiEnabled, searchParams, navigate])
 
   return (
+    <>
+      <div className="absolute top-4 right-6 z-10">
+        <span className="text-sm text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md border shadow-sm">
+          {t('home.showingJobs', { count: jobs.length })}
+        </span>
+      </div>
+      <ScrollArea className="h-full w-full">
+        <div className="mx-auto max-w-3xl space-y-4 p-6 pt-12">
+          {jobs.length > 0 ? (
+            jobs.map((job) => (
+              <JobCard
+                key={job.id}
+                job={job}
+                isSelected={selectedJobId === job.id}
+                onClick={() => setSelectedJobId(job.id)}
+              />
+            ))
+          ) : (
+            <div className="text-center text-muted-foreground mt-10">
+              {t('home.noJobsFound')}
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+    </>
+  )
+}
+
+export default function Home() {
+  const data = useLoaderData<typeof loader>()
+  return (
     <div className="flex h-full flex-col">
       <div className="flex flex-1 overflow-hidden bg-muted/50 relative">
-        <div className="absolute top-4 right-6 z-10">
-          <span className="text-sm text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md border shadow-sm">
-            {t('home.showingJobs', { count: jobs.length })}
-          </span>
-        </div>
-        <ScrollArea className="h-full w-full">
-          <div className="mx-auto max-w-3xl space-y-4 p-6 pt-12">
-            {jobs.length > 0 ? (
-              jobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  isSelected={selectedJobId === job.id}
-                  onClick={() => setSelectedJobId(job.id)}
-                />
-              ))
-            ) : (
-              <div className="text-center text-muted-foreground mt-10">
-                {t('home.noJobsFound')}
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+        <JobsView data={data} />
       </div>
     </div>
   )

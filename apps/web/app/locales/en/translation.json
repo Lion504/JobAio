@@ -55,7 +55,8 @@
     "appSettings": "App Settings",
     "appSettingsDesc": "Configure your application experience.",
     "interfaceLanguage": "Interface Language",
-    "selectLanguage": "Select language"
+    "selectLanguage": "Select language",
+    "autoSave": "Changes are saved automatically"
   },
   "filters": {
     "title": "Filter Jobs",

@@ -12,9 +12,29 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Link } from 'react-router'
+import {
+  Link,
+  type HeadersFunction,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+  useLoaderData,
+} from 'react-router'
+
+export const meta: MetaFunction = () => [
+  { title: 'JobAio | Account' },
+  { name: 'description', content: 'Manage your JobAio account and sync settings.' },
+]
+
+export const headers: HeadersFunction = () => ({
+  'Cache-Control': 'private, max-age=0, must-revalidate',
+})
+
+export async function loader(_args: LoaderFunctionArgs) {
+  return { initialUser: null as null }
+}
 
 export default function Account() {
+  useLoaderData<typeof loader>()
   const { user, login, logout } = useAuth()
   const [syncEnabled, setSyncEnabled] = useState(false)
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null)

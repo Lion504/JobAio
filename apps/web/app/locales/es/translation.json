@@ -55,7 +55,8 @@
     "appSettings": "Configuración de la aplicación",
     "appSettingsDesc": "Configura tu experiencia en la aplicación.",
     "interfaceLanguage": "Idioma de la interfaz",
-    "selectLanguage": "Seleccionar idioma"
+    "selectLanguage": "Seleccionar idioma",
+    "autoSave": "Los cambios se guardan automáticamente"
   },
   "filters": {
     "title": "Filtrar trabajos",

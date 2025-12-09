@@ -102,16 +102,6 @@ export function Header({ children }: { children?: React.ReactNode }) {
   }, [searchParams])
 
   useEffect(() => {
-    const currentLang = searchParams.get('lang')
-    if (interfaceLang && currentLang !== interfaceLang) {
-      const params = new URLSearchParams(searchParams)
-      params.set('lang', interfaceLang)
-      navigate(`${location.pathname}?${params.toString()}`, { replace: true })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [interfaceLang])
-
-  useEffect(() => {
     const filtersParam = searchParams.get('filters')
     isSyncingFromUrl.current = true
     if (filtersParam) {

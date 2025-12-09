@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import {
   isRouteErrorResponse,
   Links,
@@ -6,15 +6,31 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
+  type LoaderFunctionArgs,
 } from 'react-router'
 
 import type { Route } from './+types/root'
 import './app.css'
-import './i18n'
-import { applyClientLanguagePreference } from './i18n'
+import i18n, {
+  createLanguageCookie,
+  detectRequestLanguage,
+  ensureServerLanguage,
+} from './i18n'
 import { AuthProvider } from './context/auth-context'
 import { BookmarksProvider } from './context/bookmarks-context'
 import { DisclaimerBanner } from './components/disclaimer-banner'
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const lang = detectRequestLanguage(request)
+  await ensureServerLanguage(lang)
+  return new Response(JSON.stringify({ lang }), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Set-Cookie': createLanguageCookie(lang),
+    },
+  })
+}
 
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -30,8 +46,10 @@ export const links: Route.LinksFunction = () => [
 ]
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const { lang } = useLoaderData<typeof loader>()
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={lang ?? 'en'} suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -39,7 +57,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <Suspense fallback={null}>{children}</Suspense>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -48,9 +66,34 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const { lang } = useLoaderData<typeof loader>()
+  const [ready, setReady] = useState(() => i18n.language === lang)
+
   useEffect(() => {
-    applyClientLanguagePreference()
-  }, [])
+    let cancelled = false
+    async function syncLanguage() {
+      if (lang && i18n.language !== lang) {
+        await i18n.changeLanguage(lang).catch(() => {})
+      }
+      if (!cancelled) {
+        try {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('jobaio-preferences-lang', lang)
+            document.cookie = createLanguageCookie(lang)
+          }
+        } catch {
+          // ignore
+        }
+        setReady(true)
+      }
+    }
+    syncLanguage()
+    return () => {
+      cancelled = true
+    }
+  }, [lang])
+
+  if (!ready) return null
 
   return (
     <AuthProvider>

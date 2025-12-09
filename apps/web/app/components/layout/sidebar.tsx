@@ -100,6 +100,7 @@ export function Sidebar({
                 <TooltipTrigger asChild>
                   <Link
                     to={item.href}
+                    prefetch="intent"
                     onClick={mobile ? onClose : undefined}
                     className={cn(
                       'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
@@ -133,7 +134,7 @@ export function Sidebar({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
-                  <Link to="/account">
+                  <Link to="/account" prefetch="intent">
                     <User className="h-4 w-4" />
                     <span className="sr-only">{t('sidebar.account')}</span>
                   </Link>
@@ -148,7 +149,11 @@ export function Sidebar({
           </TooltipProvider>
 
           {!isCollapsed && (
-            <Link to="/account" className="text-sm font-medium hover:underline">
+            <Link
+              to="/account"
+              prefetch="intent"
+              className="text-sm font-medium hover:underline"
+            >
               {t('sidebar.account')}
             </Link>
           )}

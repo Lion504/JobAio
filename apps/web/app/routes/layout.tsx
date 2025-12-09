@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Outlet } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router'
 import { Menu } from 'lucide-react'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
@@ -14,9 +14,24 @@ import {
 } from '@/components/ui/sheet'
 
 import { FilterProvider } from '@/context/filter-context'
+import { useTranslation } from 'react-i18next'
 
 export default function Layout() {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const { i18n } = useTranslation()
+  const location = useLocation()
+  const navigate = useNavigate()
+
+
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const currentLang = params.get('lang')
+    if (currentLang === i18n.language) return
+    params.set('lang', i18n.language)
+    const search = params.toString()
+    navigate(`${location.pathname}?${search}`, { replace: true })
+  }, [i18n.language, location.pathname, location.search, navigate])
 
   return (
     <FilterProvider>
