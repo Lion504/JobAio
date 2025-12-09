@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -23,11 +22,7 @@ import { useTranslation } from 'react-i18next'
 import { Check } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { LANGUAGE_COOKIE } from '@/i18n'
-import {
-  type HeadersFunction,
-  type LoaderFunctionArgs,
-  type MetaFunction,
-} from 'react-router'
+import { type HeadersFunction, type MetaFunction } from 'react-router'
 
 export const meta: MetaFunction = () => [
   { title: 'JobAio | Preferences' },
@@ -41,7 +36,7 @@ export const headers: HeadersFunction = () => ({
   'Cache-Control': 'private, max-age=0, must-revalidate',
 })
 
-export function loader(_args: LoaderFunctionArgs) {
+export function loader() {
   return { ok: true }
 }
 

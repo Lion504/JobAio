@@ -117,7 +117,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
       typeof navigator !== 'undefined' &&
       navigator.platform.toLowerCase().includes('win')
     ) {
-      setShortcutSymbol('Ctrl ')
+      setShortcutSymbol('Ctrl +')
     }
   }, [])
 
@@ -378,7 +378,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
                           >
                             <Search className="mr-2 h-4 w-4" />
                             <span className="font-medium">
-                              {t('common.search')} "{searchQuery}"
+                              {t('common.search')} &quot;{searchQuery}&quot;
                             </span>
                           </CommandItem>
                         </CommandGroup>

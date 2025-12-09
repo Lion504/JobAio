@@ -1,7 +1,6 @@
 import i18n, { createInstance } from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
-
 import deTranslations from './locales/de/translation.json'
 import enTranslations from './locales/en/translation.json'
 import esTranslations from './locales/es/translation.json'
@@ -26,8 +25,6 @@ const resources = {
 }
 
 i18n.use(initReactI18next)
-
-
 
 i18n.init({
   lng: defaultLng,
@@ -63,7 +60,8 @@ export function applyClientLanguagePreference() {
 export function detectRequestLanguage(request: Request): string {
   const url = new URL(request.url)
   const langFromQuery = url.searchParams.get('lang')
-  if (langFromQuery && supportedLngs.includes(langFromQuery)) return langFromQuery
+  if (langFromQuery && supportedLngs.includes(langFromQuery))
+    return langFromQuery
 
   const cookie = request.headers.get('cookie') || ''
   const cookieMatch = cookie

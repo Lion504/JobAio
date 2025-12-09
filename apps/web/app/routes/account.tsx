@@ -15,21 +15,23 @@ import { Label } from '@/components/ui/label'
 import {
   Link,
   type HeadersFunction,
-  type LoaderFunctionArgs,
   type MetaFunction,
   useLoaderData,
 } from 'react-router'
 
 export const meta: MetaFunction = () => [
   { title: 'JobAio | Account' },
-  { name: 'description', content: 'Manage your JobAio account and sync settings.' },
+  {
+    name: 'description',
+    content: 'Manage your JobAio account and sync settings.',
+  },
 ]
 
 export const headers: HeadersFunction = () => ({
   'Cache-Control': 'private, max-age=0, must-revalidate',
 })
 
-export async function loader(_args: LoaderFunctionArgs) {
+export async function loader() {
   return { initialUser: null as null }
 }
 

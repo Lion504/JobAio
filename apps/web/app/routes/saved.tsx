@@ -1,7 +1,11 @@
 import { JobCard } from '@/components/job-card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useBookmarks } from '@/context/bookmarks-context'
-import { type HeadersFunction, type LoaderFunctionArgs, type MetaFunction, useLoaderData } from 'react-router'
+import {
+  type HeadersFunction,
+  type MetaFunction,
+  useLoaderData,
+} from 'react-router'
 
 export const meta: MetaFunction = () => [
   { title: 'JobAio | Saved Jobs' },
@@ -12,7 +16,7 @@ export const headers: HeadersFunction = () => ({
   'Cache-Control': 'private, max-age=0, must-revalidate',
 })
 
-export async function loader(_args: LoaderFunctionArgs) {
+export async function loader() {
   return { initialCount: 0 }
 }
 

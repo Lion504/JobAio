@@ -12,7 +12,6 @@ import { Label } from '@/components/ui/label'
 import {
   Link,
   type HeadersFunction,
-  type LoaderFunctionArgs,
   type MetaFunction,
   useLoaderData,
   useNavigate,
@@ -20,14 +19,17 @@ import {
 
 export const meta: MetaFunction = () => [
   { title: 'JobAio | Sign Up' },
-  { name: 'description', content: 'Create a JobAio account to sync preferences.' },
+  {
+    name: 'description',
+    content: 'Create a JobAio account to sync preferences.',
+  },
 ]
 
 export const headers: HeadersFunction = () => ({
   'Cache-Control': 'private, max-age=0, must-revalidate',
 })
 
-export async function loader(_args: LoaderFunctionArgs) {
+export async function loader() {
   return { ok: true }
 }
 

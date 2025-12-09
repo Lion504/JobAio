@@ -22,8 +22,6 @@ export default function Layout() {
   const location = useLocation()
   const navigate = useNavigate()
 
-
-
   useEffect(() => {
     const params = new URLSearchParams(location.search)
     const currentLang = params.get('lang')
