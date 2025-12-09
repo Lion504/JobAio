@@ -42,12 +42,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
       apiUrl.searchParams.append('lang', lang)
     }
 
-    // Enable AI search expansion when ai=true
     if (aiParam === 'true') {
       apiUrl.searchParams.append('ai', 'true')
     }
 
-  try {
     const res = await fetch(apiUrl)
     if (!res.ok) throw new Error('Failed to fetch jobs')
 
@@ -96,17 +94,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function Home() {
+  const { t } = useTranslation()
   const { jobs, search, originalSearch, aiEnabled } =
     useLoaderData<typeof loader>()
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
 
-  // Update URL with expanded search term if AI expanded it
   useEffect(() => {
     if (aiEnabled && search && originalSearch && search !== originalSearch) {
       const currentUrlSearch = searchParams.get('search')
-      // Only update if URL still has the original search (avoid loops)
       if (currentUrlSearch === originalSearch) {
         const newParams = new URLSearchParams(searchParams)
         newParams.set('search', search)
@@ -120,7 +117,7 @@ export default function Home() {
       <div className="flex flex-1 overflow-hidden bg-muted/50 relative">
         <div className="absolute top-4 right-6 z-10">
           <span className="text-sm text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md border shadow-sm">
-            Showing {jobs.length} jobs
+            {t('home.showingJobs', { count: jobs.length })}
           </span>
         </div>
         <ScrollArea className="h-full w-full">
@@ -136,7 +133,7 @@ export default function Home() {
               ))
             ) : (
               <div className="text-center text-muted-foreground mt-10">
-                No jobs found.
+                {t('home.noJobsFound')}
               </div>
             )}
           </div>

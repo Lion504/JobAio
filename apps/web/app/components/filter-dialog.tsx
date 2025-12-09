@@ -28,27 +28,29 @@ import {
   jobTypeOptions,
   languageOptions,
 } from '@/data/filter-options'
+import { useTranslation } from 'react-i18next'
 
 export function FilterContent({ className }: { className?: string }) {
+  const { t } = useTranslation()
   const { filters, updateFilter, resetFilters } = useFilters()
 
   return (
     <div className={className}>
       <div className="grid gap-4 py-4">
         <div className="grid gap-2">
-          <Label htmlFor="filters-location">Location</Label>
+          <Label htmlFor="filters-location">{t('filters.location')}</Label>
           <LocationSelector
             multiple
             id="filters-location"
             value={filters.location}
             onChange={(value) => updateFilter('location', value)}
-            placeholder="Select location"
+            placeholder={t('filters.selectLocation')}
           />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
-            <Label htmlFor="job-type">Job Type</Label>
+            <Label htmlFor="job-type">{t('filters.jobType')}</Label>
             <Select
               value={filters.jobType || 'any'}
               onValueChange={(value) =>
@@ -56,13 +58,15 @@ export function FilterContent({ className }: { className?: string }) {
               }
             >
               <SelectTrigger id="job-type">
-                <SelectValue placeholder="Any job type" />
+                <SelectValue placeholder={t('filters.anyJobType')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any</SelectItem>
+                <SelectItem value="any">{t('filters.any')}</SelectItem>
                 {jobTypeOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    {t(`filters.jobTypeOption.${option.value}`, {
+                      defaultValue: option.label,
+                    })}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -70,7 +74,7 @@ export function FilterContent({ className }: { className?: string }) {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="experience">Experience Level</Label>
+            <Label htmlFor="experience">{t('filters.experienceLevel')}</Label>
             <Select
               value={filters.experienceLevel || 'any'}
               onValueChange={(value) =>
@@ -78,10 +82,10 @@ export function FilterContent({ className }: { className?: string }) {
               }
             >
               <SelectTrigger id="experience">
-                <SelectValue placeholder="Any experience" />
+                <SelectValue placeholder={t('filters.anyExperience')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any</SelectItem>
+                <SelectItem value="any">{t('filters.any')}</SelectItem>
                 {experienceLevelOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -94,16 +98,16 @@ export function FilterContent({ className }: { className?: string }) {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
-            <Label htmlFor="company">Company</Label>
+            <Label htmlFor="company">{t('filters.company')}</Label>
             <Input
               id="company"
-              placeholder="e.g. Google"
+              placeholder={t('filters.companyPlaceholder')}
               value={filters.company}
               onChange={(event) => updateFilter('company', event.target.value)}
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="industry">Industry</Label>
+            <Label htmlFor="industry">{t('filters.industry')}</Label>
             <Select
               value={filters.industryCategory || 'any'}
               onValueChange={(value) =>
@@ -111,10 +115,10 @@ export function FilterContent({ className }: { className?: string }) {
               }
             >
               <SelectTrigger id="industry">
-                <SelectValue placeholder="Any industry" />
+                <SelectValue placeholder={t('filters.anyIndustry')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any</SelectItem>
+                <SelectItem value="any">{t('filters.any')}</SelectItem>
                 {industryCategoryOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -127,7 +131,9 @@ export function FilterContent({ className }: { className?: string }) {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
-            <Label htmlFor="required-language">Required Language</Label>
+            <Label htmlFor="required-language">
+              {t('filters.requiredLanguage')}
+            </Label>
             <Select
               value={filters.requiredLanguage || 'any'}
               onValueChange={(value) =>
@@ -135,10 +141,10 @@ export function FilterContent({ className }: { className?: string }) {
               }
             >
               <SelectTrigger id="required-language">
-                <SelectValue placeholder="Any language" />
+                <SelectValue placeholder={t('filters.anyLanguage')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any</SelectItem>
+                <SelectItem value="any">{t('filters.any')}</SelectItem>
                 {languageOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -149,7 +155,9 @@ export function FilterContent({ className }: { className?: string }) {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="education-level">Education Level</Label>
+            <Label htmlFor="education-level">
+              {t('filters.educationLevel')}
+            </Label>
             <Select
               value={filters.educationLevel || 'any'}
               onValueChange={(value) =>
@@ -157,10 +165,10 @@ export function FilterContent({ className }: { className?: string }) {
               }
             >
               <SelectTrigger id="education-level">
-                <SelectValue placeholder="Any education level" />
+                <SelectValue placeholder={t('filters.anyEducationLevel')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any</SelectItem>
+                <SelectItem value="any">{t('filters.any')}</SelectItem>
                 {educationLevelOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -173,7 +181,7 @@ export function FilterContent({ className }: { className?: string }) {
 
         <div className="flex items-center gap-2 mt-2">
           <Button variant="outline" onClick={resetFilters} className="flex-1">
-            Reset
+            {t('filters.reset')}
           </Button>
         </div>
       </div>
@@ -182,24 +190,23 @@ export function FilterContent({ className }: { className?: string }) {
 }
 
 export function FilterDialog() {
+  const { t } = useTranslation()
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-9">
           <SlidersHorizontal className="mr-2 h-3 w-3" />
-          Filters
+          {t('header.filters')}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Filter Jobs</DialogTitle>
-          <DialogDescription>
-            Refine your job search with specific criteria.
-          </DialogDescription>
+          <DialogTitle>{t('filters.title')}</DialogTitle>
+          <DialogDescription>{t('filters.description')}</DialogDescription>
         </DialogHeader>
         <FilterContent />
         <DialogFooter>
-          <Button type="submit">Apply Filters</Button>
+          <Button type="submit">{t('filters.applyFilters')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

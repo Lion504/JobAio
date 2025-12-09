@@ -9,6 +9,7 @@ import {
 
 import type { Route } from './+types/root'
 import './app.css'
+import './i18n'
 import { AuthProvider } from './context/auth-context'
 import { BookmarksProvider } from './context/bookmarks-context'
 import { DisclaimerBanner } from './components/disclaimer-banner'

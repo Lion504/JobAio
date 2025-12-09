@@ -16,6 +16,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { ModeToggle } from '@/components/mode-toggle'
+import { useTranslation } from 'react-i18next'
 
 interface SidebarProps {
   isCollapsed?: boolean
@@ -33,11 +34,12 @@ export function Sidebar({
   onClose,
 }: SidebarProps) {
   const location = useLocation()
+  const { t } = useTranslation()
 
   const navItems = [
-    { icon: Briefcase, label: 'Jobs', href: '/' },
-    { icon: Settings, label: 'Preferences', href: '/preferences' },
-    { icon: Bookmark, label: 'Saved', href: '/saved' },
+    { icon: Briefcase, label: t('sidebar.jobs'), href: '/' },
+    { icon: Settings, label: t('sidebar.preferences'), href: '/preferences' },
+    { icon: Bookmark, label: t('sidebar.saved'), href: '/saved' },
   ]
 
   return (
@@ -83,7 +85,7 @@ export function Sidebar({
             onClick={onClose}
           >
             <ChevronLeft className="h-4 w-4" />
-            <span className="sr-only">Close sidebar</span>
+            <span className="sr-only">{t('common.closeSidebar')}</span>
           </Button>
         )}
       </div>
@@ -131,19 +133,21 @@ export function Sidebar({
                 <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
                   <Link to="/account">
                     <User className="h-4 w-4" />
-                    <span className="sr-only">Account</span>
+                    <span className="sr-only">{t('sidebar.account')}</span>
                   </Link>
                 </Button>
               </TooltipTrigger>
               {isCollapsed && (
-                <TooltipContent side="right">Account</TooltipContent>
+                <TooltipContent side="right">
+                  {t('sidebar.account')}
+                </TooltipContent>
               )}
             </Tooltip>
           </TooltipProvider>
 
           {!isCollapsed && (
             <Link to="/account" className="text-sm font-medium hover:underline">
-              Account
+              {t('sidebar.account')}
             </Link>
           )}
 

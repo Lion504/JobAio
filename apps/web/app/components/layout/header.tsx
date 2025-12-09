@@ -29,14 +29,14 @@ import { jobTypeOptions } from '@/data/filter-options'
 import { useTranslation } from 'react-i18next'
 
 export function Header({ children }: { children?: React.ReactNode }) {
+  const { t, i18n } = useTranslation()
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const { filters, updateFilter, setFilters } = useFilters()
-  const [interfaceLang, setInterfaceLang] = useState<string>('en')
-  const [aiSearchEnabled, setAiSearchEnabled] = useState<boolean>(true)
-  const navigate = useNavigate()
+  const interfaceLang = i18n.language
+
   const [searchParams] = useSearchParams()
   const [aiSearchEnabled, setAiSearchEnabled] = useState<boolean>(
     searchParams.get('ai') === 'true'
@@ -45,17 +45,8 @@ export function Header({ children }: { children?: React.ReactNode }) {
 
   const currentSearch = searchParams.get('search') || ''
 
-  // Track if we're syncing from URL to avoid circular updates
   const isSyncingFromUrl = useRef(false)
-  // Track if filters have been initialized
   const filtersInitialized = useRef(false)
-
-  const backendEndpoint = useMemo(
-    () =>
-      import.meta.env.WEB_APP_BACKEND_ENDPOINT ||
-      (typeof window !== 'undefined' ? window.location.origin : ''),
-    []
-  )
 
   useEffect(() => {
     const loadPreferences = () => {
@@ -65,13 +56,17 @@ export function Header({ children }: { children?: React.ReactNode }) {
         if (stored) {
           const parsed = JSON.parse(stored) as {
             interfaceLanguage?: string
-            aiSearchEnabled?: boolean
           }
-          if (parsed.interfaceLanguage) {
-            setInterfaceLang(parsed.interfaceLanguage)
+          if (
+            parsed.interfaceLanguage &&
+            parsed.interfaceLanguage !== i18n.language
+          ) {
+            i18n.changeLanguage(parsed.interfaceLanguage)
+            localStorage.setItem(
+              'jobaio-preferences-lang',
+              parsed.interfaceLanguage
+            )
           }
-          // Default to true if not set
-          setAiSearchEnabled(parsed.aiSearchEnabled !== false)
         }
       } catch (error) {
         console.error('Failed to read preferences from localStorage', error)
@@ -93,9 +88,22 @@ export function Header({ children }: { children?: React.ReactNode }) {
       window.removeEventListener('storage', onStorage)
       window.removeEventListener('preferences-updated', onCustomUpdate)
     }
-  }, [])
+  }, [i18n])
 
-  // Sync filters from URL params on mount and when URL changes
+  useEffect(() => {
+    setAiSearchEnabled(searchParams.get('ai') === 'true')
+  }, [searchParams])
+
+  useEffect(() => {
+    const currentLang = searchParams.get('lang')
+    if (interfaceLang && currentLang !== interfaceLang) {
+      const params = new URLSearchParams(searchParams)
+      params.set('lang', interfaceLang)
+      navigate(`/?${params.toString()}`, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [interfaceLang])
+
   useEffect(() => {
     const filtersParam = searchParams.get('filters')
     isSyncingFromUrl.current = true
@@ -112,22 +120,17 @@ export function Header({ children }: { children?: React.ReactNode }) {
           educationLevel: parsed.education_level || '',
         })
       } catch {
-        // Invalid JSON, ignore
         setFilters({ ...defaultFilters })
       }
     } else {
-      // No filters in URL, reset to defaults
       setFilters({ ...defaultFilters })
     }
-    // Mark filters as initialized after first sync
     filtersInitialized.current = true
-    // Reset the syncing flag after a tick
     setTimeout(() => {
       isSyncingFromUrl.current = false
     }, 0)
   }, [searchParams, setFilters])
 
-  // Build URL params for navigation
   const buildNavigationParams = useCallback(
     (search: string, currentFilters: typeof filters) => {
       const params = new URLSearchParams()
@@ -171,14 +174,11 @@ export function Header({ children }: { children?: React.ReactNode }) {
     [interfaceLang, aiSearchEnabled]
   )
 
-  // Auto-apply filters when they change (outside of URL sync)
   useEffect(() => {
-    // Skip if we're syncing from URL or filters haven't been initialized yet
     if (isSyncingFromUrl.current || !filtersInitialized.current) {
       return
     }
 
-    // Debounce the navigation slightly
     const timeout = setTimeout(() => {
       const params = buildNavigationParams(currentSearch, filters)
       const newUrl = params.toString() ? `/?${params.toString()}` : '/'
@@ -188,7 +188,6 @@ export function Header({ children }: { children?: React.ReactNode }) {
     return () => clearTimeout(timeout)
   }, [filters, currentSearch, navigate, buildNavigationParams])
 
-  // Initialize search query when dialog opens
   useEffect(() => {
     if (open) {
       setSearchQuery(currentSearch)
@@ -276,7 +275,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
         >
           <Search className="mr-2 h-4 w-4 flex-shrink-0" />
           <span className="truncate">
-            {currentSearch || 'Search for jobs...'}
+            {currentSearch || t('common.searchPlaceholder')}
           </span>
           <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
             <span className="text-xs">⌘</span>K
@@ -289,7 +288,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
               multiple
               value={filters.location}
               onChange={(value) => updateFilter('location', value)}
-              placeholder="Search cities or Remote work"
+              placeholder={t('preferences.preferredLocations')}
               buttonClassName="h-9 justify-between overflow-hidden"
               prefixIcon={
                 <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
@@ -303,13 +302,15 @@ export function Header({ children }: { children?: React.ReactNode }) {
             }
           >
             <SelectTrigger className="h-9 w-[140px]">
-              <SelectValue placeholder="Job Type" />
+              <SelectValue placeholder={t('filters.jobType')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="any">All Types</SelectItem>
+              <SelectItem value="any">{t('filters.any')}</SelectItem>
               {jobTypeOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                  {t(`filters.jobTypeOption.${option.value}`, {
+                    defaultValue: option.label,
+                  })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -324,7 +325,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
             <div className="flex-1 border-b md:border-b-0 md:border-r">
               <Command className="h-full w-full rounded-none border-none">
                 <CommandInput
-                  placeholder="Type a command or search..."
+                  placeholder={t('header.commandPlaceholder')}
                   value={searchQuery}
                   onValueChange={setSearchQuery}
                   onKeyDown={(e) => {
@@ -336,13 +337,13 @@ export function Header({ children }: { children?: React.ReactNode }) {
                 <CommandList>
                   <CommandEmpty>
                     {searchQuery.trim().length < 2
-                      ? 'Type at least 2 characters to search.'
+                      ? t('header.typeToSearch')
                       : isLoadingSuggestions
-                        ? 'Searching...'
-                        : 'No results found.'}
+                        ? t('header.searching')
+                        : t('header.noResults')}
                   </CommandEmpty>
                   {suggestions.length > 0 && (
-                    <CommandGroup heading="Suggestions">
+                    <CommandGroup heading={t('header.suggestions')}>
                       {suggestions.map((suggestion) => (
                         <CommandItem
                           key={suggestion.id}
@@ -368,8 +369,30 @@ export function Header({ children }: { children?: React.ReactNode }) {
               </Command>
             </div>
             <div className="w-full overflow-y-auto bg-card p-6 md:w-[320px]">
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Filters</h3>
+              <div className="mb-4 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h3 className="text-lg font-semibold">
+                    {t('header.filters')}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <Label
+                      htmlFor="ai-search-toggle"
+                      className="text-sm font-medium"
+                    >
+                      {t('header.aiQueryExpansion')}
+                    </Label>
+                    <Switch
+                      id="ai-search-toggle"
+                      checked={aiSearchEnabled}
+                      onCheckedChange={setAiSearchEnabled}
+                      aria-label="Toggle AI query expansion"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t('header.aiQueryDescription')}
+                </p>
               </div>
               <FilterContent />
             </div>

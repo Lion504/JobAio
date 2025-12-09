@@ -15,11 +15,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useEffect, useState } from 'react'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { LocationSelector } from '@/components/location-selector'
+import { useTranslation } from 'react-i18next'
 
 type PreferencesState = {
   jobTags: string
@@ -27,7 +27,6 @@ type PreferencesState = {
   languages: string[]
   location: string[]
   interfaceLanguage: string
-  aiSearchEnabled: boolean
 }
 
 const defaultPreferences: PreferencesState = {
@@ -36,19 +35,9 @@ const defaultPreferences: PreferencesState = {
   languages: [],
   location: [],
   interfaceLanguage: 'en',
-  aiSearchEnabled: true,
 }
 
 const STORAGE_KEY = 'jobaio-preferences'
-
-const interfaceLanguageOptions = [
-  { label: 'English', value: 'en' },
-  { label: 'Finnish', value: 'fi' },
-  { label: 'Swedish', value: 'sv' },
-  { label: 'Spanish', value: 'es' },
-  { label: 'French', value: 'fr' },
-  { label: 'German', value: 'de' },
-]
 
 function normalizeLocationPreference(
   value: string[] | string | undefined,
@@ -71,10 +60,21 @@ function normalizeLocationPreference(
 }
 
 export default function Preferences() {
+  const { t, i18n } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [preferences, setPreferences] =
     useState<PreferencesState>(defaultPreferences)
   const [isInitialized, setIsInitialized] = useState(false)
+
+  const interfaceLanguageOptions = [
+    { label: 'English', value: 'en' },
+    { label: 'Chinese', value: 'zh' },
+    { label: 'Finnish', value: 'fi' },
+    { label: 'Swedish', value: 'sv' },
+    { label: 'Spanish', value: 'es' },
+    { label: 'French', value: 'fr' },
+    { label: 'German', value: 'de' },
+  ]
 
   const languageOptions = [
     {
@@ -134,12 +134,33 @@ export default function Preferences() {
       if (stored) {
         const parsed = JSON.parse(stored) as Partial<PreferencesState> & {
           location?: string | string[]
+          aiSearchEnabled?: boolean
         }
-        const { location: storedLocation, ...rest } = parsed
+        const {
+          location: storedLocation,
+          aiSearchEnabled: _legacyAi,
+          ...rest
+        } = parsed
+        if (
+          rest.interfaceLanguage &&
+          rest.interfaceLanguage !== i18n.language
+        ) {
+          i18n.changeLanguage(rest.interfaceLanguage)
+          localStorage.setItem(
+            'jobaio-preferences-lang',
+            rest.interfaceLanguage
+          )
+        }
+
         setPreferences((prev) => ({
           ...prev,
           ...rest,
           location: normalizeLocationPreference(storedLocation, prev.location),
+        }))
+      } else {
+        setPreferences((prev) => ({
+          ...prev,
+          interfaceLanguage: i18n.language,
         }))
       }
     } catch (error) {
@@ -152,6 +173,12 @@ export default function Preferences() {
   useEffect(() => {
     if (!isInitialized) return
     localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences))
+    if (preferences.interfaceLanguage) {
+      localStorage.setItem(
+        'jobaio-preferences-lang',
+        preferences.interfaceLanguage
+      )
+    }
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('preferences-updated'))
     }
@@ -159,13 +186,20 @@ export default function Preferences() {
 
   const updatePreferences = (updates: Partial<PreferencesState>) => {
     setPreferences((prev) => ({ ...prev, ...updates }))
+
+    if (
+      updates.interfaceLanguage &&
+      updates.interfaceLanguage !== i18n.language
+    ) {
+      i18n.changeLanguage(updates.interfaceLanguage)
+    }
   }
 
   const handleSave = () => {
     setIsLoading(true)
     setTimeout(() => {
       setIsLoading(false)
-      alert('Preferences saved!')
+      alert(t('common.saved'))
     }, 1000)
   }
 
@@ -174,58 +208,60 @@ export default function Preferences() {
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-2xl space-y-6">
           <div>
-            <h1 className="text-2xl font-bold">Preferences</h1>
+            <h1 className="text-2xl font-bold">{t('preferences.title')}</h1>
             <p className="text-muted-foreground">
-              Manage your job search and application settings.
+              {t('preferences.description')}
             </p>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>Job Preferences</CardTitle>
+              <CardTitle>{t('preferences.jobPreferences')}</CardTitle>
               <CardDescription>
-                Customize what kind of jobs you want to see.
+                {t('preferences.jobPreferencesDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="tags">Job Tags</Label>
+                <Label htmlFor="tags">{t('preferences.jobTags')}</Label>
                 <Input
                   id="tags"
                   value={preferences.jobTags}
                   onChange={(event) =>
                     updatePreferences({ jobTags: event.target.value })
                   }
-                  placeholder="e.g. React, Startup, Fintech (comma separated)"
+                  placeholder={t('preferences.jobTagsPlaceholder')}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Add tags to filter jobs by specific keywords.
+                  {t('preferences.jobTagsDesc')}
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="skills">Skills</Label>
+                <Label htmlFor="skills">{t('preferences.skills')}</Label>
                 <Textarea
                   id="skills"
                   value={preferences.skills}
                   onChange={(event) =>
                     updatePreferences({ skills: event.target.value })
                   }
-                  placeholder="e.g. JavaScript, Python, Project Management"
+                  placeholder={t('preferences.skillsPlaceholder')}
                 />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="job-language">Job Language</Label>
+                  <Label htmlFor="job-language">
+                    {t('preferences.jobLanguage')}
+                  </Label>
                   <MultiSelect
                     options={languageOptions}
                     selected={preferences.languages}
                     onChange={(languages) => updatePreferences({ languages })}
-                    placeholder="Select languages"
+                    placeholder={t('preferences.selectLanguages')}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="preferred-location">
-                    Preferred Locations
+                    {t('preferences.preferredLocations')}
                   </Label>
                   <LocationSelector
                     multiple
@@ -234,7 +270,7 @@ export default function Preferences() {
                     onChange={(value) => updatePreferences({ location: value })}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Choose one or more cities to personalize job suggestions.
+                    {t('preferences.preferredLocationsDesc')}
                   </p>
                 </div>
               </div>
@@ -243,14 +279,16 @@ export default function Preferences() {
 
           <Card>
             <CardHeader>
-              <CardTitle>App Settings</CardTitle>
+              <CardTitle>{t('preferences.appSettings')}</CardTitle>
               <CardDescription>
-                Configure your application experience.
+                {t('preferences.appSettingsDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="interface-language">Interface Language</Label>
+                <Label htmlFor="interface-language">
+                  {t('preferences.interfaceLanguage')}
+                </Label>
                 <Select
                   value={preferences.interfaceLanguage}
                   onValueChange={(value) =>
@@ -258,7 +296,9 @@ export default function Preferences() {
                   }
                 >
                   <SelectTrigger id="interface-language">
-                    <SelectValue placeholder="Select language" />
+                    <SelectValue
+                      placeholder={t('preferences.selectLanguage')}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {interfaceLanguageOptions.map((lang) => (
@@ -269,28 +309,12 @@ export default function Preferences() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="ai-search">AI-Enhanced Search</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Automatically expand search queries with related
-                    technologies and job titles for better results.
-                  </p>
-                </div>
-                <Switch
-                  id="ai-search"
-                  checked={preferences.aiSearchEnabled}
-                  onCheckedChange={(checked: boolean) =>
-                    updatePreferences({ aiSearchEnabled: checked })
-                  }
-                />
-              </div>
             </CardContent>
           </Card>
 
           <div className="flex justify-end">
             <Button onClick={handleSave} disabled={isLoading}>
-              {isLoading ? 'Saving...' : 'Save Changes'}
+              {isLoading ? t('common.saving') : t('common.save')}
             </Button>
           </div>
         </div>

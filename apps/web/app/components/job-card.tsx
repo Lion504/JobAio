@@ -28,6 +28,7 @@ import { Button } from '@/components/ui/button'
 import { useBookmarks } from '@/context/bookmarks-context'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { type Job } from '@/types'
+import { useTranslation } from 'react-i18next'
 
 interface JobCardProps {
   job: Job
@@ -81,6 +82,7 @@ function getJobTypeBadgeColor(type: string) {
 }
 
 export function JobCard({ job, isSelected, onClick }: JobCardProps) {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks()
   const bookmarked = isBookmarked(job.id)
@@ -129,16 +131,13 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
       >
         <CardHeader className="p-4 pb-3">
           <div className="flex items-start justify-between gap-3">
-            {/* Left: Job info */}
             <div className="min-w-0 flex-1 space-y-2">
-              {/* Title row */}
               <div className="flex items-start gap-2">
                 <h3 className="font-semibold text-base leading-tight line-clamp-2">
                   {job.title}
                 </h3>
               </div>
 
-              {/* Company and date row */}
               <div className="flex items-center gap-3 text-sm">
                 <span className="flex items-center gap-1.5 text-muted-foreground">
                   <Building2 className="h-3.5 w-3.5" />
@@ -154,7 +153,6 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
               </div>
             </div>
 
-            {/* Right: Actions */}
             <div
               className="flex items-center gap-1 shrink-0"
               onClick={(e) => e.stopPropagation()}
@@ -171,7 +169,7 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
                 <Bookmark
                   className={cn('h-4 w-4', bookmarked && 'fill-current')}
                 />
-                <span className="sr-only">Bookmark</span>
+                <span className="sr-only">{t('common.bookmark')}</span>
               </Button>
               <CollapsibleTrigger asChild>
                 <Button
@@ -184,7 +182,7 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
                   ) : (
                     <ChevronDown className="h-4 w-4" />
                   )}
-                  <span className="sr-only">Toggle</span>
+                  <span className="sr-only">{t('common.toggle')}</span>
                 </Button>
               </CollapsibleTrigger>
             </div>
@@ -192,9 +190,7 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
         </CardHeader>
 
         <CardContent className="p-4 pt-0 space-y-3">
-          {/* Meta info row with visual indicators */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* Location */}
             <Badge
               variant="outline"
               className="gap-1 bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/30"
@@ -203,7 +199,6 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
               {job.location}
             </Badge>
 
-            {/* Job Type */}
             <Badge
               variant="outline"
               className={cn('gap-1', getJobTypeBadgeColor(job.type))}
@@ -212,7 +207,6 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
               {job.type}
             </Badge>
 
-            {/* Experience Level */}
             <Badge
               variant="outline"
               className={cn(
@@ -224,7 +218,6 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
               {job.experienceLevel}
             </Badge>
 
-            {/* Languages */}
             {languagesRequired.length > 0 && (
               <Badge
                 variant="outline"
@@ -238,7 +231,6 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
             )}
           </div>
 
-          {/* Tags row */}
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {tags.slice(0, 4).map((tag) => (
@@ -255,13 +247,12 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
                   variant="secondary"
                   className="text-xs font-normal px-2 py-0.5"
                 >
-                  +{tags.length - 4} more
+                  {t('job.moreItems', { count: tags.length - 4 })}
                 </Badge>
               )}
             </div>
           )}
 
-          {/* Expanded Content */}
           <CollapsibleContent
             className="pt-3 border-t space-y-4"
             onClick={(e) => e.stopPropagation()}
@@ -269,30 +260,28 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
             <Tabs defaultValue="overview" className="w-full">
               <TabsList className="w-full justify-start h-auto p-1 bg-muted/50">
                 <TabsTrigger value="overview" className="text-xs px-3 py-1.5">
-                  Overview
+                  {t('job.overview')}
                 </TabsTrigger>
                 <TabsTrigger value="skills" className="text-xs px-3 py-1.5">
-                  Skills
+                  {t('job.skills')}
                 </TabsTrigger>
                 <TabsTrigger
                   value="requirements"
                   className="text-xs px-3 py-1.5"
                 >
-                  Requirements
+                  {t('job.requirements')}
                 </TabsTrigger>
                 <TabsTrigger value="details" className="text-xs px-3 py-1.5">
-                  Details
+                  {t('job.details')}
                 </TabsTrigger>
               </TabsList>
 
-              {/* Overview Tab */}
               <TabsContent value="overview" className="space-y-4">
-                {/* Responsibilities */}
                 {responsibilities.length > 0 && (
                   <div className="space-y-2">
                     <h4 className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                       <Briefcase className="h-3.5 w-3.5" />
-                      Responsibilities
+                      {t('job.responsibilities')}
                     </h4>
                     <ul className="space-y-1.5 text-sm text-muted-foreground">
                       {responsibilities.map((item, idx) => (
@@ -306,37 +295,36 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
                 )}
               </TabsContent>
 
-              {/* Skills Tab */}
               <TabsContent value="skills" className="space-y-4">
                 {hasSkills ? (
                   <div className="grid gap-3 sm:grid-cols-2">
                     <SkillGroup
-                      title="Technical Skills"
+                      title={t('job.technicalSkills')}
                       items={skillType.technical}
                       icon={<Code className="h-3.5 w-3.5" />}
                       colorClass="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30"
                     />
                     <SkillGroup
-                      title="Domain Knowledge"
+                      title={t('job.domainKnowledge')}
                       items={skillType.domainSpecific}
                       icon={<Sparkles className="h-3.5 w-3.5" />}
                       colorClass="bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/30"
                     />
                     <SkillGroup
-                      title="Certifications"
+                      title={t('job.certifications')}
                       items={skillType.certifications}
                       icon={<Award className="h-3.5 w-3.5" />}
                       colorClass="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30"
                     />
                     <SkillGroup
-                      title="Soft Skills"
+                      title={t('job.softSkills')}
                       items={skillType.softSkills}
                       icon={<Users className="h-3.5 w-3.5" />}
                       colorClass="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
                     />
                     {skillType.other.length > 0 && (
                       <SkillGroup
-                        title="Other Skills"
+                        title={t('job.otherSkills')}
                         items={skillType.other}
                         icon={<Briefcase className="h-3.5 w-3.5" />}
                         colorClass="bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/30"
@@ -345,19 +333,17 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No specific skills listed for this position.
+                    {t('job.noSkills')}
                   </p>
                 )}
               </TabsContent>
 
-              {/* Requirements Tab */}
               <TabsContent value="requirements" className="space-y-4">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {/* Languages */}
                   <div className="rounded-lg border p-3 space-y-2">
                     <h4 className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                       <Globe className="h-3.5 w-3.5" />
-                      Languages
+                      {t('job.languages')}
                     </h4>
                     <div className="space-y-2">
                       {languagesRequired.length > 0 ? (
@@ -374,7 +360,7 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
                         </div>
                       ) : (
                         <span className="text-xs text-muted-foreground">
-                          No required languages specified
+                          {t('job.noLanguages')}
                         </span>
                       )}
                       {languagesAdvantage.length > 0 && (
@@ -393,11 +379,10 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
                     </div>
                   </div>
 
-                  {/* Education */}
                   <div className="rounded-lg border p-3 space-y-2">
                     <h4 className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                       <GraduationCap className="h-3.5 w-3.5" />
-                      Education
+                      {t('job.education')}
                     </h4>
                     <div className="flex flex-wrap gap-1.5">
                       {educationLevels.length > 0 ? (
@@ -412,17 +397,16 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
                         ))
                       ) : (
                         <span className="text-xs text-muted-foreground">
-                          Not specified
+                          {t('job.notSpecified')}
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Experience */}
                   <div className="rounded-lg border p-3 space-y-2">
                     <h4 className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                       <Briefcase className="h-3.5 w-3.5" />
-                      Experience Level
+                      {t('job.experienceLevel')}
                     </h4>
                     <Badge
                       variant="outline"
@@ -435,11 +419,10 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
                     </Badge>
                   </div>
 
-                  {/* Job Types */}
                   <div className="rounded-lg border p-3 space-y-2">
                     <h4 className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                       <Clock className="h-3.5 w-3.5" />
-                      Employment Type
+                      {t('job.employmentType')}
                     </h4>
                     <div className="flex flex-wrap gap-1.5">
                       {jobTypes.length > 0 ? (
@@ -471,45 +454,43 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
                 </div>
               </TabsContent>
 
-              {/* Details Tab */}
               <TabsContent value="details" className="space-y-4">
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <InfoCard
-                    label="Location"
+                    label={t('job.location')}
                     value={job.location}
                     icon={<MapPin className="h-3.5 w-3.5" />}
                   />
                   <InfoCard
-                    label="Industry"
-                    value={job.industryCategory || 'Not specified'}
+                    label={t('job.industry')}
+                    value={job.industryCategory || t('job.notSpecified')}
                     icon={<Building2 className="h-3.5 w-3.5" />}
                   />
                   <InfoCard
-                    label="Posted"
+                    label={t('job.posted')}
                     value={formatDate(job.postedAt)}
                     icon={<Calendar className="h-3.5 w-3.5" />}
                   />
                   {job.updatedAt && (
                     <InfoCard
-                      label="Updated"
+                      label={t('job.updated')}
                       value={formatDate(job.updatedAt)}
                       icon={<Calendar className="h-3.5 w-3.5" />}
                     />
                   )}
                   {job.source && (
                     <InfoCard
-                      label="Source"
+                      label={t('job.source')}
                       value={job.source}
                       icon={<ExternalLink className="h-3.5 w-3.5" />}
                     />
                   )}
                 </div>
 
-                {/* Extra tags */}
                 {tags.length > 4 && (
                   <div className="space-y-2">
                     <h4 className="text-xs font-semibold uppercase text-muted-foreground">
-                      All Tags
+                      {t('job.allTags')}
                     </h4>
                     <div className="flex flex-wrap gap-1.5">
                       {tags.map((tag) => (
@@ -527,13 +508,12 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
               </TabsContent>
             </Tabs>
 
-            {/* View listing button */}
             <div className="flex justify-end pt-2 border-t">
               {job.link ? (
                 <Button size="sm" className="gap-2" asChild>
                   <a href={job.link} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="h-3.5 w-3.5" />
-                    View Original Listing
+                    {t('job.viewOriginal')}
                     {job.source && (
                       <span className="text-xs opacity-70">({job.source})</span>
                     )}
@@ -542,7 +522,7 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
               ) : (
                 <Button size="sm" disabled className="gap-2">
                   <ExternalLink className="h-3.5 w-3.5" />
-                  Link unavailable
+                  {t('job.linkUnavailable')}
                 </Button>
               )}
             </div>
