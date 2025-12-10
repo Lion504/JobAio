@@ -118,5 +118,8 @@
   "home": {
     "showingJobs": "Affichage de {{count}} emplois",
     "noJobsFound": "Aucun emploi trouvé."
+  },
+  "theme": {
+    "toggle": "Thème"
   }
 }
