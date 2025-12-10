@@ -8,10 +8,10 @@
 ### 1. Functionality
 - **Does the code meet the requirements?**
 
-- Does it implement all specified features you were responsible for?  
+  -   Does it implement all specified features you were responsible for?  
      Yes
 
-  It implements all required features. The OriginalJob model includes all necessary fields and supports weighted full-text search, while the TranslatedJob model correctly mirrors translatable fields and links back via job_id. Both models use a 14-day TTL for automatic cleanup, and duplicates are prevented through unique indexes on (title, company, location) for OriginalJob and (job_id, translation_lang) for TranslatedJob.
+        It includes all required features: OriginalJob has all needed fields with weighted full-text search, TranslatedJob mirrors translatable fields and links via job_id, both use a 14-day TTL, and duplicates are prevented with appropriate unique indexes.
 
   - Are edge cases handled (e.g., invalid data, duplicates)?  
     Partially yes
@@ -21,14 +21,13 @@
   - Are there any bugs or unexpected behaviors?  
     Minor issues only
 
-    When performing full-text search on array fields, MongoDB indexes the arrays as space-joined strings, which allows them to be searchable but can sometimes lead to unexpected or less precise scoring results. This behavior isn’t a bug, but it’s important to be aware of it when interpreting search relevance or designing queries that rely on weighted text scoring.
-
+    MongoDB indexes array fields as space-joined strings for full-text search, making them searchable but sometimes less precise in scoring—this isn’t a bug, just something to keep in mind when evaluating relevance.
 
 - **Integration**
   - Does your code work correctly with other parts of the application? 
     Yes 
 
-    The code work correctly with other parts of the application. The models follow standard Mongoose patterns, the TranslatedJob model properly references the OriginalJob model through job_id, and the indexing structure supports efficient querying. As long as the rest of the application uses these models as intended (e.g., for creating, linking, and searching job records), they will integrate smoothly and function as expected.
+    The code integrates smoothly with the application: the models follow standard Mongoose patterns, TranslatedJob properly references OriginalJob via job_id, and the indexes support efficient queries. As long as the app uses them as intended, they work as expected.
 
   - Are inputs and outputs managed appropriately?  
     Yes
@@ -106,4 +105,4 @@
 ---
 
 ### 5. Additional Notes
-- The models are solid, but adding more validation, refining index choices, and documenting expected data formats would improve reliability and ensure consistency as the application grows.
+  - The models are solid, but adding more validation, refining index choices, and documenting expected data formats would improve reliability and ensure consistency as the application grows.

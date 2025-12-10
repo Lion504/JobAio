@@ -40,7 +40,7 @@
 | **Taysa**   | [Taysa's Working Repository](https://github.com/Lion504/JobAio/tree/feature/search-engine) |
 | **Tamseela** | — |
 | **Unai**     | — |
-| **Kumudu**   | — |
+| **Kumudu**   | [Kumudu's Working Respository](https://github.com/Lion504/JobAio/tree/feature/backend) |
 | **Wang**     | — |
 
 ------------------------------------------------------------------------
@@ -59,5 +59,5 @@
 | **Taysa**   | [Taysa's self-assessment](./self_assessments/self_assessment_taysa.md) |
 | **Tamseela** | — |
 | **Unai**     | — |
-| **Kumudu**   | — |
+| **Kumudu**   |[Kumudu's self-assessment](./self_assessments/self_assessment_Kumudu.md) |
 | **Wang**     | — |
