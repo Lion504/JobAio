@@ -37,10 +37,10 @@
 
 | Team Member | Repository Link |
 |-------------|-----------------|
-| **Taysa**   | [Taysa's Working Repository](https://github.com/Lion504/JobAio/tree/feature/search-engine) |
-| **Tamseela** | — |
+| **Taysa**   | [Taysa's Working Branch](https://github.com/Lion504/JobAio/tree/feature/search-engine) |
+| **Tamseela** | [Tamseela's Working Branch](https://github.com/Lion504/JobAio/tree/feature/backend) | 
 | **Unai**     | — |
-| **Kumudu**   | [Kumudu's Working Respository](https://github.com/Lion504/JobAio/tree/feature/backend) |
+| **Kumudu**   | [Kumudu's Working Branch](https://github.com/Lion504/JobAio/tree/feature/backend) |
 | **Wang**     | — |
 
 ------------------------------------------------------------------------
@@ -57,7 +57,7 @@
 | Team Member | Self-assessment Link |
 |-------------|-----------------|
 | **Taysa**   | [Taysa's self-assessment](./self_assessments/self_assessment_taysa.md) |
-| **Tamseela** | — |
+| **Tamseela** | [Tamseela's self-assessment](documentation/self_assessments/Tamseela.md) |
 | **Unai**     | — |
 | **Kumudu**   |[Kumudu's self-assessment](./self_assessments/self_assessment_Kumudu.md) |
 | **Wang**     | — |
