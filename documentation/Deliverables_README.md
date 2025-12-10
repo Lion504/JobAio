@@ -56,3 +56,13 @@ Discussed all 4L related question for retrospective and identified where we want
 | **Unai**     | —                                                                               |
 | **Kumudu**   | [Kumudu's self-assessment](./self_assessments/self_assessment_Kumudu.md)        |
 | **Wang**     | [Wang's self-asessment](documentation\self_assessments\self_assessment_Wang.md) |
+
+## 6 Self-grading
+
+| **Criteria**                      | **Points**     |
+| --------------------------------- | -------------- |
+| Artifacts of Sprint 2             | 50 Points      |
+| Adherence to Scrum Process        | 25 Points      |
+| Group Presentation                | 25 Points      |
+| Alignment with Sprint 1 Prototype | 25 Points      |
+| **Total**                         | **100 Points** |
