@@ -90,7 +90,7 @@ export const createJobsBulkController = async (req, res, next) => {
 // Supports: ?q=searchTerm&filters={"location":"Helsinki"}&lang=fi&ai=true
 export const getAllJobsController = async (req, res, next) => {
   try {
-    const { q, filters: filtersParam, lang, ai } = req.query;
+    const { q, filters: filtersParam, lang, ai, limit } = req.query;
 
     const searchTerm = (q || "").trim();
 
@@ -105,12 +105,14 @@ export const getAllJobsController = async (req, res, next) => {
     }
 
     const useAI = ai === "true";
+    const limitVal = parseInt(limit) || 0;
 
     // Use rankedJobSearch for both search and filtering
     const { jobs: rawJobs, expandedSearchTerm } = await rankedJobSearch(
       searchTerm,
       filters,
       useAI,
+      limitVal,
     );
     let jobs = rawJobs;
     if (lang) {

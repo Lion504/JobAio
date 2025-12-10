@@ -40,6 +40,7 @@ async function fetchJobs(request: Request): Promise<JobsResult> {
 
   try {
     const apiUrl = getApiUrl('/api/jobs', request)
+    apiUrl.searchParams.append('limit', '40')
 
     if (search) {
       apiUrl.searchParams.append('q', search)
