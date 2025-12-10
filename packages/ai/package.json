@@ -2,6 +2,7 @@
   "name": "@jobaio/ai",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "main": "src/index.js",
   "dependencies": {
