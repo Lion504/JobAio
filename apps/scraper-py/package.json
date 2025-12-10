@@ -2,6 +2,7 @@
   "name": "@jobaio/scraper-py",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "postinstall": "node -e \"const {execSync} = require('child_process'); const isWindows = process.platform === 'win32' || process.env.OS === 'Windows_NT'; const cmd = isWindows ? 'python -m venv venv && venv\\\\Scripts\\\\python -m pip install --upgrade pip && venv\\\\Scripts\\\\python -m pip install --only-binary=all -r requirements.txt' : 'python3 -m venv venv && venv/bin/python3 -m pip install --upgrade pip && venv/bin/python3 -m pip install --only-binary=all -r requirements.txt'; console.log('Running:', cmd); execSync(cmd, {stdio: 'inherit'})\"",
     "install-deps": "node -e \"const {execSync} = require('child_process'); const isWindows = process.platform === 'win32' || process.env.OS === 'Windows_NT'; const cmd = isWindows ? 'python -m venv venv && venv\\\\Scripts\\\\python -m pip install --upgrade pip && venv\\\\Scripts\\\\python -m pip install --only-binary=all -r requirements.txt' : 'python3 -m venv venv && venv/bin/python3 -m pip install --upgrade pip && venv/bin/python3 -m pip install --only-binary=all -r requirements.txt'; execSync(cmd, {stdio: 'inherit'})\"",
