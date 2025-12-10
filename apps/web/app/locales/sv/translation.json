@@ -118,5 +118,8 @@
   "home": {
     "showingJobs": "Visar {{count}} jobb",
     "noJobsFound": "Inga jobb hittades."
+  },
+  "theme": {
+    "toggle": "Tema"
   }
 }

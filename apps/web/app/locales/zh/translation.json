@@ -118,5 +118,8 @@
   "home": {
     "showingJobs": "显示 {{count}} 个职位",
     "noJobsFound": "未找到职位。"
+  },
+  "theme": {
+    "toggle": "主题"
   }
 }

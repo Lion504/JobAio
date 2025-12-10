@@ -38,13 +38,17 @@ interface JobCardProps {
 
 function getExperienceBadgeColor(level: string) {
   const levelLower = level.toLowerCase()
+  // Light: Rose (#fb7185), Dark: Muted Blue (#93c5fd)
   if (levelLower.includes('entry') || levelLower.includes('junior'))
-    return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+    return 'bg-[#fb923c]/10 text-[#fb923c] border-[#fb923c]/30 dark:bg-[#93c5fd]/10 dark:text-[#93c5fd] dark:border-[#93c5fd]/30'
+  // Light: Yellow (#facc15), Dark: Slate (#cbd5e1)
   if (levelLower.includes('mid') || levelLower.includes('intermediate'))
-    return 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30'
+    return 'bg-[#facc15]/10 text-[#facc15] border-[#facc15]/30 dark:bg-[#cbd5e1]/10 dark:text-[#cbd5e1] dark:border-[#cbd5e1]/30'
+  // Light: Rose (#fb7185), Dark: Muted Rose (#fda4af)
   if (levelLower.includes('senior') || levelLower.includes('lead'))
-    return 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30'
-  return 'bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-500/30'
+    return 'bg-[#fb7185]/10 text-[#fb7185] border-[#fb7185]/30 dark:bg-[#fda4af]/10 dark:text-[#fda4af] dark:border-[#fda4af]/30'
+  // Light: Orange (#fb923c), Dark: Slate (#cbd5e1)
+  return 'bg-[#fb923c]/10 text-[#fb923c] border-[#fb923c]/30 dark:bg-[#cbd5e1]/10 dark:text-[#cbd5e1] dark:border-[#cbd5e1]/30'
 }
 
 function formatDate(dateString: string): string {
@@ -70,17 +74,23 @@ function formatDate(dateString: string): string {
 
 function getJobTypeBadgeColor(type: string) {
   const typeLower = type.toLowerCase()
+  // Light: Yellow (#facc15), Dark: Slate (#cbd5e1)
   if (typeLower.includes('full'))
-    return 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30'
+    return 'bg-[#facc15]/10 text-[#facc15] border-[#facc15]/30 dark:bg-[#cbd5e1]/10 dark:text-[#cbd5e1] dark:border-[#cbd5e1]/30'
+  // Light: Rose (#fb7185), Dark: Muted Rose (#fda4af)
   if (typeLower.includes('part'))
-    return 'bg-violet-500/15 text-violet-700 dark:text-violet-400 border-violet-500/30'
+    return 'bg-[#fb7185]/10 text-[#fb7185] border-[#fb7185]/30 dark:bg-[#fda4af]/10 dark:text-[#fda4af] dark:border-[#fda4af]/30'
+  // Light: Orange (#fb923c), Dark: Muted Blue (#93c5fd)
   if (typeLower.includes('contract') || typeLower.includes('freelance'))
-    return 'bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30'
+    return 'bg-[#fb923c]/10 text-[#fb923c] border-[#fb923c]/30 dark:bg-[#93c5fd]/10 dark:text-[#93c5fd] dark:border-[#93c5fd]/30'
+  // Light: Orange (#fb923c), Dark: Muted Blue (#93c5fd)
   if (typeLower.includes('intern'))
-    return 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border-cyan-500/30'
+    return 'bg-[#fb923c]/10 text-[#fb923c] border-[#fb923c]/30 dark:bg-[#93c5fd]/10 dark:text-[#93c5fd] dark:border-[#93c5fd]/30'
+  // Light: Rose (#fb7185), Dark: Muted Rose (#fda4af)
   if (typeLower.includes('remote'))
-    return 'bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/30'
-  return 'bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-500/30'
+    return 'bg-[#fb7185]/10 text-[#fb7185] border-[#fb7185]/30 dark:bg-[#fda4af]/10 dark:text-[#fda4af] dark:border-[#fda4af]/30'
+  // Light: Orange (#fb923c), Dark: Slate (#cbd5e1)
+  return 'bg-[#fb923c]/10 text-[#fb923c] border-[#fb923c]/30 dark:bg-[#cbd5e1]/10 dark:text-[#cbd5e1] dark:border-[#cbd5e1]/30'
 }
 
 export function JobCard({ job, onClick }: JobCardProps) {
@@ -163,8 +173,8 @@ export function JobCard({ job, onClick }: JobCardProps) {
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  'h-8 w-8 p-0 hover:bg-amber-500/10',
-                  bookmarked && 'text-amber-500'
+                  'h-8 w-8 p-0 hover:bg-[#facc15]/10 dark:hover:bg-[#cbd5e1]/10',
+                  bookmarked && 'text-[#facc15] dark:text-[#cbd5e1]'
                 )}
                 onClick={handleBookmark}
               >
@@ -195,7 +205,8 @@ export function JobCard({ job, onClick }: JobCardProps) {
           <div className="flex flex-wrap items-center gap-2">
             <Badge
               variant="outline"
-              className="gap-1 bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/30"
+              // Light: Rose (#fb7185), Dark: Muted Rose (#fda4af)
+              className="gap-1 bg-[#fb7185]/10 text-[#fb7185] border-[#fb7185]/30 dark:bg-[#fda4af]/10 dark:text-[#fda4af] dark:border-[#fda4af]/30"
             >
               <MapPin className="h-3 w-3" />
               {job.location}
@@ -223,7 +234,8 @@ export function JobCard({ job, onClick }: JobCardProps) {
             {languagesRequired.length > 0 && (
               <Badge
                 variant="outline"
-                className="gap-1 bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30"
+                // Light: Orange (#fb923c), Dark: Muted Blue (#93c5fd)
+                className="gap-1 bg-[#fb923c]/10 text-[#fb923c] border-[#fb923c]/30 dark:bg-[#93c5fd]/10 dark:text-[#93c5fd] dark:border-[#93c5fd]/30"
               >
                 <Globe className="h-3 w-3" />
                 {languagesRequired.slice(0, 2).join(', ')}
@@ -304,32 +316,37 @@ export function JobCard({ job, onClick }: JobCardProps) {
                       title={t('job.technicalSkills')}
                       items={skillType.technical}
                       icon={<Code className="h-3.5 w-3.5" />}
-                      colorClass="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30"
+                      // Light: Orange (#fb923c), Dark: Muted Blue (#93c5fd)
+                      colorClass="bg-[#fb923c]/10 text-[#fb923c] border-[#fb923c]/30 dark:bg-[#93c5fd]/10 dark:text-[#93c5fd] dark:border-[#93c5fd]/30"
                     />
                     <SkillGroup
                       title={t('job.domainKnowledge')}
                       items={skillType.domainSpecific}
                       icon={<Sparkles className="h-3.5 w-3.5" />}
-                      colorClass="bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/30"
+                      // Light: Rose (#fb7185), Dark: Muted Rose (#fda4af)
+                      colorClass="bg-[#fb7185]/10 text-[#fb7185] border-[#fb7185]/30 dark:bg-[#fda4af]/10 dark:text-[#fda4af] dark:border-[#fda4af]/30"
                     />
                     <SkillGroup
                       title={t('job.certifications')}
                       items={skillType.certifications}
                       icon={<Award className="h-3.5 w-3.5" />}
-                      colorClass="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30"
+                      // Light: Yellow (#facc15), Dark: Slate (#cbd5e1)
+                      colorClass="bg-[#facc15]/10 text-[#facc15] border-[#facc15]/30 dark:bg-[#cbd5e1]/10 dark:text-[#cbd5e1] dark:border-[#cbd5e1]/30"
                     />
                     <SkillGroup
                       title={t('job.softSkills')}
                       items={skillType.softSkills}
                       icon={<Users className="h-3.5 w-3.5" />}
-                      colorClass="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+                      // Light: Orange (#fb923c), Dark: Slate (#cbd5e1)
+                      colorClass="bg-[#fb923c]/10 text-[#fb923c] border-[#fb923c]/30 dark:bg-[#cbd5e1]/10 dark:text-[#cbd5e1] dark:border-[#cbd5e1]/30"
                     />
                     {skillType.other.length > 0 && (
                       <SkillGroup
                         title={t('job.otherSkills')}
                         items={skillType.other}
                         icon={<Briefcase className="h-3.5 w-3.5" />}
-                        colorClass="bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/30"
+                        // Light: Orange (#fb923c), Dark: Muted Blue (#93c5fd)
+                        colorClass="bg-[#fb923c]/10 text-[#fb923c] border-[#fb923c]/30 dark:bg-[#93c5fd]/10 dark:text-[#93c5fd] dark:border-[#93c5fd]/30"
                       />
                     )}
                   </div>
@@ -354,7 +371,8 @@ export function JobCard({ job, onClick }: JobCardProps) {
                             <Badge
                               key={lang}
                               variant="outline"
-                              className="text-xs bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30"
+                              // Light: Rose (#fb7185), Dark: Muted Rose (#fda4af)
+                              className="text-xs bg-[#fb7185]/10 text-[#fb7185] border-[#fb7185]/30 dark:bg-[#fda4af]/10 dark:text-[#fda4af] dark:border-[#fda4af]/30"
                             >
                               ✓ {lang}
                             </Badge>
@@ -392,7 +410,8 @@ export function JobCard({ job, onClick }: JobCardProps) {
                           <Badge
                             key={level}
                             variant="outline"
-                            className="text-xs bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/30"
+                            // Light: Orange (#fb923c), Dark: Muted Blue (#93c5fd)
+                            className="text-xs bg-[#fb923c]/10 text-[#fb923c] border-[#fb923c]/30 dark:bg-[#93c5fd]/10 dark:text-[#93c5fd] dark:border-[#93c5fd]/30"
                           >
                             {level}
                           </Badge>

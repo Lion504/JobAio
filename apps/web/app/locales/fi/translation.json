@@ -118,5 +118,8 @@
   "home": {
     "showingJobs": "Näytetään {{count}} työpaikkaa",
     "noJobsFound": "Ei työpaikkoja."
+  },
+  "theme": {
+    "toggle": "Teema"
   }
 }
