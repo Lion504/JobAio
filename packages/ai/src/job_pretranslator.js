@@ -23,6 +23,122 @@ if (!process.env.GEMINI_MODEL_NAME) {
 // Initialize Gemini API
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+// Export helper functions for testing
+export { extractJsonFromResponse, safeJsonParse };
+
+/**
+ * Advanced JSON repair for AI-generated content
+ * Handles unescaped quotes within string values and other common issues
+ */
+function repairJsonString(jsonString) {
+  let result = jsonString;
+
+  // Find all string values in the JSON (content between quotes after colons)
+  const stringValueRegex = /":\s*"([^"]*(?:"[^"]*)*)"(?=[,\]\}])/g;
+  let match;
+
+  while ((match = stringValueRegex.exec(result)) !== null) {
+    const fullMatch = match[0];
+    const stringContent = match[1];
+
+    // Check if this string contains unescaped quotes
+    if (stringContent.includes('"')) {
+      // Replace unescaped quotes with escaped ones
+      const escapedContent = stringContent.replace(/"/g, '\\"');
+      const newString = `": "${escapedContent}"`;
+
+      // Replace in the result
+      result = result.replace(fullMatch, newString);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Conservative JSON extraction from AI response
+ * Only applies fixes when JSON is actually malformed
+ */
+function extractJsonFromResponse(responseText) {
+  let cleanText = responseText.trim();
+
+  // Remove markdown code blocks
+  if (cleanText.startsWith("```json")) {
+    cleanText = cleanText.replace(/^```json\s*/, "").replace(/```\s*$/, "");
+  } else if (cleanText.startsWith("```")) {
+    cleanText = cleanText.replace(/^```\s*/, "").replace(/```\s*$/, "");
+  }
+
+  cleanText = cleanText.trim();
+
+  // Handle AI responses wrapped in quotes (common with some models)
+  if (cleanText.startsWith('"') && cleanText.endsWith('"')) {
+    try {
+      // Try to parse as JSON with quotes removed
+      const unquoted = cleanText.slice(1, -1);
+      JSON.parse(unquoted); // Test if it's valid
+      cleanText = unquoted;
+    } catch (e) {
+      // If unquoted version isn't valid JSON, keep the original
+    }
+  }
+
+  // Try to find JSON array boundaries if there's extra text
+  const jsonStart = cleanText.indexOf("[");
+  const jsonEnd = cleanText.lastIndexOf("]");
+
+  if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+    cleanText = cleanText.substring(jsonStart, jsonEnd + 1);
+  }
+
+  // FIRST: Try to parse as-is. If it works, return unchanged.
+  try {
+    JSON.parse(cleanText);
+    return cleanText; // Valid JSON, return as-is
+  } catch (e) {
+    // JSON is malformed, apply fixes
+  }
+
+  // Apply advanced JSON repair for unescaped quotes (only on malformed JSON)
+  cleanText = repairJsonString(cleanText);
+
+  // Remove any trailing commas before closing braces/brackets
+  cleanText = cleanText.replace(/,(\s*[}\]])/g, "$1");
+
+  // Fix common JSON issues (only on malformed JSON)
+  cleanText = cleanText
+    .replace(/,\s*}/g, "}") // Remove trailing commas
+    .replace(/,\s*]/g, "]") // Remove trailing commas in arrays
+    .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":') // Quote unquoted keys
+    .replace(/:\s*([a-zA-Z][^",\[\]{}\n]*)([,}])/g, ':"$1"$2'); // Only quote string values (not numbers)
+
+  return cleanText;
+}
+
+/**
+ * Safe JSON parsing with multiple fallback strategies
+ */
+function safeJsonParse(jsonText) {
+  let parsed = null;
+
+  // 1: Direct parse
+  try {
+    parsed = JSON.parse(jsonText);
+    if (Array.isArray(parsed)) return parsed;
+  } catch (e) {}
+
+  // 2: Extract and repair JSON
+  try {
+    const extracted = extractJsonFromResponse(jsonText);
+    parsed = JSON.parse(extracted);
+    if (Array.isArray(parsed)) return parsed;
+  } catch (e) {}
+
+  // 3: Return empty array to prevent crashes
+  console.warn("All JSON parsing strategies failed, returning empty array");
+  return [];
+}
+
 /**
  * Batch translate a list of jobs in one API call
  * @param {Array} jobsBatch - max 20 currently
@@ -41,16 +157,17 @@ async function translateBatch(jobsBatch) {
   }));
 
   const prompt = `
-  You are a professional translator. 
-  Translate the "title" and "description" fields of the following jobs into English.
-  
-  Rules:
-  1. If the text is already English, keep it as is.
-  2. Return a STRICT JSON array of objects.
-  3. Each object must have: "id", "title", "description".
-  4. Do NOT include markdown formatting (like \`\`\`json). Just raw JSON.
+  You are a professional translator specializing in job descriptions.
+  Translate the "title" and "description" fields to English.
 
-  Input Data:
+  CRITICAL REQUIREMENTS:
+  - Return ONLY a valid JSON array
+  - No explanations, no markdown, no extra text
+  - Format: [{"id": 0, "title": "translated title", "description": "translated desc"}, ...]
+  - Ensure all strings are properly escaped
+  - No trailing commas
+
+  Input:
   ${JSON.stringify(inputForAi)}
   `;
 
@@ -58,18 +175,23 @@ async function translateBatch(jobsBatch) {
     const result = await ai.models.generateContent({
       model: process.env.GEMINI_MODEL_NAME,
       generationConfig: {
-        responseMimeType: "application/json", // Force JSON
+        responseMimeType: "application/json",
         temperature: 0.1,
       },
       contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
 
     const responseText = result.text;
-    const cleanJson = responseText
-      .replace(/```json/g, "")
-      .replace(/```/g, "")
-      .trim();
-    const translatedData = JSON.parse(cleanJson);
+    // console.log("=== RAW AI RESPONSE START ===");
+    // console.log(responseText);
+    // console.log("=== RAW AI RESPONSE END ===");
+    const cleanJson = extractJsonFromResponse(responseText);
+
+    const translatedData = safeJsonParse(cleanJson);
+
+    if (!Array.isArray(translatedData)) {
+      throw new Error("AI response could not be parsed as valid JSON array");
+    }
 
     // Map results back to original job objects
     return jobsBatch.map((originalJob, index) => {
@@ -150,7 +272,7 @@ async function processInParallel(items, concurrency, fn) {
  * Batch translate multiple jobs to English with concurrent processing
  */
 export async function pretranslateJobsToEnglish(jobs) {
-  // OPTIMIZATION: Reduced batch size to 10 for faster generation latency
+  // OPTIMIZATION: Reduced batch size to 3 to prevent token limit truncation
   // Increased concurrency to 5 to maintain throughput
   const BATCH_SIZE = 10;
   const CONCURRENCY = 5;
