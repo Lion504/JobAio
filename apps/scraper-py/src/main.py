@@ -243,7 +243,7 @@ def main():
         result = subprocess.run(
             node_cmd,
             text=True,
-            timeout=600,  # 10 minute timeout
+            timeout=10000,  # 10 minute timeout
             cwd=pretranslate_script.parent,
         )
 
