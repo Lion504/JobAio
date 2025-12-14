@@ -1,6 +1,5 @@
 import JobMarketInsights from '~/components/JobMarketInsights/JobMarketInsights'
 
-
 export function meta() {
   return [
     { title: 'Market Insights - JobAio' },
