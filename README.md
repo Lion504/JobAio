@@ -9,6 +9,20 @@
 
 **AI-Powered Job Search Platform** - Discover, analyze, and translate job opportunities with intelligent insights. JobAio combines web scraping, AI analysis, and multi-language support to provide the most comprehensive job search experience.
 
+## 📋 Table of Contents
+
+- [✨ Features](#-features)
+- [🏛️ Architecture Overview](#-architecture-overview)
+- [🚀 Quick Start](#-quick-start)
+- [🤝 Contributing](#-contributing)
+  - [🍴 Fork workflow](#fork-workflow-recommended)
+  - [🏗️ Project Architecture](#project-architecture)
+  - [⚙️ Development Workflow](#development-workflow)
+  - [📝 Pull Request Process](#pull-request-process)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [🐛 Troubleshooting](#-troubleshooting)
+- [📄 License](#-license)
+
 ## 📊 Screenshots & Demo
 
 ![alt text](image.png)
@@ -31,7 +45,6 @@
 
 - Automatic translation to multiple languages
 - Finnish job postings translated worldwide
-- i18n-ready web interface with React i18next
 
 ### 🎨 **Modern Web Experience**
 
@@ -94,58 +107,68 @@ cp .env.example .env
 # Configure your API keys and database settings
 # Edit .env with your credentials
 
-# Start development
-pnpm dev
-```
-
-## 🛠️ Development Workflow
-
-### Starting Development Services
-
-```bash
-# Start services
-pnpm dev:web      # React frontend only
-pnpm dev:api      # Node.js API only
-
-# Run job scraping pipeline
+# Start get jobs
 pnpm jobs
+
+# Start services
+pnpm dev
+
+# Open browser
+[JobAio(default)](http://localhost:5173)
 ```
 
-### Testing
+## 🤝 Contributing
 
-```bash
-# Run all tests
-pnpm test
+JobAio is an open source project and we welcome contributions from everyone! All contributions must go through the fork-and-pull-request workflow.
 
-# Run specific test suites
-pnpm test:ai      # AI package tests
-pnpm test:py      # Python scraper tests
-```
+### Fork workflow (Recommended)
 
-### Code Quality
+1. **Fork the repository**  
+   Click the "Fork" button at the top right of this page to create your own copy.
 
-```bash
-# Linting
-pnpm lint         # Check all packages
-pnpm lint:web     # Frontend only
-pnpm lint:api     # API only
+2. **Clone your fork**
 
-# Auto-fix linting issues
-pnpm lint:fix
+   ```
+   git clone https://github.com/YOUR_USERNAME/JobAio.git
+   cd JobAio
+   ```
 
-# Code formatting
-pnpm format       # Format all code
-pnpm format:check # Check formatting only
-```
+3. **Add upstream remote** (to sync with the original repo)
 
-### Building & Deployment
+   ```
+   git remote add upstream https://github.com/Lion504/JobAio.git
+   ```
 
-```bash
-# Clean all node_modules and build artifacts
-pnpm clean
-```
+4. **Create a feature branch**
 
-## 📁 Project Structure
+   ```
+   git checkout -b feature/your-feature
+   ```
+
+5. **Set up development environment**  
+   Follow the Quick Start section above to install dependencies and configure your environment.
+
+6. **Make your changes**
+   - Write clean, well-documented code
+   - Follow the project's code style
+
+7. **Commit your changes**  
+   Use conventional commits (see Commit Conventions below)
+8. **Push to your fork**
+
+   ```
+   git push origin feature/your-feature
+   ```
+
+9. **Open a Pull Request**
+   - Go to your fork on GitHub
+   - Click "Compare & pull request"
+   - Fill out the PR template with a clear title and description
+   - Link any related issues
+
+### Project Architecture
+
+#### Project Structure
 
 ```
 JobAio/
@@ -162,9 +185,9 @@ JobAio/
 └── [config files]                 # Monorepo configuration
 ```
 
-## 📡 API Documentation
+#### API Documentation
 
-### Job Endpoints
+**Job Endpoints**
 
 ```bash
 # Get jobs
@@ -178,30 +201,89 @@ GET /api/jobs/:id?lang=fi
 
 # Fast autocomplete suggestions
 GET /api/jobs/suggestions?q=searchTerm&limit=10&lang=fi
-
 ```
 
-## 🤝 Contributing
+## Pull Request Process
 
-We welcome contributions!
-
-### Development Setup
-
-1. **Clone the repository**
-2. **Create a feature branch:** `git checkout -b feature/your-feature`
-3. **Set up development environment** (see Quick Start above)
-4. **Make your changes**
-5. **Code Quality:** Run `pnpm lint:fix && pnpm format` before committing
-6. **Testing:** Run `pnpm test` to ensure everything works
-7. **PR write in standard way** (clear title, description, link issues)
-
-### Pull Request Process
+**Note**: All PRs require approval before merging.
 
 1. Update documentation for any new features
 2. Add tests for new functionality
 3. Ensure all tests pass
 4. Update CHANGELOG.md if needed
 5. Submit PR with detailed description
+
+## 🔄 Keeping Your Fork Updated
+
+If you're working on a long-term feature, sync your fork regularly:
+
+```
+# Fetch changes from upstream
+git fetch upstream
+
+# Switch to your main branch
+git checkout main
+
+# Merge upstream changes
+git merge upstream/main
+
+# Push updates to your fork
+git push origin main
+```
+
+## ⏱️ Review Timeline
+
+- PRs are typically reviewed within 2-3 days
+- Complex features may take longer
+- Feel free to ping @Lion504 if your PR hasn't been reviewed after a week
+
+### Development Workflow
+
+Once your development environment is set up, use these commands during development:
+
+#### Starting Development Services
+
+```bash
+# Start services
+pnpm dev
+
+# Run job scraping pipeline
+pnpm jobs
+```
+
+#### Testing
+
+```bash
+# Run all tests
+pnpm test
+
+# Run specific test suites
+pnpm test:ai      # AI package tests
+pnpm test:py      # Python scraper tests
+```
+
+#### Code Quality
+
+```bash
+# Linting
+pnpm lint         # Check all packages
+pnpm lint:web     # Frontend only
+pnpm lint:api     # API only
+
+# Auto-fix linting issues
+pnpm lint:fix
+
+# Code formatting
+pnpm format       # Format all code
+pnpm format:check # Check formatting only
+```
+
+#### Building & Deployment
+
+```bash
+# Clean all node_modules and build artifacts
+pnpm clean
+```
 
 ### Commit Conventions
 
