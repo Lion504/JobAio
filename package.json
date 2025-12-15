@@ -26,15 +26,7 @@
     "format:check": "cd apps/web && bun run format:check && cd ../api && bun run format:check && cd ../scraper-py && node python-tools.js format:check",
     "clean": "npx del-cli \"apps/*/node_modules\" \"packages/*/node_modules\" \"apps/scraper-py/venv\" node_modules dist .next .turbo \"bun-debug.log*\" \"apps/scraper-py/logs/*\" \"packages/db/data/translated/*\" && bun pm cache rm"
   },
-  "dependencies": {
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "franc": "^6.2.0",
-    "mongoose": "^8.19.4",
-    "mongoose-sequence": "^6.0.1",
-    "node-cron": "^4.2.1",
-    "node-fetch": "^3.3.2"
-  },
+  "dependencies": {},
   "devDependencies": {
     "concurrently": "^9.2.1",
     "cross-env": "^7.0.3",
