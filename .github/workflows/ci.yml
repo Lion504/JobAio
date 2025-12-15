@@ -13,7 +13,7 @@ jobs:
       # Bun setup
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.1.45"
+          bun-version: "1.3.4"
 
       # Node.js setup (still needed for some tools)
       - uses: actions/setup-node@v4
