@@ -1,29 +1,33 @@
 name: CI
 
 on:
-  # try to run on all branches
   push:
-    # branches: [ main, master, feature/ci-cd-setup ]
   pull_request:
-    # branches: [ main, master, feature/ci-cd-setup ]
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # JavaScript/Node.js setup
-      - uses: pnpm/action-setup@v4
+
+      # Bun setup
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.1.45"
+
+      # Node.js setup (still needed for some tools)
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
-      # python setup
+          cache: "bun"
+
+      # Python setup
       - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
       - run: pip install flake8 black isort
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-      - run: pnpm format:check
+      # Bun commands
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - run: bun lint
+      - run: bun format:check
