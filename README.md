@@ -25,7 +25,7 @@
 
 ## 📊 Screenshots & Demo
 
-![alt text](image.png)
+![alt text](img\image.png)
 
 ## ✨ Features
 
@@ -149,6 +149,7 @@ JobAio is an open source project and we welcome contributions from everyone! All
    Follow the Quick Start section above to install dependencies and configure your environment.
 
 6. **Make your changes**
+
    - Write clean, well-documented code
    - Follow the project's code style
 
