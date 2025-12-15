@@ -18,8 +18,8 @@
     "jest-environment-node": "^30.2.0"
   },
   "scripts": {
-    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest --config ../../jest.config.js --testPathPattern=packages/ai",
-    "test:watch": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest --config ../../jest.config.js --testPathPattern=packages/ai --watch",
+    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest --config ../../jest.config.js --testPathPatterns=packages/ai",
+    "test:watch": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest --config ../../jest.config.js --testPathPatterns=packages/ai --watch",
     "translate": "node src/translator.js"
   }
 }
