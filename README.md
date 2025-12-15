@@ -260,11 +260,11 @@ bun run jobs
 
 ```bash
 # Run all tests
-bun test
+bun run test
 
 # Run specific test suites
-bun test:ai       # AI package tests
-bun test:py       # Python scraper tests
+bun run test:ai       # AI package tests
+bun run test:py       # Python scraper tests
 ```
 
 #### Code Quality
