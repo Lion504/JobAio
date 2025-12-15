@@ -12,7 +12,7 @@
     "dev": "concurrently \"bun run dev:api\" \"bun run dev:web\"",
     "dev:web": "cd apps/web && bun run dev",
     "dev:api": "cd apps/api && bun run dev",
-    "jobs": "cd apps/scraper-py && call venv\\Scripts\\python.exe src/main.py",
+    "jobs": "cd apps/scraper-py && node python-tools.js run",
     "build": "echo 'Add build script later'",
     "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:ai": "cd packages/ai && bun run test",

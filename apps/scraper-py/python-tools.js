@@ -74,8 +74,13 @@ switch (command) {
     );
     break;
 
+  case "run":
+    console.log("Running Python scraper...");
+    runCommand(`"${pythonPath}" src/main.py`, "Python scraper execution");
+    break;
+
   default:
     console.log("Usage: node python-tools.js <command>");
-    console.log("Commands: setup, lint, lint:fix, format, format:check");
+    console.log("Commands: setup, lint, lint:fix, format, format:check, run");
     process.exit(1);
 }
