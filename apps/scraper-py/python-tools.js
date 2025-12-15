@@ -5,10 +5,15 @@ const path = require("path");
 
 const isWindows =
   process.platform === "win32" || process.env.OS === "Windows_NT";
+const isCI = process.env.CI === "true";
 const pythonCmd = isWindows ? "python.exe" : "python3";
 const venvDir = "venv";
 const scriptsDir = isWindows ? "Scripts" : "bin";
-const pythonPath = path.join(venvDir, scriptsDir, pythonCmd);
+
+// Use system Python in CI, venv Python locally
+const pythonPath = isCI
+  ? pythonCmd // System Python in CI
+  : path.join(venvDir, scriptsDir, pythonCmd); // Venv Python locally
 
 const command = process.argv[2];
 
