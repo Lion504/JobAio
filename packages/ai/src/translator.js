@@ -15,6 +15,13 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 //export const TARGET_LANGUAGES = ["es", "fr", "pt", "de", "ur", "ta", "zh"];
 export const TARGET_LANGUAGES = ["es", "zh"];
 
+// Helper function for conditional logging (suppress logs during tests)
+const log = (message) => {
+  if (process.env.NODE_ENV !== "test") {
+    console.log(message);
+  }
+};
+
 // Batch processing configuration
 const BATCH_SIZE = 10; // 10 jobs per API call (Unified mode)
 const CONCURRENCY = 5; // 5 batches in parallel
@@ -73,7 +80,7 @@ async function processInParallel(items, concurrency, taskFn) {
 async function translateBatchForLanguageUnified(
   jobs,
   targetLang,
-  retries = MAX_RETRIES,
+  retries = MAX_RETRIES
 ) {
   // Minimal input for token efficiency
   const inputForAi = jobs.map((job, idx) => ({
@@ -145,7 +152,7 @@ async function translateBatchForLanguageUnified(
       return translateBatchForLanguageUnified(jobs, targetLang, retries - 1);
     }
     console.error(
-      `  ❌ Batch translation to '${targetLang}' failed: ${err.message}`,
+      `  ❌ Batch translation to '${targetLang}' failed: ${err.message}`
     );
     return null;
   }
@@ -215,13 +222,13 @@ async function outputAllTranslations(allResults, stats) {
  */
 export async function runTranslation() {
   await mongoose.connect(
-    process.env.MONGODB_URI || "mongodb://localhost:27017/jobaio",
+    process.env.MONGODB_URI || "mongodb://localhost:27017/jobaio"
   );
-  console.log("Connected to MongoDB");
+  log("Connected to MongoDB");
   const startTime = Date.now();
-  console.log("Starting translation pipeline (Unified Concurrent Mode)...\n");
-  console.log(
-    `Configuration: BATCH_SIZE=${BATCH_SIZE}, CONCURRENCY=${CONCURRENCY}, LANGUAGES=${TARGET_LANGUAGES.length}`,
+  log("Starting translation pipeline (Unified Concurrent Mode)...\n");
+  log(
+    `Configuration: BATCH_SIZE=${BATCH_SIZE}, CONCURRENCY=${CONCURRENCY}, LANGUAGES=${TARGET_LANGUAGES.length}`
   );
 
   // Ensure translated data directory exists
@@ -230,10 +237,10 @@ export async function runTranslation() {
   // Get all jobs from DB for translation
   // Increase limit if needed, 1000 currently
   const jobs = await OriginalJob.find({}).limit(1000);
-  console.log(`Loaded ${jobs.length} jobs for translation`);
+  log(`Loaded ${jobs.length} jobs for translation`);
 
   if (jobs.length === 0) {
-    console.log("No untranslated jobs found. Exiting.");
+    log("No untranslated jobs found. Exiting.");
     return { success: 0, errors: 0, total: 0 };
   }
 
@@ -248,9 +255,7 @@ export async function runTranslation() {
     });
   }
 
-  console.log(
-    `Created ${batches.length} batches. Starting parallel execution...`,
-  );
+  log(`Created ${batches.length} batches. Starting parallel execution...`);
 
   // Progress tracking
   const progress = {
@@ -264,8 +269,8 @@ export async function runTranslation() {
     batches,
     CONCURRENCY,
     async (batch) => {
-      console.log(
-        `▶️ [Batch ${batch.index}/${batch.total}] Starting translation for ${batch.jobs.length} jobs...`,
+      log(
+        `▶️ [Batch ${batch.index}/${batch.total}] Starting translation for ${batch.jobs.length} jobs...`
       );
       try {
         const results = await processBatchUnified(batch);
@@ -275,18 +280,18 @@ export async function runTranslation() {
         progress.successCount += succ;
         progress.errorCount += batch.jobs.length - succ; // Approximate error count (if translations missing)
 
-        console.log(
-          `✅ [Batch ${batch.index}/${batch.total}] Completed. (${succ}/${batch.jobs.length} jobs success)`,
+        log(
+          `✅ [Batch ${batch.index}/${batch.total}] Completed. (${succ}/${batch.jobs.length} jobs success)`
         );
         return results;
       } catch (e) {
         console.error(
-          `❌ [Batch ${batch.index}/${batch.total}] Failed completely: ${e.message}`,
+          `❌ [Batch ${batch.index}/${batch.total}] Failed completely: ${e.message}`
         );
         progress.errorCount += batch.jobs.length;
         return [];
       }
-    },
+    }
   );
 
   // Flatten results
@@ -295,9 +300,7 @@ export async function runTranslation() {
   // Output all results to single file
   const outputFile = await outputAllTranslations(allResults, progress);
 
-  console.log(
-    ` Saved ${progress.successCount} translated jobs to: ${outputFile}`,
-  );
+  log(` Saved ${progress.successCount} translated jobs to: ${outputFile}`);
 
   return {
     success: progress.successCount,
