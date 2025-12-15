@@ -2,6 +2,7 @@
   "name": "jobaio",
   "private": true,
   "license": "MIT",
+  "type": "module",
   "packageManager": "bun@1.1.45",
   "workspaces": [
     "apps/*",
@@ -24,13 +25,13 @@
     "lint:py:fix": "cd apps/scraper-py && bun run lint:fix",
     "format": "cd apps/web && bun run format && cd ../api && bun run format && cd ../scraper-py && node python-tools.js format",
     "format:check": "cd apps/web && bun run format:check && cd ../api && bun run format:check && cd ../scraper-py && node python-tools.js format:check",
-    "clean": "npx del-cli \"apps/*/node_modules\" \"packages/*/node_modules\" \"apps/scraper-py/venv\" node_modules dist .next .turbo \"bun-debug.log*\" \"apps/scraper-py/logs/*\" \"packages/db/data/translated/*\" && bun pm cache rm"
+    "clean": "node clean.js && bun pm cache rm"
   },
   "dependencies": {},
   "devDependencies": {
     "concurrently": "^9.2.1",
-    "cross-env": "^7.0.3",
-    "jest": "^29.7.0",
+    "cross-env": "^10.1.0",
+    "jest": "^30.2.0",
     "supertest": "^7.1.4"
   }
 }
