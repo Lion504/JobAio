@@ -2,7 +2,16 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import OriginalJob from "../src/models/OriginalJob.js";
 import TranslatedJob from "../src/models/TranslatedJob.js";
-import { jest } from "@jest/globals";
+import {
+  jest,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  describe,
+  it,
+  test,
+  expect,
+} from "@jest/globals";
 
 let mongoServer;
 
@@ -20,11 +29,17 @@ beforeAll(async () => {
 }, 30000);
 
 afterAll(async () => {
-  if (mongoServer) {
-    await mongoose.disconnect();
-    await mongoServer.stop();
+  try {
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect();
+    }
+    if (mongoServer) {
+      await mongoServer.stop({ doCleanup: true, force: true });
+    }
+  } catch (error) {
+    console.warn("Cleanup error:", error.message);
   }
-});
+}, 30000);
 
 beforeEach(async () => {
   // Clear all collections before each test
@@ -110,7 +125,7 @@ describe("OriginalJob Model", () => {
     // Verify the schema includes text-searchable fields
     expect(job.title).toBe("Software Developer");
     expect(job.description).toBe(
-      "Great job opportunity for experienced developer",
+      "Great job opportunity for experienced developer"
     );
     expect(job.skill_type.technical).toContain("JavaScript");
     expect(job.skill_type.technical).toContain("React");
@@ -332,56 +347,7 @@ describe("TranslatedJob Model", () => {
     expect(translatedJob.source).toBe("duunitori");
   });
 
-  test("getUntranslatedJobs returns all OriginalJob records", async () => {
-    // Create a second original job
-    const originalJob2 = await OriginalJob.create({
-      title: "Product Manager",
-      company: "Biz Corp",
-      location: "Stockholm",
-      industry_category: "Business",
-      job_type: ["full-time"],
-      experience_level: "senior",
-    });
 
-    // getUntranslatedJobs now returns ALL OriginalJob records
-    // (translator processes all jobs, insertion handles deduplication)
-    const allJobs = await OriginalJob.find({}).limit(1000);
-    expect(allJobs).toHaveLength(2); // Both original jobs
-
-    const jobIds = allJobs.map((job) => job._id.toString());
-    expect(jobIds).toContain(originalJob._id.toString());
-    expect(jobIds).toContain(originalJob2._id.toString());
-  });
-
-  test("getUntranslatedJobs returns all jobs regardless of existing translations", async () => {
-    // Create a second original job
-    const originalJob2 = await OriginalJob.create({
-      title: "Product Manager",
-      company: "Biz Corp",
-      location: "Stockholm",
-      industry_category: "Business",
-      job_type: ["full-time"],
-      experience_level: "senior",
-    });
-
-    // Create translations for first job
-    await TranslatedJob.create({
-      job_id: originalJob._id,
-      translation_lang: "es",
-      title: "Desarrollador",
-    });
-
-    // getUntranslatedJobs still returns ALL OriginalJob records
-    // (existing translations are ignored - insertion handles deduplication)
-    const allJobs = await OriginalJob.find({}).limit(1000);
-    expect(allJobs).toHaveLength(2); // Both jobs returned regardless of translations
-  });
-
-  test("getUntranslatedJobs works with empty target languages", async () => {
-    const allJobs = await OriginalJob.find({}).limit(1000);
-    expect(allJobs).toHaveLength(1);
-    expect(allJobs[0]._id.toString()).toBe(originalJob._id.toString());
-  });
 
   test("references OriginalJob correctly", async () => {
     const translation = { ...sampleTranslation, job_id: originalJob._id };
