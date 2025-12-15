@@ -27,6 +27,12 @@ jobs:
       - run: pip install flake8 black isort
 
       # Bun commands
-      - run: bun install --frozen-lockfile --ignore-scripts
+      - run: |
+          bun install --frozen-lockfile --ignore-scripts || (
+            echo "Lockfile mismatch detected! Showing diff:"
+            bun install --ignore-scripts
+            git diff bun.lock
+            exit 1
+          )
       - run: bun lint
       - run: bun format:check
