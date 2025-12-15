@@ -5,7 +5,7 @@
  * with the actual running API server. Make sure the API server is running
  * on port 5001 before running these tests.
  *
- * Run with: pnpm test -- apps/api/tests/integration.test.js
+ * Run with: bun test -- apps/api/tests/integration.test.js
  */
 
 const API_BASE = "http://localhost:5001/api/jobs";

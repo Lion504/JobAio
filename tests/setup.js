@@ -2,9 +2,10 @@
  * Jest Global Setup for JobAio
  * This file runs before all test files
  *
- * Note: This file uses CommonJS-style globals because setupFilesAfterEnv
- * runs in Jest's environment where `jest` is available globally.
+ * Note: In ES module environment, we need to import Jest globals explicitly.
  */
+
+import { jest, beforeAll, afterAll } from "@jest/globals";
 
 // ============================================
 // Console Suppression

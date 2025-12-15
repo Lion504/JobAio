@@ -43,7 +43,7 @@ class AIAnalyzer:
                 cmd,
                 input=payload,
                 capture_output=True,
-                timeout=60,
+                timeout=120,
                 cwd=os.path.dirname(self.ai_script),
                 text=True,
                 encoding="utf-8",

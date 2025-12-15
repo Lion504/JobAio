@@ -2,7 +2,7 @@
 
 [![Node.js Version](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
 [![Python Version](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org/)
-[![pnpm](https://img.shields.io/badge/pnpm-9.15.3-orange.svg)](https://pnpm.io/)
+[![Bun](https://img.shields.io/badge/Bun-1.1.45-FFDF37.svg)](https://bun.sh/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/Lion504/JobAio.svg)](https://github.com/Lion504/JobAio/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/Lion504/JobAio.svg)](https://github.com/Lion504/JobAio/stargazers)
@@ -25,7 +25,7 @@
 
 ## 📊 Screenshots & Demo
 
-![alt text](image.png)
+![alt text](img\image.png)
 
 ## ✨ Features
 
@@ -55,7 +55,7 @@
 
 ### 🏗️ **Scalable Architecture**
 
-- Monorepo structure with pnpm workspaces
+- Monorepo structure with Bun workspaces
 - Microservices architecture (Web + API + Scraper)
 - MongoDB for flexible data storage
 - RESTful API with comprehensive endpoints
@@ -86,7 +86,7 @@
 
 **Modern Development Environment:**
 
-- **Node.js 18+** (with npm/pnpm)
+- **Node.js 18+** (with npm/bun)
 - **Python 3.11+**
 - **Git**
 - **MongoDB** (local or cloud)
@@ -99,7 +99,7 @@ git clone https://github.com/Lion504/JobAio
 cd JobAio
 
 # Install all dependencies (handles Python venv automatically)
-pnpm install
+bun install
 
 # Copy environment configuration
 cp .env.example .env
@@ -107,11 +107,11 @@ cp .env.example .env
 # Configure your API keys and database settings
 # Edit .env with your credentials
 
-# Start get jobs
-pnpm jobs
+# Start job scraping pipeline
+bun run jobs
 
-# Start services
-pnpm dev
+# Start all services (frontend + backend)
+bun dev
 
 # Open browser
 [JobAio(default)](http://localhost:5173)
@@ -149,6 +149,7 @@ JobAio is an open source project and we welcome contributions from everyone! All
    Follow the Quick Start section above to install dependencies and configure your environment.
 
 6. **Make your changes**
+
    - Write clean, well-documented code
    - Follow the project's code style
 
@@ -244,45 +245,49 @@ Once your development environment is set up, use these commands during developme
 #### Starting Development Services
 
 ```bash
-# Start services
-pnpm dev
+# Start all services (frontend + backend)
+bun dev
+
+# Start specific services
+bun dev:web       # Frontend only
+bun dev:api       # Backend only
 
 # Run job scraping pipeline
-pnpm jobs
+bun run jobs
 ```
 
 #### Testing
 
 ```bash
 # Run all tests
-pnpm test
+bun run test
 
 # Run specific test suites
-pnpm test:ai      # AI package tests
-pnpm test:py      # Python scraper tests
+bun run test:ai       # AI package tests
+bun run test:py       # Python scraper tests
 ```
 
 #### Code Quality
 
 ```bash
 # Linting
-pnpm lint         # Check all packages
-pnpm lint:web     # Frontend only
-pnpm lint:api     # API only
+bun lint          # Check all packages
+bun lint:web      # Frontend only
+bun lint:api      # Backend only
 
 # Auto-fix linting issues
-pnpm lint:fix
+bun lint:fix
 
 # Code formatting
-pnpm format       # Format all code
-pnpm format:check # Check formatting only
+bun format        # Format all code
+bun format:check  # Check formatting only
 ```
 
 #### Building & Deployment
 
 ```bash
 # Clean all node_modules and build artifacts
-pnpm clean
+bun clean
 ```
 
 ### Commit Conventions
@@ -325,7 +330,7 @@ pnpm clean
 
 ### DevOps & Tools
 
-- **pnpm** workspaces for monorepo
+- **Bun** workspaces for monorepo
 - **Docker** for containerization
 - **Jest** for testing
 - **ESLint + Prettier** for code quality

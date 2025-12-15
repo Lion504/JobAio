@@ -3,3 +3,4 @@
 *.json text eol=lf
 *.js text eol=lf
 *.ts text eol=lf
+bun.lock text eol=lf
