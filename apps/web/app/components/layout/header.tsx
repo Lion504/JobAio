@@ -196,7 +196,11 @@ export function Header({ children }: { children?: React.ReactNode }) {
   )
 
   useEffect(() => {
-    if (isSyncingFromUrl.current || !filtersInitialized.current) {
+    if (
+      isSyncingFromUrl.current ||
+      !filtersInitialized.current ||
+      !showSearch
+    ) {
       return
     }
 
@@ -207,7 +211,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
     }, 150)
 
     return () => clearTimeout(timeout)
-  }, [filters, currentSearch, navigate, buildNavigationParams])
+  }, [filters, currentSearch, navigate, buildNavigationParams, showSearch])
 
   useEffect(() => {
     if (open) {

@@ -1,6 +1,14 @@
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
-import { jest } from "@jest/globals";
+import {
+  jest,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  describe,
+  test,
+  expect,
+} from "@jest/globals";
 import OriginalJob from "../../db/src/models/OriginalJob.js";
 import { rankedJobSearch, findAllJobs } from "../src/adapter.js";
 
@@ -13,9 +21,17 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await mongoose.disconnect();
-  await mongoServer.stop();
-});
+  try {
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect();
+    }
+    if (mongoServer) {
+      await mongoServer.stop({ doCleanup: true, force: true });
+    }
+  } catch (error) {
+    console.warn("Cleanup error:", error.message);
+  }
+}, 30000);
 
 beforeEach(async () => {
   // Clear all collections before each test
@@ -104,23 +120,27 @@ describe("Search Adapter", () => {
       const results = await rankedJobSearch("", { location: "Helsinki" });
 
       expect(results).toBeDefined();
-      expect(results.every((job) => job.location === "Helsinki")).toBe(true);
+      expect(results.jobs.every((job) => job.location === "Helsinki")).toBe(
+        true
+      );
     });
 
     test("applies job type filter", async () => {
       const results = await rankedJobSearch("", { job_type: "full-time" });
 
       expect(results).toBeDefined();
-      expect(results.every((job) => job.job_type.includes("full-time"))).toBe(
-        true,
-      );
+      expect(
+        results.jobs.every((job) => job.job_type.includes("full-time"))
+      ).toBe(true);
     });
 
     test("applies experience level filter", async () => {
       const results = await rankedJobSearch("", { experience_level: "mid" });
 
       expect(results).toBeDefined();
-      expect(results.every((job) => job.experience_level === "mid")).toBe(true);
+      expect(results.jobs.every((job) => job.experience_level === "mid")).toBe(
+        true
+      );
     });
 
     test("applies industry category filter", async () => {
@@ -130,7 +150,7 @@ describe("Search Adapter", () => {
 
       expect(results).toBeDefined();
       expect(
-        results.every((job) => job.industry_category === "Technology"),
+        results.jobs.every((job) => job.industry_category === "Technology")
       ).toBe(true);
     });
 
@@ -164,7 +184,7 @@ describe("Search Adapter", () => {
 
       expect(results).toBeDefined();
       expect(
-        results.some((job) => job.language?.required?.includes("English")),
+        results.jobs.some((job) => job.language?.required?.includes("English"))
       ).toBe(true);
     });
 
@@ -177,12 +197,12 @@ describe("Search Adapter", () => {
 
       expect(results).toBeDefined();
       expect(
-        results.every(
+        results.jobs.every(
           (job) =>
             job.location === "Helsinki" &&
             job.experience_level === "mid" &&
-            job.industry_category === "Technology",
-        ),
+            job.industry_category === "Technology"
+        )
       ).toBe(true);
     });
 
@@ -191,14 +211,14 @@ describe("Search Adapter", () => {
         location: "NonExistentCity",
       });
 
-      expect(results).toEqual([]);
+      expect(results.jobs).toEqual([]);
     });
 
     test("returns all jobs when no search term or filters", async () => {
       const results = await rankedJobSearch("", {});
 
       expect(results).toBeDefined();
-      expect(results.length).toBeGreaterThanOrEqual(sampleJobs.length);
+      expect(results.jobs.length).toBeGreaterThanOrEqual(sampleJobs.length);
     });
 
     test("returns results when searching with filters", async () => {
@@ -207,10 +227,10 @@ describe("Search Adapter", () => {
       });
 
       expect(results).toBeDefined();
-      expect(results.length).toBeGreaterThan(0);
+      expect(results.jobs.length).toBeGreaterThan(0);
       // Should find Technology jobs
       expect(
-        results.every((job) => job.industry_category === "Technology"),
+        results.jobs.every((job) => job.industry_category === "Technology")
       ).toBe(true);
     });
 
@@ -218,11 +238,13 @@ describe("Search Adapter", () => {
       const results = await rankedJobSearch("", {});
 
       expect(results).toBeDefined();
-      expect(results.length).toBeGreaterThan(0);
+      expect(results.jobs.length).toBeGreaterThan(0);
       // Should be sorted by createdAt descending (newest first)
-      for (let i = 1; i < results.length; i++) {
-        expect(new Date(results[i].createdAt).getTime()).toBeLessThanOrEqual(
-          new Date(results[i - 1].createdAt).getTime(),
+      for (let i = 1; i < results.jobs.length; i++) {
+        expect(
+          new Date(results.jobs[i].createdAt).getTime()
+        ).toBeLessThanOrEqual(
+          new Date(results.jobs[i - 1].createdAt).getTime()
         );
       }
     });
@@ -239,7 +261,7 @@ describe("Search Adapter", () => {
       // Should be sorted by createdAt descending
       for (let i = 1; i < results.length; i++) {
         expect(new Date(results[i].createdAt).getTime()).toBeLessThanOrEqual(
-          new Date(results[i - 1].createdAt).getTime(),
+          new Date(results[i - 1].createdAt).getTime()
         );
       }
     });
@@ -267,7 +289,7 @@ describe("Search Adapter", () => {
       );
       const mockFn = jest.spyOn(
         { expandQueryWithSynonyms },
-        "expandQueryWithSynonyms",
+        "expandQueryWithSynonyms"
       );
       mockFn.mockRejectedValue(new Error("API Error"));
 
@@ -275,10 +297,9 @@ describe("Search Adapter", () => {
       const results = await rankedJobSearch("", {
         industry_category: "Technology",
       });
-
       expect(results).toBeDefined();
-      expect(Array.isArray(results)).toBe(true);
-      expect(results.length).toBeGreaterThan(0);
+      expect(Array.isArray(results.jobs)).toBe(true);
+      expect(results.jobs.length).toBeGreaterThan(0);
     });
   });
 });

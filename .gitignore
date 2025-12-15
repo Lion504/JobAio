@@ -87,7 +87,7 @@ packages/db/prisma/schema.prisma.example
 apps/scraper-py/tests/test_output/
 packages/db/data/pipeline_results_*.json
 packages/db/data/translated/translated_batch_*.json
-apps/process-map/
+
 
 # MCP history
 .git-mcp-history/

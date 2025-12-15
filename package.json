@@ -1,43 +1,37 @@
 {
   "name": "jobaio",
   "private": true,
-  "packageManager": "pnpm@9.15.3",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "bun@1.1.45",
   "workspaces": [
-    "packages/*",
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
-    "dev": "pnpm --filter @jobaio/web dev",
-    "dev:web": "pnpm --filter @jobaio/web dev",
-    "dev:api": "pnpm --filter @jobaio/api dev",
-    "dev:scraper": "pnpm --filter @jobaio/scraper-py run run",
-    "jobs": "cd apps/scraper-py && call venv\\Scripts\\python.exe src/main.py",
+    "dev": "concurrently \"bun run dev:api\" \"bun run dev:web\"",
+    "dev:web": "cd apps/web && bun run dev",
+    "dev:api": "cd apps/api && bun run dev",
+    "jobs": "cd apps/scraper-py && node python-tools.js run",
     "build": "echo 'Add build script later'",
     "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest",
-    "test:ai": "pnpm --filter @jobaio/ai test",
+    "test:ai": "cd packages/ai && bun run test",
     "test:py": "cd apps/scraper-py && call venv\\Scripts\\python.exe -m pytest",
-    "lint:web": "pnpm --filter @jobaio/web lint",
-    "lint:api": "pnpm --filter @jobaio/api lint",
-    "lint": "pnpm --parallel lint",
-    "lint:fix": "pnpm --parallel lint:fix",
-    "format": "pnpm --parallel format",
-    "format:check": "pnpm --parallel format:check",
-    "clean": "npx del-cli \"apps/*/node_modules\" \"packages/*/node_modules\" node_modules dist .next"
+    "lint:web": "cd apps/web && bun run lint",
+    "lint:api": "cd apps/api && bun run lint",
+    "lint:py": "cd apps/scraper-py && bun run lint",
+    "lint": "bun run lint:web && bun run lint:api && bun run lint:py",
+    "lint:fix": "bun run lint:web -- --fix && bun run lint:api -- --fix && bun run lint:py:fix",
+    "lint:py:fix": "cd apps/scraper-py && bun run lint:fix",
+    "format": "cd apps/web && bun run format && cd ../api && bun run format && cd ../scraper-py && node python-tools.js format",
+    "format:check": "cd apps/web && bun run format:check && cd ../api && bun run format:check && cd ../scraper-py && node python-tools.js format:check",
+    "clean": "node clean.js && bun pm cache rm"
   },
-  "dependencies": {
-    "@huggingface/inference": "^4.13.3",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "franc": "^6.2.0",
-    "mongoose": "^8.19.4",
-    "mongoose-sequence": "^6.0.1",
-    "node-cron": "^4.2.1",
-    "node-fetch": "^3.3.2"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "cross-env": "^7.0.3",
-    "jest": "^29.7.0",
-    "mongodb-memory-server": "^10.4.1",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "jest": "^30.2.0",
     "supertest": "^7.1.4"
   }
 }

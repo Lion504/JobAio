@@ -8,9 +8,15 @@ import { expandSearchQuery } from "../../ai/src/embeddings.js";
  * @param {string} terms - Search terms
  * @param {Object} filters - Filter criteria
  * @param {boolean} useAI - Whether to expand query with Gemini (default: false)
+ * @param {number} limit - Maximum number of results (default: 0 = no limit)
  * @returns {Promise<{jobs: Array, expandedSearchTerm: string|null}>} Jobs and expanded search term
  */
-export async function rankedJobSearch(terms, filters = {}, useAI = false) {
+export async function rankedJobSearch(
+  terms,
+  filters = {},
+  useAI = false,
+  limit = 0,
+) {
   // Only expand query with AI when explicitly requested
   let searchTerms = terms;
   let expandedSearchTerm = null;
@@ -104,6 +110,12 @@ export async function rankedJobSearch(terms, filters = {}, useAI = false) {
   pipeline.push({
     $sort: sortCriteria,
   });
+
+  if (limit > 0) {
+    pipeline.push({
+      $limit: limit,
+    });
+  }
 
   const jobs = await OriginalJob.aggregate(pipeline);
   return { jobs, expandedSearchTerm };

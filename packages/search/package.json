@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "type": "module",
   "private": true,
+  "license": "MIT",
   "main": "src/adapter.js",
   "dependencies": {
     "@jobaio/db": "workspace:*",
     "@jobaio/shared": "workspace:*",
-    "@jobaio/ai": "workspace:*"
+    "@jobaio/ai": "workspace:*",
+    "mongoose": "^8.19.4",
+    "mongodb-memory-server": "10.4.1"
   }
 }

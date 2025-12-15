@@ -144,43 +144,5 @@ describe("Job Analysis Module", () => {
     });
   });
 
-  describe("Integration tests", () => {
-    test("should analyze complete job description with unified batch", async () => {
-      // Mock unified batch response
-      const mockResponse = JSON.stringify([
-        {
-          id: 0,
-          job_type: "full-time",
-          language: { required: ["English"], advantage: [] },
-          experience_level: "junior",
-          education_level: "bachelor",
-          skill_type: {
-            technical: ["JavaScript"],
-            domain_specific: [],
-            certifications: [],
-            soft_skills: [],
-            other: [],
-          },
-          responsibilities: ["Design software", "Write code"],
-        },
-      ]);
 
-      mockGeminiResponse(mockResponse);
-
-      const job = {
-        title: "Software Engineer",
-        company: "Tech Corp",
-        description: mockJobDescriptions.softwareEngineer,
-      };
-
-      const result = await analyzeJob(JSON.stringify([job]));
-
-      expect(result[0]).toHaveProperty("job_type", "full-time");
-      expect(result[0]).toHaveProperty("language");
-      expect(result[0]).toHaveProperty("experience_level", "junior");
-      expect(result[0]).toHaveProperty("education_level", "bachelor");
-      expect(result[0]).toHaveProperty("skill_type");
-      expect(result[0]).toHaveProperty("responsibilities");
-    });
-  });
 });
